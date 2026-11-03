@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+target/
+uploads/
+.idea/
+.DS_Store
+.env
