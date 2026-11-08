@@ -178,7 +178,7 @@ cd backend && mvn test
 The screens follow the team's Figma Make design ("carry."):
 
 - **Colors:** dark green `#17231D` and lime `#C7FF2D` on an off-white page `#F6F7F1`. These are copied from the Figma file's styles.
-- **Type:** serif display headings (Georgia, with Noto Serif KR for Korean) and Inter for text (IBM Plex Sans KR for Korean). Fonts are bundled through npm (`@fontsource`), so they work offline.
+- **Type:** Georgia headings (Noto Serif KR for Korean), a script logo, Figtree for text and IBM Plex Sans KR for Korean text. The layout follows the team's vintage scrapbook website design (`CarryPick_Website_Standalone_v6.html`). Fonts are bundled through npm (`@fontsource`), so they work offline.
 - **Buyer home:** photo hero with search, "Shop the world" country cards, "Most wanted right now" ranking cards, live traveler offers, and the lime "Tell travelers what you need" panel.
 - **Other screens:** dashboard heroes for buyer and traveler with stat cards and tabs, offer cards with Price / Reward / Arrives, the payment summary card, and a bottom sheet for forms.
 - **Bottom navigation:** includes a Travel mode / Buyer mode switch, as in the design.

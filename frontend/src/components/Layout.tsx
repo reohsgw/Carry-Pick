@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, Home, Plane, Search, ShoppingBag, User } from 'lucide-react';
+import { Bell, ChevronLeft, Home, Plane, Search, ShoppingBag, Ticket, User } from 'lucide-react';
 import { useI18n } from '../i18n';
 import { useSession } from '../session';
 import { initials } from './ui';
@@ -56,7 +56,7 @@ function BackButton({ back, className = '' }: { back: true | string; className?:
 export function Wordmark({ to }: { to?: string }) {
   const inner = (
     <>
-      <span className="logo-mark"><Plane size={16} strokeWidth={2} /></span>
+      <span className="logo-mark" aria-hidden>✦</span>
       <span className="brand-copy">
         <span className="brand-name">CarryPick</span>
         <small className="brand-tagline">Travel shopping</small>
@@ -94,12 +94,16 @@ function useNav() {
   if (!user) return null;
   // The carrying side of Orders lives under /t, but it belongs to the Orders tab.
   const carrying = pathname.startsWith('/t/orders');
+  // One navigation for everyone: shopping and traveling pages sit side by side, as in the website design.
+  // Search lives in the desktop bar (and the home hero); My page lives in the bottom bar (and the avatar).
+  const offers = pathname === '/offers' || pathname.startsWith('/country/');
   return [
     { to: '/', label: t('nav.discover'), icon: Home, end: true },
-    { to: '/search', label: t('nav.search'), icon: Search },
+    { to: '/offers', label: t('nav.offers'), icon: Ticket, end: true, active: offers || undefined },
+    { to: '/search', label: t('nav.search'), icon: Search, desktopOnly: true },
     { to: '/t', label: t('nav.travel'), icon: Plane, active: carrying ? false : undefined },
     { to: '/orders', label: t('nav.orders'), icon: ShoppingBag, active: carrying || undefined },
-    { to: '/me', label: t('nav.me'), icon: User },
+    { to: '/me', label: t('nav.me'), icon: User, mobileOnly: true },
   ];
 }
 
@@ -108,7 +112,7 @@ function BottomNav() {
   if (!items) return null;
   return (
     <nav className="mobile-nav" aria-label="Main">
-      {items.map((it) => (
+      {items.filter((it) => !it.desktopOnly).map((it) => (
         <NavLink key={it.to} to={it.to} end={it.end} className={({ isActive }) => `mobile-nav-item ${it.active ?? isActive ? 'active' : ''}`}>
           <it.icon size={20} strokeWidth={1.8} aria-hidden />
           <span>{it.label}</span>
@@ -123,7 +127,7 @@ function DesktopNav() {
   if (!items) return null;
   return (
     <nav className="desktop-nav only-desktop" aria-label="Main">
-      {items.map((it) => (
+      {items.filter((it) => !it.mobileOnly).map((it) => (
         <NavLink key={it.to} to={it.to} end={it.end} className={({ isActive }) => `desktop-nav-item ${it.active ?? isActive ? 'active' : ''}`}>
           <it.icon size={16} strokeWidth={1.9} aria-hidden />
           {it.label}

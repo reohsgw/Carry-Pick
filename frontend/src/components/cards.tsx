@@ -30,13 +30,16 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
       <div className="product-media">
         <ProductPhoto src={item.imageUrl} category={item.category} />
         <span className="rank-badge">{item.rank}</span>
-        <span className="media-pill">{item.orderCount === 1 ? t('home.order') : t('home.orders', { n: item.orderCount })}</span>
       </div>
       <div className="product-info">
         <div className="product-cat">
           <span>{item.category ? t(`cat.${item.category}` as Key) : ' '}</span>
         </div>
         <h3 className="product-name">{item.productName}</h3>
+      </div>
+      <div className="product-foot">
+        <strong>{item.orderCount === 1 ? t('home.order') : t('home.orders', { n: item.orderCount })}</strong>
+        <span className="ticket-btn">{item.offerId ? t('home.seeOffer') : t('home.requestIt')} <ArrowRight size={14} /></span>
       </div>
     </Link>
   );

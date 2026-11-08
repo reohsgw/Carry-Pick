@@ -21,11 +21,13 @@ import RequestBoard from './pages/RequestBoard';
 import RequestDetail from './pages/RequestDetail';
 import Search from './pages/Search';
 import TravelerHome from './pages/TravelerHome';
+import TravelerOffers from './pages/TravelerOffers';
 
 /*
  * Screen map (IDs match the planning doc):
  *   C1 /login            C2 /me                 C3 /notifications
  *   B1 /                 B2 /country/:code      B3 /search          B4 /offers/:id
+ *   Traveler offers /offers (all offers for a country, with filters and comparison)
  *   B5 /requests/new     B6 /orders/:id/pay     B7 /orders          B8 /orders/:id (buyer view)
  *   T1 /t                T2 /t/trips/new        T3 /t/offers/new    T5 /t/requests
  *   T6 /t/requests/:id   T7 /orders/:id (traveler view)
@@ -39,6 +41,7 @@ export default function App() {
         <Route path="/" element={<RequireAuth><BuyerHome /></RequireAuth>} />
         <Route path="/country/:code" element={<RequireAuth><CountryOffers /></RequireAuth>} />
         <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
+        <Route path="/offers" element={<RequireAuth><TravelerOffers /></RequireAuth>} />
         <Route path="/offers/:id" element={<RequireAuth><OfferDetail /></RequireAuth>} />
         <Route path="/requests/new" element={<RequireAuth><NewRequest /></RequireAuth>} />
         <Route path="/my-requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
