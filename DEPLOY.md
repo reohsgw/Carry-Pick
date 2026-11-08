@@ -21,7 +21,7 @@ Environment variables:
 | `DB_URL` | `jdbc:postgresql://host:5432/dbname` | with `postgres` profile |
 | `DB_USER` / `DB_PASSWORD` | database credentials | with `postgres` profile |
 | `PAYMENT_MODE` | `mock` (default) or `toss` with `TOSS_CLIENT_KEY` / `TOSS_SECRET_KEY` | no |
-| `AI_PROVIDER` | `mock` (default) or `anthropic` with `ANTHROPIC_API_KEY` | no |
+| `AI_PROVIDER` | `mock` (default), `gemini` with `GEMINI_API_KEY` (free tier), or `anthropic` with `ANTHROPIC_API_KEY` | no |
 | `UPLOAD_DIR` | path on a persistent disk, if your host offers one | no |
 
 Notes:

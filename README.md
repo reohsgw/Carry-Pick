@@ -117,12 +117,20 @@ When the traveler uploads a receipt, *Read receipt with AI* sends the photo to t
 | Mode | How | Notes |
 | --- | --- | --- |
 | `mock` (default) | Returns a fixed sample receipt (Tokyo Banana, ¥2,592) | Works offline, no key. The screen says it is a sample. |
-| `anthropic` | Calls the Claude Messages API | Needs an Anthropic API key. |
+| `gemini` | Calls the Google Gemini API | **Free tier.** Get a key at <https://aistudio.google.com/apikey>. |
+| `anthropic` | Calls the Claude Messages API | Needs an Anthropic API key with credit. |
 
 ```bash
+# free: Google Gemini
+GEMINI_API_KEY=xxx AI_PROVIDER=gemini mvn spring-boot:run
+# optional: GEMINI_MODEL=gemini-3.5-flash   (default gemini-3.5-flash-lite, the biggest free quota)
+
+# paid: Claude
 AI_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-xxx mvn spring-boot:run
 # optional: AI_MODEL=claude-sonnet-5-5   (default claude-haiku-5-5, the cheapest)
 ```
+
+- Gemini's free tier has a daily request limit, so a classroom demo is fine but heavy testing can hit it (the log shows `Gemini API error 429`). On the free tier Google may use the uploaded photos to improve its models, so use demo receipts, not personal ones.
 
 - The key is only read by the server (`app.ai` in `application.yml`). Never put it in the React app or commit it to GitHub.
 - Endpoint: `POST /api/receipts/scan` (multipart field `image`, JPG/PNG/WEBP/GIF, 5 MB max, login required).

@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * AI receipt reader: a photo of a receipt in any language -> store, items, total, currency,
+ * AI receipt reader (Claude or Gemini vision): a photo of a receipt in any language -> store, items, total, currency,
  * a KRW estimate, and customs flags (alcohol, supplements, medicine, meat, tobacco).
  *
  * The traveler always sees the result as an editable form before saving, because a model can misread.
@@ -69,19 +69,22 @@ public class ReceiptScanService {
 
         if (cfg == null || cfg.isMock()) return sample();
 
-        String text = callClaude(image);
-        return parse(text, false, cfg.model());
+        if (cfg.isGemini()) return parse(callGemini(image), false, cfg.geminiModel());
+        return parse(callClaude(image), false, cfg.model());
+    }
+
+    private static String base64(MultipartFile image) {
+        try {
+            return Base64.getEncoder().encodeToString(image.getBytes());
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not read the uploaded image", e);
+        }
     }
 
     // ------------------------------------------------------------------ Claude call
 
     private String callClaude(MultipartFile image) {
-        String base64;
-        try {
-            base64 = Base64.getEncoder().encodeToString(image.getBytes());
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not read the uploaded image", e);
-        }
+        String base64 = base64(image);
         Map<String, Object> body = Map.of(
                 "model", cfg.model(),
                 "max_tokens", 1024,
@@ -115,6 +118,41 @@ public class ReceiptScanService {
             throw e;
         } catch (Exception e) {
             log.warn("Claude API call failed", e);
+            throw new ApiException(HttpStatus.BAD_GATEWAY, "AI_FAILED", "Could not read the receipt right now. Enter the price manually.");
+        }
+    }
+
+    // ------------------------------------------------------------------ Gemini call
+
+    private String callGemini(MultipartFile image) {
+        Map<String, Object> body = Map.of(
+                "contents", List.of(Map.of("parts", List.of(
+                        Map.of("inline_data", Map.of("mime_type", image.getContentType(), "data", base64(image))),
+                        Map.of("text", PROMPT)))),
+                "generationConfig", Map.of("responseMimeType", "application/json"));
+        try {
+            JsonNode res = http.post()
+                    .uri(cfg.geminiApiUrl() + "/" + cfg.geminiModel() + ":generateContent")
+                    .header("x-goog-api-key", cfg.geminiApiKey())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(JsonNode.class);
+            JsonNode parts = res == null ? null : res.path("candidates").path(0).path("content").path("parts");
+            if (parts == null || !parts.isArray() || parts.isEmpty()) {
+                if (res != null) log.warn("Gemini returned no text: {}", res);
+                throw new ApiException(HttpStatus.BAD_GATEWAY, "AI_EMPTY", "The AI returned no result. Enter the price manually.");
+            }
+            StringBuilder sb = new StringBuilder();
+            for (JsonNode part : parts) sb.append(part.path("text").asText(""));
+            return sb.toString();
+        } catch (RestClientResponseException e) {
+            log.warn("Gemini API error {}: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new ApiException(HttpStatus.BAD_GATEWAY, "AI_FAILED", "Could not read the receipt right now. Enter the price manually.");
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Gemini API call failed", e);
             throw new ApiException(HttpStatus.BAD_GATEWAY, "AI_FAILED", "Could not read the receipt right now. Enter the price manually.");
         }
     }
@@ -177,7 +215,7 @@ public class ReceiptScanService {
         String sample = """
                 {"store":"羽田空港 東京ばな奈 ショップ","date":null,"currency":"JPY","total":2592,
                  "items":[{"name":"東京ばな奈 8個入 (Tokyo Banana, 8 pcs)","price":1296,"quantity":2,"category":"food"}],
-                 "note":"Sample result (mock mode). Set AI_PROVIDER=anthropic and ANTHROPIC_API_KEY to read real receipts."}
+                 "note":"Sample result (mock mode). Set AI_PROVIDER=gemini and GEMINI_API_KEY (free) to read real receipts."}
                 """;
         return parse(sample, true, "mock");
     }

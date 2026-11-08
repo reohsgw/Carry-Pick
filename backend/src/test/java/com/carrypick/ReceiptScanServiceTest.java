@@ -20,7 +20,8 @@ class ReceiptScanServiceTest {
 
     private static ReceiptScanService service(String provider) {
         AppProperties props = new AppProperties("", null, "uploads", false, null, null,
-                new AppProperties.Ai(provider, "", "claude-haiku-5-5", "https://api.anthropic.com/v1/messages"),
+                new AppProperties.Ai(provider, "", "claude-haiku-5-5", "https://api.anthropic.com/v1/messages",
+                        "", "gemini-3.5-flash-lite", "https://generativelanguage.googleapis.com/v1beta/models"),
                 Map.of("JPY", 9.2, "USD", 1380.0));
         return new ReceiptScanService(props, new ObjectMapper());
     }

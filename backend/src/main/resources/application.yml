@@ -49,10 +49,14 @@ app:
   ai:
     # mock      = returns a clearly-labelled sample receipt (no key needed, works offline)
     # anthropic = reads the real photo with Claude vision (set ANTHROPIC_API_KEY)
+    # gemini    = reads the real photo with Google Gemini (set GEMINI_API_KEY; free tier available)
     provider: ${AI_PROVIDER:mock}
     api-key: ${ANTHROPIC_API_KEY:}
     model: ${AI_MODEL:claude-haiku-5-5}
     api-url: https://api.anthropic.com/v1/messages
+    gemini-api-key: ${GEMINI_API_KEY:}
+    gemini-model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
+    gemini-api-url: https://generativelanguage.googleapis.com/v1beta/models
   # KRW per 1 unit of each currency, used to estimate the receipt total in won.
   # These are fixed demo values, not live rates — update them before a demo.
   fx:

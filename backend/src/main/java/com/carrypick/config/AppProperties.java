@@ -13,10 +13,22 @@ public record AppProperties(
         Ai ai,
         java.util.Map<String, Double> fx
 ) {
-    /** AI receipt reader. provider = "mock" (sample result, no key) or "anthropic" (Claude vision). */
-    public record Ai(String provider, String apiKey, String model, String apiUrl) {
+    /**
+     * AI receipt reader. provider = "mock" (sample result, no key), "anthropic" (Claude vision)
+     * or "gemini" (Google Gemini vision, has a free tier).
+     */
+    public record Ai(String provider, String apiKey, String model, String apiUrl,
+                     String geminiApiKey, String geminiModel, String geminiApiUrl) {
+        public boolean isAnthropic() {
+            return "anthropic".equalsIgnoreCase(provider) && apiKey != null && !apiKey.isBlank();
+        }
+
+        public boolean isGemini() {
+            return "gemini".equalsIgnoreCase(provider) && geminiApiKey != null && !geminiApiKey.isBlank();
+        }
+
         public boolean isMock() {
-            return provider == null || !provider.equalsIgnoreCase("anthropic") || apiKey == null || apiKey.isBlank();
+            return !isAnthropic() && !isGemini();
         }
     }
 
