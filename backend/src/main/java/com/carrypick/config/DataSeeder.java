@@ -75,29 +75,29 @@ public class DataSeeder implements ApplicationRunner {
                 "One empty suitcase"));
 
         Offer tokyoBanana = offers.save(new Offer(kenji, tokyo, "Tokyo Banana (8 pcs)", "Haneda Airport shop", "Snacks",
-                "Classic banana custard sponge cakes. Best before about 7 days after purchase.", null, 12000, 4000, 6));
+                "Classic banana custard sponge cakes. Best before about 7 days after purchase.", "demo:tokyo-banana", 12000, 4000, 6));
         Offer royce = offers.save(new Offer(kenji, tokyo, "Royce' Nama Chocolate", "Royce' Ginza", "Snacks",
-                "Needs to stay cool; I will carry it in an insulated bag.", null, 18000, 5000, 4));
+                "Needs to stay cool; I will carry it in an insulated bag.", "demo:royce", 18000, 5000, 4));
         Offer anessa = offers.save(new Offer(kenji, tokyo, "Anessa Perfect UV Sunscreen 60ml", "Matsumoto Kiyoshi", "Beauty",
-                "Japanese drugstore price.", null, 22000, 5000, 5));
+                "Japanese drugstore price.", "demo:anessa", 22000, 5000, 5));
         offers.save(new Offer(kenji, tokyo, "Uniqlo Japan-limited graphic T-shirt", "Uniqlo Ginza", "Fashion",
-                "Tell me the size in the order note after booking.", null, 20000, 6000, 3));
+                "Tell me the size in the order note after booking.", "demo:uniqlo-tshirt", 20000, 6000, 3));
         offers.save(new Offer(kenji, osaka, "Kit Kat regional flavors set", "Shin-Osaka station", "Snacks",
-                "Assorted regional flavors, about 6 boxes.", null, 25000, 7000, 3));
+                "Assorted regional flavors, about 6 boxes.", "demo:kitkat", 25000, 7000, 3));
         Offer laduree = offers.save(new Offer(linh, paris, "Ladurée macarons (box of 12)", "Ladurée Champs-Élysées", "Snacks",
-                "Fragile; will hand-carry.", null, 52000, 12000, 2));
+                "Fragile; will hand-carry.", "demo:laduree", 52000, 12000, 2));
         offers.save(new Offer(linh, paris, "Diptyque Baies candle 190g", "Diptyque Saint-Germain", "Home",
                 "Paris boutique price.", null, 98000, 15000, 2));
         offers.save(new Offer(linh, paris, "Bioderma Sensibio H2O 500ml", "Pharmacie Monge", "Beauty",
                 "French pharmacy price, much cheaper than Korea.", null, 16000, 5000, 4));
         Offer mama = offers.save(new Offer(linh, bangkok, "Mama Tom Yum instant noodles (10 pack)", "Big C", "Food",
-                "Family pack.", null, 7000, 3000, 8));
+                "Family pack.", "demo:mama-tom-yum", 7000, 3000, 8));
         offers.save(new Offer(linh, bangkok, "Naraya cotton bag", "Naraya Siam", "Fashion",
-                "Choose color in the order note.", null, 9000, 3000, 5));
+                "Choose color in the order note.", "demo:naraya-bag", 9000, 3000, 5));
         offers.save(new Offer(kenji, nyc, "Trader Joe's tote bag", "Trader Joe's Manhattan", "Fashion",
-                "Mini or regular size.", null, 6000, 4000, 6));
+                "Mini or regular size.", "demo:trader-joes-tote", 6000, 4000, 6));
         offers.save(new Offer(kenji, nyc, "Levi's 501 Original jeans", "Levi's Times Square", "Fashion",
-                "US pricing; tell me waist and length.", null, 95000, 15000, 2));
+                "US pricing; tell me waist and length.", "demo:levis-501", 95000, 15000, 2));
 
         requests.save(new PurchaseRequest(minji, "JP", "Tokyo-limited character plush (medium)", null, null,
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));

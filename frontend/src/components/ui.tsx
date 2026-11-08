@@ -3,7 +3,7 @@ import {
   AlertCircle, Camera, Cookie, Headphones, Lamp, Package, Shirt, ShoppingBag, Sparkles, UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
-import { api, assetUrl, type OrderStatus } from '../api';
+import { api, type OrderStatus } from '../api';
 import { STATUS_TONE } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { productPhoto } from '../images';
@@ -149,7 +149,7 @@ export function ImagePicker({ value, onChange }: { value: string | null; onChang
     <div className="image-picker">
       {value ? (
         <div className="image-preview">
-          <img src={assetUrl(value) ?? ''} alt="" />
+          <img src={productPhoto(value, null) ?? ''} alt="" />
           <button type="button" className="link" onClick={() => onChange(null)}>{t('img.remove')}</button>
         </div>
       ) : (
