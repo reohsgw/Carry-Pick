@@ -911,7 +911,9 @@ body, body:is(*) {
   clip-path: var(--torn);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -10px 24px rgb(145 99 61 / 0.07);
 }
-.rows > * + *, .kv, .card-link, .pass-foot, .request-foot, .meta-grid, .receipt-lines { border-color: rgb(95 60 35 / 0.18) !important; border-style: dashed !important; }
+/* Dashed only on the sides each element actually draws (setting all four sides would add thick side lines). */
+.rows > * + *, .kv, .card-link, .pass-foot, .request-foot, .meta-grid, .receipt-lines { border-color: rgb(95 60 35 / 0.18) !important; border-top-style: dashed !important; }
+.meta-grid, .receipt-lines { border-bottom-style: dashed !important; }
 a.row:hover, button.row:hover, a.notif:hover { background: rgb(255 255 255 / 0.4); }
 .thumb { background: var(--sunk); color: var(--muted); border-radius: 6px; }
 .card-grid > :nth-child(odd), .scroll-row > .country-card:nth-child(odd) { transform: rotate(-0.4deg); }
@@ -1889,6 +1891,8 @@ html:lang(ko) .eyebrow, html:lang(ko) .pill { letter-spacing: 0.04em; }
 
 /* Price / reward / arrival box on offer cards: a thin dashed ticket box with room inside. */
 .meta-grid { border: 1px dashed rgb(95 60 35 / 0.22) !important; padding: 12px 16px; gap: 12px; }
+/* Payment breakdown: the same thin dashed box, with room between the line and the words. */
+.receipt-lines { border: 1px dashed rgb(95 60 35 / 0.22) !important; padding: 16px 18px; }
 
 /* ------------------------------------------------------------------ desktop header: icons + ☰ menu */
 
