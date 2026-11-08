@@ -39,6 +39,8 @@ export interface Offer {
   store: string | null; category: string | null; description: string | null; imageUrl: string | null;
   estPrice: number; reward: number; quantity: number; status: 'ACTIVE' | 'SOLD_OUT' | 'CLOSED';
   bookable: boolean; unitQuote: Quote;
+  /** Set when the traveler already bought the item; estPrice is then the receipt price. */
+  receiptUrl: string | null;
 }
 
 export interface PurchaseRequest {
@@ -60,12 +62,23 @@ export interface Order {
   productLink: string | null; quantity: number;
   budget: number; reward: number; fee: number; tax: number; initialCharge: number;
   actualPrice: number | null; receiptUrl: string | null;
+  /** Price check before buying: the higher shelf price and a photo of the price tag. */
+  quotedPrice: number | null; priceTagUrl: string | null;
+  /** Most the traveler may spend on the item: budget + approved extra. */
+  itemLimit: number;
   extraItemAmount: number; extraFee: number; extraCharge: number;
   expectedDelivery: string | null; cancelReason: string | null;
   createdAt: string; paidAt: string | null; purchasedAt: string | null; deliveredAt: string | null;
   completedAt: string | null; settledAt: string | null; cancelledAt: string | null;
   payments: PaymentRecord[];
   settlement: { travelerPayout: number; buyerRefund: number; platformFee: number; mock: boolean } | null;
+  /** Chat messages from the other person the viewer has not seen yet. */
+  unreadMessages: number;
+}
+
+export interface ChatMessage {
+  id: number; senderId: number; senderName: string; mine: boolean;
+  text: string | null; imageUrl: string | null; createdAt: string;
 }
 
 export interface Ranking {
@@ -80,7 +93,7 @@ export interface PaymentPrepare {
 
 export type NotificationKind =
   | 'BOOKED' | 'REQUEST_ACCEPTED' | 'PAID' | 'PURCHASED' | 'OVER_BUDGET'
-  | 'DELIVERED' | 'REJECTED' | 'SETTLED' | 'CANCELLED' | 'EXTRA_PAID';
+  | 'DELIVERED' | 'REJECTED' | 'SETTLED' | 'CANCELLED' | 'EXTRA_PAID' | 'MESSAGE';
 
 export interface Notification {
   id: number; orderId: number | null; kind: NotificationKind | null; actorName: string | null;
@@ -205,6 +218,15 @@ export const api = {
     form.append('receipt', receipt);
     return http.post<Order>(`/api/orders/${id}/purchase`, form).then((r) => r.data);
   },
+  priceCheck: (id: number, price: number, photo: File) => {
+    const form = new FormData();
+    form.append('price', String(price));
+    form.append('photo', photo);
+    return http.post<Order>(`/api/orders/${id}/price-check`, form).then((r) => r.data);
+  },
+  messages: (id: number) => get<ChatMessage[]>(`/api/orders/${id}/messages`),
+  sendMessage: (id: number, b: { text: string | null; imageUrl: string | null }) =>
+    post<ChatMessage>(`/api/orders/${id}/messages`, b),
   approve: (id: number) => post<PaymentPrepare>(`/api/orders/${id}/approve`),
   reject: (id: number) => post<Order>(`/api/orders/${id}/reject`),
   deliver: (id: number) => post<Order>(`/api/orders/${id}/deliver`),
@@ -235,6 +257,7 @@ export const api = {
 export interface OfferInput {
   tripId: number; productName: string; store?: string; category?: string; description?: string;
   imageUrl?: string | null; estPrice: number; reward: number; quantity: number;
+  receiptUrl?: string | null;
 }
 
 export interface RequestInput {

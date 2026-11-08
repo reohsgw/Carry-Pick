@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ArrowRight, Check, Minus, Plus, ShieldCheck } from 'lucide-react';
-import { api } from '../api';
+import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { ActionBar, ErrorBox, KV, Loading, Notice, ProductPhoto, Tag, initials } from '../components/ui';
@@ -47,7 +47,7 @@ export default function OfferDetail() {
       </div>
 
       <div className="meta-grid" style={{ margin: 0 }}>
-        <div><span className="meta-label">{t('offer.estPrice')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{krw(o.estPrice)}</strong></div>
+        <div><span className="meta-label">{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{krw(o.estPrice)}</strong></div>
         <div><span className="meta-label">{t('card.reward')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{krw(o.reward)}</strong></div>
         <div><span className="meta-label">{t('offer.leftLabel')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{o.quantity}</strong></div>
       </div>
@@ -55,6 +55,7 @@ export default function OfferDetail() {
       <div className="trust-row">
         <span><ShieldCheck size={16} /> {t('offer.trust2')}</span>
         <span><Check size={16} /> {t('offer.trust1')}</span>
+        {o.receiptUrl && <Tag tone="good">{t('offer.bought')}</Tag>}
         {!o.bookable && <Tag>{o.status === 'SOLD_OUT' ? t('offer.soldOut') : t('offer.closed')}</Tag>}
         {o.bookable && departsIn <= 7 && <Tag tone="action">{t('offer.departsIn', { n: departsIn })}</Tag>}
       </div>
@@ -83,7 +84,12 @@ export default function OfferDetail() {
             </div>
           )}
         </div>
-        <ReceiptStrip quote={q} note={t('offer.costNote', { price: krw(o.estPrice) })} />
+        <ReceiptStrip quote={q} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: krw(o.estPrice) })} />
+        {o.receiptUrl && (
+          <a className="link small" href={assetUrl(o.receiptUrl) ?? '#'} target="_blank" rel="noreferrer" style={{ marginTop: 12 }}>
+            {t('offer.seeReceipt')}
+          </a>
+        )}
       </aside>
 
       {book.error && <Notice tone="bad">{errText(book.error)}</Notice>}

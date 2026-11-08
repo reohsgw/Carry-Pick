@@ -20,7 +20,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * End-to-end checks of the two flows in the capstone plan, using the seeded demo accounts
  * and mock payment mode:
  *   Flow A: buyer books a traveler's offer -> pay -> purchase -> deliver -> confirm -> settled
- *   Flow B: buyer posts a request -> traveler accepts -> pay -> over budget -> approve + extra pay -> ... settled
+ *   Flow B: buyer posts a request -> traveler accepts -> pay -> price check over budget -> approve + extra pay
+ *           -> buy (a bit under the approved price) -> ... settled with the unspent part refunded
+ *   Already bought: an offer listed with its receipt is PURCHASED as soon as the buyer pays
  * Plus: payment failure + retry, wrong-role access, and amount tampering.
  */
 @SpringBootTest(properties = {"app.payment.mode=mock", "app.upload-dir=target/test-uploads"})
@@ -59,7 +61,7 @@ class OrderFlowTest {
     }
 
     @Test
-    void flowB_requestAccepted_overBudgetApproved() throws Exception {
+    void flowB_requestAccepted_priceCheckApprovedBeforePurchase() throws Exception {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");
 
@@ -77,20 +79,102 @@ class OrderFlowTest {
         long orderId = order.get("id").asLong();
         pay(buyer, orderId, "mock_ok_2");
 
-        purchase(traveler, orderId, 36000); // 6,000 over the 30,000 budget
+        // Buying over the 30,000 budget without the buyer's approval is not allowed.
+        purchaseExpect(traveler, orderId, 36000, 409);
+
+        // Shelf price is 36,000: send the price tag before buying.
+        multipartOk(traveler, "/api/orders/" + orderId + "/price-check", "photo", "price", 36000);
         JsonNode waiting = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + buyer), 200);
         assertThat(waiting.get("status").asText()).isEqualTo("AWAITING_APPROVAL");
         assertThat(waiting.get("extraItemAmount").asLong()).isEqualTo(6000);
+        assertThat(waiting.get("priceTagUrl").isNull()).isFalse();
 
         JsonNode extra = body(post("/api/orders/" + orderId + "/approve", buyer, null), 200);
         assertThat(extra.get("type").asText()).isEqualTo("EXTRA");
+        assertThat(extra.get("amount").asLong()).isEqualTo(6000 + 600);
         confirm(buyer, extra.get("tossOrderId").asText(), extra.get("amount").asLong(), "mock_ok_3");
+        JsonNode approved = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + traveler), 200);
+        assertThat(approved.get("status").asText()).isEqualTo("PAID");
+        assertThat(approved.get("itemLimit").asLong()).isEqualTo(36000);
+
+        // Still over the approved price: blocked. At 35,000 it goes through.
+        purchaseExpect(traveler, orderId, 37000, 409);
+        purchase(traveler, orderId, 35000);
         assertStatus(buyer, orderId, "PURCHASED");
 
         body(post("/api/orders/" + orderId + "/deliver", traveler, null), 200);
         JsonNode done = body(post("/api/orders/" + orderId + "/confirm", buyer, null), 200);
         assertThat(done.get("status").asText()).isEqualTo("SETTLED");
-        assertThat(done.get("settlement").get("travelerPayout").asLong()).isEqualTo(36000 + 5000);
+        assertThat(done.get("settlement").get("travelerPayout").asLong()).isEqualTo(35000 + 5000);
+        // 1,000 unspent item money + the 100 of extra fee charged on it.
+        assertThat(done.get("settlement").get("buyerRefund").asLong()).isEqualTo(1000 + 100);
+    }
+
+    @Test
+    void alreadyBoughtOffer_isPurchasedOnPayment() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        String traveler = login("traveler@carrypick.test");
+
+        JsonNode trips = body(get("/api/trips/me").header("Authorization", "Bearer " + traveler), 200);
+        long tripId = -1;
+        for (JsonNode tr : trips) {
+            if (java.time.LocalDate.parse(tr.get("departDate").asText()).isAfter(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")))) {
+                tripId = tr.get("id").asLong();
+                break;
+            }
+        }
+        assertThat(tripId).isPositive();
+        JsonNode offer = body(post("/api/offers", traveler, """
+                {"tripId":%d,"productName":"Bought matcha","category":"Snacks","estPrice":12000,"reward":3000,
+                 "quantity":1,"receiptUrl":"/uploads/receipt-test.png"}
+                """.formatted(tripId)), 201);
+        assertThat(offer.get("receiptUrl").asText()).isEqualTo("/uploads/receipt-test.png");
+
+        long orderId = body(post("/api/orders", buyer, "{\"offerId\":" + offer.get("id").asLong() + ",\"quantity\":1}"), 201)
+                .get("id").asLong();
+        pay(buyer, orderId, "mock_ok_bought");
+        JsonNode o = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + buyer), 200);
+        assertThat(o.get("status").asText()).isEqualTo("PURCHASED");
+        assertThat(o.get("actualPrice").asLong()).isEqualTo(12000);
+        assertThat(o.get("receiptUrl").asText()).isEqualTo("/uploads/receipt-test.png");
+    }
+
+    @Test
+    void chatRoom_perOrder() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        String traveler = login("traveler@carrypick.test");
+        String stranger = login("buyer2@carrypick.test");
+        long offerId = firstBookableOffer("JP");
+        long orderId = body(post("/api/orders", buyer, "{\"offerId\":" + offerId + ",\"quantity\":1}"), 201)
+                .get("id").asLong();
+        String room = "/api/orders/" + orderId + "/messages";
+
+        body(post(room, buyer, "{\"text\":\"Could you get the green one?\"}"), 201);
+        body(post(room, buyer, "{\"imageUrl\":\"/uploads/shelf.png\"}"), 201);
+        mvc.perform(post(room, buyer, "{\"text\":\"   \"}")).andExpect(status().isBadRequest());
+
+        // The traveler sees 2 unread, reads them (which clears the count), and answers.
+        JsonNode o = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + traveler), 200);
+        assertThat(o.get("unreadMessages").asLong()).isEqualTo(2);
+        JsonNode list = body(get(room).header("Authorization", "Bearer " + traveler), 200);
+        assertThat(list.size()).isEqualTo(2);
+        assertThat(list.get(0).get("text").asText()).isEqualTo("Could you get the green one?");
+        assertThat(list.get(0).get("mine").asBoolean()).isFalse();
+        o = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + traveler), 200);
+        assertThat(o.get("unreadMessages").asLong()).isZero();
+        body(post(room, traveler, "{\"text\":\"Sure!\"}"), 201);
+        assertThat(body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + buyer), 200)
+                .get("unreadMessages").asLong()).isEqualTo(1);
+
+        // Only one unread chat notification per order, however many messages arrive.
+        JsonNode notes = body(get("/api/notifications").header("Authorization", "Bearer " + traveler), 200);
+        long chatNotes = 0;
+        for (JsonNode n : notes) if ("MESSAGE".equals(n.get("kind").asText()) && n.get("orderId").asLong() == orderId) chatNotes++;
+        assertThat(chatNotes).isEqualTo(1);
+
+        // Nobody else can read or write.
+        mvc.perform(get(room).header("Authorization", "Bearer " + stranger)).andExpect(status().isNotFound());
+        mvc.perform(post(room, stranger, "{\"text\":\"hi\"}")).andExpect(status().isNotFound());
     }
 
     @Test
@@ -163,12 +247,25 @@ class OrderFlowTest {
     }
 
     private void purchase(String token, long orderId, long actualPrice) throws Exception {
-        MockMultipartFile receipt = new MockMultipartFile("receipt", "receipt.png", "image/png", new byte[]{1, 2, 3});
-        mvc.perform(multipart("/api/orders/" + orderId + "/purchase")
-                        .file(receipt)
-                        .param("actualPrice", String.valueOf(actualPrice))
+        purchaseExpect(token, orderId, actualPrice, 200);
+    }
+
+    private void purchaseExpect(String token, long orderId, long actualPrice, int expected) throws Exception {
+        multipart(token, "/api/orders/" + orderId + "/purchase", "receipt", "actualPrice", actualPrice, expected);
+    }
+
+    private void multipartOk(String token, String url, String filePart, String priceParam, long price) throws Exception {
+        multipart(token, url, filePart, priceParam, price, 200);
+    }
+
+    private void multipart(String token, String url, String filePart, String priceParam, long price, int expected)
+            throws Exception {
+        MockMultipartFile file = new MockMultipartFile(filePart, "photo.png", "image/png", new byte[]{1, 2, 3});
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart(url)
+                        .file(file)
+                        .param(priceParam, String.valueOf(price))
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
+                .andExpect(status().is(expected));
     }
 
     private void assertStatus(String token, long orderId, String expected) throws Exception {

@@ -3,8 +3,10 @@ package com.carrypick.web;
 import com.carrypick.config.AuthUser;
 import com.carrypick.domain.Notification;
 import com.carrypick.repo.NotificationRepository;
+import com.carrypick.service.ChatService;
 import com.carrypick.service.OrderService;
 import com.carrypick.service.PaymentService;
+import com.carrypick.web.dto.Dtos.ChatMessageDto;
 import com.carrypick.web.dto.Dtos.NotificationDto;
 import com.carrypick.web.dto.Dtos.OrderDto;
 import com.carrypick.web.dto.Dtos.PaymentPrepareDto;
@@ -26,11 +28,14 @@ public class OrderController {
     private final OrderService orders;
     private final PaymentService payments;
     private final NotificationRepository notifications;
+    private final ChatService chat;
 
-    public OrderController(OrderService orders, PaymentService payments, NotificationRepository notifications) {
+    public OrderController(OrderService orders, PaymentService payments, NotificationRepository notifications,
+                           ChatService chat) {
         this.orders = orders;
         this.payments = payments;
         this.notifications = notifications;
+        this.chat = chat;
     }
 
     // ---- orders
@@ -62,7 +67,14 @@ public class OrderController {
         return orders.purchase(me.id(), id, actualPrice, receipt);
     }
 
-    /** B8: approve the over-budget price. Returns the extra payment to open in the payment window. */
+    /** T7: shelf price is over budget. Price + price-tag photo (multipart form); the buyer approves before purchase. */
+    @PostMapping(value = "/orders/{id}/price-check", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public OrderDto priceCheck(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                               @RequestParam long price, @RequestPart("photo") MultipartFile photo) {
+        return orders.priceCheck(me.id(), id, price, photo);
+    }
+
+    /** B8: approve the higher price. Returns the extra payment to open in the payment window. */
     @PostMapping("/orders/{id}/approve")
     public PaymentPrepareDto approve(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return payments.prepare(me.id(), id);
@@ -91,6 +103,20 @@ public class OrderController {
     public OrderDto cancel(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
                            @RequestBody(required = false) CancelForm form) {
         return orders.cancel(me.id(), id, form == null ? null : form.reason());
+    }
+
+    // ---- chat room per order (buyer <-> traveler)
+
+    @GetMapping("/orders/{id}/messages")
+    public List<ChatMessageDto> messages(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
+        return chat.list(me.id(), id);
+    }
+
+    @PostMapping("/orders/{id}/messages")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ChatMessageDto send(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                               @Valid @RequestBody MessageForm form) {
+        return chat.send(me.id(), id, form.text(), form.imageUrl());
     }
 
     // ---- payments (B6)

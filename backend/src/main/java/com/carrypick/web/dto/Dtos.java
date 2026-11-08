@@ -36,7 +36,8 @@ public final class Dtos {
 
     public record OfferDto(Long id, PersonDto traveler, TripDto trip, String countryCode, String productName,
                            String store, String category, String description, String imageUrl, long estPrice,
-                           long reward, int quantity, OfferStatus status, boolean bookable, Quote unitQuote) {}
+                           long reward, int quantity, OfferStatus status, boolean bookable, Quote unitQuote,
+                           String receiptUrl) {}
 
     public record RequestDto(Long id, PersonDto buyer, PersonDto traveler, String countryCode, String productName,
                              String productLink, String imageUrl, String options, String note, long maxBudget,
@@ -64,11 +65,20 @@ public final class Dtos {
                            String countryCode, String imageUrl, String category, String options, String productLink,
                            int quantity,
                            long budget, long reward, long fee, long tax, long initialCharge, Long actualPrice,
-                           String receiptUrl, long extraItemAmount, long extraFee, long extraCharge,
+                           String receiptUrl, Long quotedPrice, String priceTagUrl, long itemLimit,
+                           long extraItemAmount, long extraFee, long extraCharge,
                            LocalDate expectedDelivery, String cancelReason,
                            Instant createdAt, Instant paidAt, Instant purchasedAt, Instant deliveredAt,
                            Instant completedAt, Instant settledAt, Instant cancelledAt,
-                           List<PaymentDto> payments, SettlementDto settlement) {}
+                           List<PaymentDto> payments, SettlementDto settlement, long unreadMessages) {}
+
+    public record ChatMessageDto(Long id, Long senderId, String senderName, boolean mine, String text,
+                                 String imageUrl, Instant createdAt) {
+        public static ChatMessageDto of(ChatMessage m, Long viewerId) {
+            return new ChatMessageDto(m.getId(), m.getSender().getId(), m.getSender().getName(),
+                    m.getSender().getId().equals(viewerId), m.getText(), m.getImageUrl(), m.getCreatedAt());
+        }
+    }
 
     public record NotificationDto(Long id, Long orderId, String kind, String actorName, String productName,
                                   Long amount, String message, boolean read, Instant createdAt) {

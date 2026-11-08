@@ -33,6 +33,8 @@ export default function OfferForm() {
   const [estPrice, setPrice] = useState<number | ''>('');
   const [reward, setReward] = useState<number | ''>(5000);
   const [quantity, setQuantity] = useState(1);
+  const [bought, setBought] = useState(false);
+  const [receiptUrl, setReceipt] = useState<string | null>(null);
 
   useEffect(() => {
     const o = existing.data;
@@ -40,6 +42,7 @@ export default function OfferForm() {
     setTripId(o.trip.id); setName(o.productName); setStore(o.store ?? ''); setCategory(o.category ?? 'Other');
     setDescription(o.description ?? ''); setImage(o.imageUrl); setPrice(o.estPrice); setReward(o.reward);
     setQuantity(Math.max(o.quantity, 1));
+    setBought(!!o.receiptUrl); setReceipt(o.receiptUrl);
   }, [existing.data]);
 
   const futureTrips = (trips.data ?? []).filter((tr) => daysUntil(tr.departDate) > 0);
@@ -52,6 +55,7 @@ export default function OfferForm() {
       const body = {
         tripId: Number(tripId), productName, store, category, description, imageUrl,
         estPrice: Number(estPrice), reward: Number(reward || 0), quantity,
+        receiptUrl: bought ? receiptUrl : null,
       };
       return editId ? api.updateOffer(editId, body) : api.createOffer(body);
     },
@@ -116,7 +120,16 @@ export default function OfferForm() {
 
         <Sheet>
           <div className="stack">
-            <Field label={t('of.price')} hint={t('of.priceHint')}>
+            <div className="segmented" role="group" aria-label={t('of.boughtQ')}>
+              <button type="button" aria-pressed={!bought} onClick={() => setBought(false)}>{t('of.notBought')}</button>
+              <button type="button" aria-pressed={bought} onClick={() => setBought(true)}>{t('of.bought')}</button>
+            </div>
+            {bought && (
+              <Field label={t('buy.receipt')} hint={t('of.receiptHint')}>
+                <ImagePicker value={receiptUrl} onChange={setReceipt} />
+              </Field>
+            )}
+            <Field label={bought ? t('of.boughtPrice') : t('of.price')} hint={bought ? t('of.boughtPriceHint') : t('of.priceHint')}>
               <MoneyInput value={estPrice} onChange={setPrice} required placeholder="20,000" />
             </Field>
             <div className="two-col">
@@ -132,7 +145,7 @@ export default function OfferForm() {
         </Sheet>
 
         <Sheet title={t('of.preview')}>
-          <ReceiptStrip quote={q} />
+          <ReceiptStrip quote={q} budgetLabel={bought ? t('offer.boughtPrice') : undefined} />
         </Sheet>
         {(save.error || close.error) && <Notice tone="bad">{errText(save.error ?? close.error)}</Notice>}
         {editId && existing.data?.status !== 'CLOSED' && (
@@ -143,7 +156,7 @@ export default function OfferForm() {
         )}
       </form>
       <ActionBar>
-        <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || !estPrice || tripId === ''}>
+        <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || !estPrice || tripId === '' || (bought && !receiptUrl)}>
           {save.isPending ? t('order.saving') : editId ? t('of.saveChanges') : t('of.publish')}
         </button>
       </ActionBar>

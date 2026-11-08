@@ -55,8 +55,6 @@ export default function BuyerHome() {
   return (
     <Screen flush>
       <section className="hero-section">
-        <img src={IMAGES.hero} alt="" />
-        <div className="hero-overlay" />
         <div className="hero-inner">
           <span className="hero-pill">{t('brand.tag')}</span>
           <h1 className="hero-title font-display">{t('home.heroTitle')}</h1>
@@ -68,8 +66,27 @@ export default function BuyerHome() {
           >
             <SearchIcon size={20} aria-hidden />
             <input placeholder={t('home.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.search')} />
-            <button className="btn btn-lime btn-small">{t('home.searchBtn')}</button>
+            <button className="btn btn-primary btn-small">{t('home.searchBtn')}</button>
           </form>
+        </div>
+
+        {/* Decorative scrapbook collage: map, compass, postcards, a boarding pass and stamps. */}
+        <div className="hero-collage" aria-hidden>
+          <div className="vintage-map" />
+          <div className="compass" />
+          <figure className="scrap postcard is-main">
+            <img src={IMAGES.hero} alt="" />
+            <figcaption><b>{name}</b><small>{t('brand.tag')}</small></figcaption>
+          </figure>
+          <figure className="scrap postcard is-side">
+            <img src={IMAGES.snacks} alt="" />
+          </figure>
+          <div className="scrap ticket">
+            <span className="stamp is-coral"><span>Air ticket</span><b>Boarding pass</b></span>
+            <div className="ticket-route">{country} → KR</div>
+            <div className="ticket-line"><span>Offers</span><b>{perCountry[country]?.offers ?? 0}</b></div>
+          </div>
+          <span className="stamp is-teal hero-stamp"><span>Verified route</span><b>Ready to carry</b></span>
         </div>
       </section>
 

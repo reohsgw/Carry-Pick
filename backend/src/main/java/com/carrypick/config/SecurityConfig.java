@@ -18,10 +18,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Who may call what (GUIDE step 7).
- * Public: login/signup, health, config, browsing offers/trips. Everything else needs "Authorization: Bearer <jwt>".
- */
 @Configuration
 public class SecurityConfig {
 

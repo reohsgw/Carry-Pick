@@ -173,6 +173,7 @@ export function OrderRow({ order }: { order: Order }) {
         <div className="row-meta">
           <span>{firstName(other)}</span>
           <span>{dateTime(order.createdAt, lang)}</span>
+          {order.unreadMessages > 0 && <span className="chat-unread">{t('chat.unread', { n: order.unreadMessages })}</span>}
         </div>
         <div className="row-next">
           <StatusBadge status={order.status} />
@@ -256,24 +257,26 @@ export function ReceiptLine({ label, value, note, muted, strong }: Line & { stro
 export function StatusTimeline({ order }: { order: Order }) {
   const { t, lang } = useI18n();
   const overBudget = order.extraItemAmount > 0;
-  type Step = { id: string; label: string; at: string | null; done: boolean; current?: boolean; bad?: boolean };
+  // `waiting` is what the step says while it is the current one, so it never reads as already done.
+  type Step = { id: string; label: string; waiting?: string; at: string | null; done: boolean; current?: boolean; bad?: boolean };
   const steps: Step[] = [
     { id: 'created', label: t('tl.created'), at: order.createdAt, done: true },
     {
       id: 'paid', label: order.status === 'PAYMENT_FAILED' ? t('tl.payFailed') : t('tl.paid'),
-      at: order.paidAt, done: !!order.paidAt, bad: order.status === 'PAYMENT_FAILED',
+      waiting: t('tl.paid.waiting'), at: order.paidAt, done: !!order.paidAt, bad: order.status === 'PAYMENT_FAILED',
     },
   ];
   if (overBudget) {
     steps.push({
-      id: 'approval', label: t('tl.over', { amount: krw(order.extraItemAmount) }), at: null,
+      id: 'approval', label: t('tl.over', { amount: krw(order.extraItemAmount) }),
+      waiting: t('tl.over.waiting', { amount: krw(order.extraItemAmount) }), at: null,
       done: order.status !== 'AWAITING_APPROVAL', current: order.status === 'AWAITING_APPROVAL',
     });
   }
   steps.push(
-    { id: 'purchased', label: t('tl.purchased'), at: order.purchasedAt, done: !!order.purchasedAt },
-    { id: 'delivered', label: t('tl.delivered'), at: order.deliveredAt, done: !!order.deliveredAt },
-    { id: 'settled', label: t('tl.settled'), at: order.settledAt ?? order.completedAt, done: !!order.settledAt },
+    { id: 'purchased', label: t('tl.purchased'), waiting: t('tl.purchased.waiting'), at: order.purchasedAt, done: !!order.purchasedAt },
+    { id: 'delivered', label: t('tl.delivered'), waiting: t('tl.delivered.waiting'), at: order.deliveredAt, done: !!order.deliveredAt },
+    { id: 'settled', label: t('tl.settled'), waiting: t('tl.settled.waiting'), at: order.settledAt ?? order.completedAt, done: !!order.settledAt },
   );
 
   let shown: Step[];
@@ -288,7 +291,10 @@ export function StatusTimeline({ order }: { order: Order }) {
       {shown.map((s) => (
         <li key={s.id} className={`timeline-item ${s.bad ? 'is-bad' : s.done ? 'is-done' : s.current ? 'is-current' : ''}`}>
           <span className="timeline-dot" aria-hidden />
-          <span className="timeline-label">{s.label}</span>
+          <span className="timeline-label">
+            {s.current && !s.done && !s.bad ? (s.waiting ?? s.label) : s.label}
+            {s.current && !s.done && !s.bad && <span className="timeline-now">{t('tl.now')}</span>}
+          </span>
           {s.at && <span className="timeline-at">{dateTime(s.at, lang)}</span>}
         </li>
       ))}

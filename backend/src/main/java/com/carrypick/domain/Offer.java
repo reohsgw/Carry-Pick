@@ -41,6 +41,9 @@ public class Offer {
 
     private int quantity;
 
+    /** Set when the traveler already bought the item: estPrice is then the real receipt price, not an estimate. */
+    private String receiptUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OfferStatus status = OfferStatus.ACTIVE;
@@ -110,6 +113,10 @@ public class Offer {
     public long getEstPrice() { return estPrice; }
     public long getReward() { return reward; }
     public int getQuantity() { return quantity; }
+    public String getReceiptUrl() { return receiptUrl; }
+    public void setReceiptUrl(String receiptUrl) { this.receiptUrl = receiptUrl; }
+    /** Already bought: orders on this offer skip the "traveler buys" step. */
+    public boolean isPurchased() { return receiptUrl != null; }
     public OfferStatus getStatus() { return status; }
     public void setStatus(OfferStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }

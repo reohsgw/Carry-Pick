@@ -9,4 +9,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findTop50ByUserIdOrderByCreatedAtDesc(Long userId);
 
     long countByUserIdAndReadFalse(Long userId);
+
+    boolean existsByUserIdAndOrderIdAndKindAndReadFalse(Long userId, Long orderId, String kind);
 }

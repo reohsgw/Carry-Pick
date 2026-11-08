@@ -51,7 +51,11 @@ public class Order {
     private Long actualPrice;
     private String receiptUrl;
 
-    /** Extra item amount when P > B (P - B). */
+    /** Price-check step: the higher shelf price the traveler found, and a photo of the price tag. */
+    private Long quotedPrice;
+    private String priceTagUrl;
+
+    /** Extra item amount the buyer approved before purchase (quoted price - B). */
     private long extraItemAmount;
     /** Fee charged on the extra amount. */
     private long extraFee;
@@ -63,6 +67,10 @@ public class Order {
     private OrderStatus status = OrderStatus.PENDING_PAYMENT;
 
     private String cancelReason;
+
+    /** When the buyer / traveler last opened this order's chat, for unread counts. */
+    private Instant buyerChatReadAt;
+    private Instant travelerChatReadAt;
 
     private Instant createdAt = Instant.now();
     private Instant paidAt;
@@ -97,9 +105,14 @@ public class Order {
         return budget + reward + fee + tax;
     }
 
-    /** Amount charged when the buyer approves an over-budget receipt. */
+    /** Amount charged when the buyer approves a higher price. */
     public long extraCharge() {
         return extraItemAmount + extraFee;
+    }
+
+    /** Most the traveler may spend on the item: the budget plus any extra the buyer approved. */
+    public long itemLimit() {
+        return budget + extraItemAmount;
     }
 
     public boolean isBuyer(Long userId) { return buyer.getId().equals(userId); }
@@ -123,6 +136,10 @@ public class Order {
     public void setActualPrice(Long actualPrice) { this.actualPrice = actualPrice; }
     public String getReceiptUrl() { return receiptUrl; }
     public void setReceiptUrl(String receiptUrl) { this.receiptUrl = receiptUrl; }
+    public Long getQuotedPrice() { return quotedPrice; }
+    public void setQuotedPrice(Long quotedPrice) { this.quotedPrice = quotedPrice; }
+    public String getPriceTagUrl() { return priceTagUrl; }
+    public void setPriceTagUrl(String priceTagUrl) { this.priceTagUrl = priceTagUrl; }
     public long getExtraItemAmount() { return extraItemAmount; }
     public void setExtraItemAmount(long extraItemAmount) { this.extraItemAmount = extraItemAmount; }
     public long getExtraFee() { return extraFee; }
@@ -132,6 +149,10 @@ public class Order {
     public void setStatus(OrderStatus status) { this.status = status; }
     public String getCancelReason() { return cancelReason; }
     public void setCancelReason(String cancelReason) { this.cancelReason = cancelReason; }
+    public Instant getBuyerChatReadAt() { return buyerChatReadAt; }
+    public void setBuyerChatReadAt(Instant at) { this.buyerChatReadAt = at; }
+    public Instant getTravelerChatReadAt() { return travelerChatReadAt; }
+    public void setTravelerChatReadAt(Instant at) { this.travelerChatReadAt = at; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getPaidAt() { return paidAt; }

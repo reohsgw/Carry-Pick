@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, FileText } from 'lucide-react';
+import { Camera, ChevronRight, ExternalLink, FileText, MessageCircle } from 'lucide-react';
 import { api, assetUrl, type Order } from '../api';
-import { OrderHero, ReceiptLine, ReceiptStrip, StatusTimeline } from '../components/cards';
+import { OrderHero, ReceiptLine, ReceiptStrip, StatusTimeline, firstName } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
 import { ReceiptCapture } from '../components/receipt';
@@ -39,6 +39,16 @@ export default function OrderDetail() {
         <span>{t(`next.${buyer ? 'b' : 't'}.${o.status}` as Key)}</span>
       </div>
 
+      <Link to={`/orders/${o.id}/chat`} className="status-strip chat-link">
+        <MessageCircle size={20} aria-hidden />
+        <span className="grow">
+          <b>{t('chat.open', { name: firstName(buyer ? o.traveler.name : o.buyer.name) })}</b>
+          <small>{t('chat.openHint')}</small>
+        </span>
+        {o.unreadMessages > 0 && <span className="dot is-inline">{o.unreadMessages > 9 ? '9+' : o.unreadMessages}</span>}
+        <ChevronRight size={18} className="row-chevron" aria-hidden />
+      </Link>
+
       <Sheet>
         <div className="product-line is-inset">
           <ProductThumb src={o.imageUrl} category={o.category} size={52} />
@@ -57,6 +67,14 @@ export default function OrderDetail() {
       <Sheet title={t('order.progress')}>
         <StatusTimeline order={o} />
       </Sheet>
+
+      {o.priceTagUrl && (
+        <Sheet title={t('pc.tag')} aside={<span className="amount">{krw(o.quotedPrice)}</span>}>
+          <a href={assetUrl(o.priceTagUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
+            <img src={assetUrl(o.priceTagUrl) ?? ''} alt={t('pc.tag')} />
+          </a>
+        </Sheet>
+      )}
 
       {o.receiptUrl && (
         <Sheet title={t('order.receipt')} aside={<span className="amount">{krw(o.actualPrice)}</span>}>
@@ -77,6 +95,12 @@ export default function OrderDetail() {
         />
         {o.extraItemAmount > 0 && (
           <ReceiptLine label={t('price.extraTotal')} value={o.extraCharge} strong />
+        )}
+        {o.actualPrice != null && !o.settlement && o.actualPrice < o.itemLimit && (
+          <div className="settle">
+            <ReceiptLine label={t('price.refundDue')} value={o.itemLimit - o.actualPrice} />
+            <p className="receipt-note">{t('price.refundDueNote')}</p>
+          </div>
         )}
         {o.settlement && (
           <div className="settle">
@@ -145,9 +169,9 @@ function BuyerActions({ order: o }: { order: Order }) {
         <div className="stack">
           <div className="compare">
             <div><span>{t('order.yourBudget')}</span><strong>{krw(o.budget)}</strong></div>
-            <div><span>{t('order.actualPrice')}</span><strong className="danger">{krw(o.actualPrice)}</strong></div>
+            <div><span>{t('order.actualPrice')}</span><strong className="danger">{krw(o.quotedPrice)}</strong></div>
           </div>
-          {o.receiptUrl && !o.receiptUrl.endsWith('.pdf') && <img className="receipt-small" src={assetUrl(o.receiptUrl) ?? ''} alt={t('order.receipt')} />}
+          {o.priceTagUrl && <img className="receipt-small" src={assetUrl(o.priceTagUrl) ?? ''} alt={t('pc.tag')} />}
           <p className="body-text">{t('order.approvalBody', { extra: krw(o.extraItemAmount), fee: krw(o.extraFee) })}</p>
           <button className="btn btn-primary btn-block btn-tall" disabled={payment.busy}
             onClick={() => { setApprovalOpen(false); payment.start(() => api.approve(o.id)); }}>
@@ -172,20 +196,32 @@ function TravelerActions({ order: o }: { order: Order }) {
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState<number | ''>('');
   const [file, setFile] = useState<File | null>(null);
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [tagPrice, setTagPrice] = useState<number | ''>('');
+  const [tagPhoto, setTagPhoto] = useState<File | null>(null);
   const refresh = () => qc.invalidateQueries();
 
   const purchase = useMutation({
     mutationFn: () => api.purchase(o.id, Number(price), file!),
     onSuccess: () => { setOpen(false); refresh(); },
   });
+  const priceCheck = useMutation({
+    mutationFn: () => api.priceCheck(o.id, Number(tagPrice), tagPhoto!),
+    onSuccess: () => { setCheckOpen(false); refresh(); },
+  });
   const deliver = useMutation({ mutationFn: () => api.deliver(o.id), onSuccess: refresh });
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
   const err = deliver.error ?? cancel.error;
-  const over = price !== '' && price > o.budget;
+  const approved = o.extraItemAmount > 0;
+  const over = price !== '' && price > o.itemLimit;
+  const under = price !== '' && price > 0 && price < o.itemLimit;
+  const tagOk = tagPrice !== '' && tagPrice > o.budget;
 
   return (
     <>
-      {o.status === 'PAID' && <Notice>{t('order.budgetLimit', { amount: krw(o.budget) })}</Notice>}
+      {o.status === 'PAID' && (approved
+        ? <Notice tone="good">{t('pc.approvedLimit', { amount: krw(o.itemLimit) })}</Notice>
+        : <Notice>{t('order.budgetLimit', { amount: krw(o.budget) })}</Notice>)}
       {err && <Notice tone="bad">{errText(err)}</Notice>}
       {['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID'].includes(o.status) && (
         <button className="link danger center-block" disabled={cancel.isPending}
@@ -195,6 +231,9 @@ function TravelerActions({ order: o }: { order: Order }) {
       )}
 
       <ActionBar>
+        {o.status === 'PAID' && !approved && (
+          <button className="btn btn-quiet btn-tall" onClick={() => setCheckOpen(true)}>{t('pc.open')}</button>
+        )}
         {o.status === 'PAID' && (
           <button className="btn btn-primary btn-block btn-tall" onClick={() => setOpen(true)}>{t('order.bought')}</button>
         )}
@@ -212,16 +251,61 @@ function TravelerActions({ order: o }: { order: Order }) {
       <Modal open={open} onClose={() => setOpen(false)} title={t('buy.title')} eyebrow={o.productName}>
         <form className="stack" onSubmit={(e) => { e.preventDefault(); purchase.mutate(); }}>
           <ReceiptCapture file={file} onFile={setFile} onAmount={setPrice} />
-          <Field label={t('buy.price')} hint={t('buy.priceHint', { amount: krw(o.budget) })}>
+          <Field label={t('buy.price')} hint={t('buy.priceHint', { amount: krw(o.itemLimit) })}>
             <MoneyInput value={price} onChange={setPrice} required />
           </Field>
-          {over && <Notice tone="warn">{t('buy.over', { amount: krw(Number(price) - o.budget) })}</Notice>}
+          {over && <Notice tone="bad">{t(approved ? 'buy.overApproved' : 'buy.over', { amount: krw(o.itemLimit) })}</Notice>}
+          {under && <Notice tone="good">{t('buy.under', { amount: krw(o.itemLimit - Number(price)) })}</Notice>}
           {purchase.error && <Notice tone="bad">{errText(purchase.error)}</Notice>}
-          <button className="btn btn-primary btn-block btn-tall" disabled={purchase.isPending || !price || !file}>
+          <button className="btn btn-primary btn-block btn-tall" disabled={purchase.isPending || !price || !file || over}>
             {purchase.isPending ? t('buy.uploading') : t('buy.save')}
           </button>
         </form>
       </Modal>
+
+      <Modal open={checkOpen} onClose={() => setCheckOpen(false)} title={t('pc.title')} eyebrow={o.productName}>
+        <form className="stack" onSubmit={(e) => { e.preventDefault(); priceCheck.mutate(); }}>
+          <p className="body-text">{t('pc.body', { amount: krw(o.budget) })}</p>
+          <PhotoPick file={tagPhoto} onFile={setTagPhoto} label={t('pc.photo')} hint={t('pc.photoHint')} />
+          <Field label={t('pc.price')} hint={t('buy.priceHint', { amount: krw(o.budget) })}>
+            <MoneyInput value={tagPrice} onChange={setTagPrice} required />
+          </Field>
+          {tagOk && <Notice tone="warn">{t('pc.extra', { amount: krw(Number(tagPrice) - o.budget) })}</Notice>}
+          {tagPrice !== '' && !tagOk && <Notice>{t('pc.notOver')}</Notice>}
+          {priceCheck.error && <Notice tone="bad">{errText(priceCheck.error)}</Notice>}
+          <button className="btn btn-primary btn-block btn-tall" disabled={priceCheck.isPending || !tagOk || !tagPhoto}>
+            {priceCheck.isPending ? t('buy.uploading') : t('pc.send')}
+          </button>
+        </form>
+      </Modal>
     </>
+  );
+}
+
+/** Photo picker with a thumbnail, for the price-tag photo. */
+function PhotoPick({ file, onFile, label, hint }: { file: File | null; onFile: (f: File | null) => void; label: string; hint: string }) {
+  const { t } = useI18n();
+  const input = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) { setPreview(null); return; }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+  return (
+    <div className="capture-pick">
+      {preview
+        ? <img className="capture-thumb" src={preview} alt="" />
+        : <div className="capture-thumb is-empty"><Camera size={22} strokeWidth={1.5} aria-hidden /></div>}
+      <div className="capture-pick-body">
+        <span className="field-label">{label}</span>
+        <span className="field-hint">{file ? file.name : hint}</span>
+        <button type="button" className="link" onClick={() => input.current?.click()}>
+          {file ? t('buy.change') : t('buy.choose')}
+        </button>
+      </div>
+      <input ref={input} type="file" accept="image/*" aria-label={label} hidden onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+    </div>
   );
 }

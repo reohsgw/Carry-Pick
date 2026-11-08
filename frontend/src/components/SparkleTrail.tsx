@@ -39,7 +39,7 @@ export default function SparkleTrail() {
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.fillStyle = `rgba(199,255,45,${p.life})`;
-        ctx.shadowColor = '#c7ff2d';
+        ctx.shadowColor = '#ffcd21';
         ctx.shadowBlur = 6;
         ctx.beginPath();
         for (let point = 0; point < 8; point += 1) {

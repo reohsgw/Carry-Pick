@@ -88,6 +88,7 @@ public class MarketService {
         Offer o = offers.save(new Offer(me, trip, f.productName().trim(), blankToNull(f.store()),
                 blankToNull(f.category()), blankToNull(f.description()), blankToNull(f.imageUrl()),
                 f.estPrice(), f.reward(), f.quantity()));
+        o.setReceiptUrl(blankToNull(f.receiptUrl()));
         return mapper.offer(o);
     }
 
@@ -98,6 +99,7 @@ public class MarketService {
         if (o.getStatus() == OfferStatus.CLOSED) throw ApiException.conflict("OFFER_CLOSED", "Offer is closed");
         o.update(f.productName().trim(), blankToNull(f.store()), blankToNull(f.category()),
                 blankToNull(f.description()), blankToNull(f.imageUrl()), f.estPrice(), f.reward(), f.quantity());
+        o.setReceiptUrl(blankToNull(f.receiptUrl()));
         return mapper.offer(o);
     }
 

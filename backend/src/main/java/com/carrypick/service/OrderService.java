@@ -127,30 +127,55 @@ public class OrderService {
 
     // ---------------------------------------------------------------- traveler actions (T7)
 
-    /** Traveler bought the item: enter the actual price and upload the receipt. */
+    /**
+     * Traveler bought the item: enter the actual price and upload the receipt.
+     * The price may not go over the limit (budget + approved extra); a higher price needs a price check first.
+     * A lower price is fine: the difference goes back to the buyer at settlement.
+     */
     @Transactional
     public OrderDto purchase(Long userId, Long orderId, long actualPrice, MultipartFile receipt) {
         Order o = findForParticipant(userId, orderId);
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PAID);
         if (actualPrice <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
+        if (actualPrice > o.itemLimit()) {
+            throw ApiException.conflict("OVER_LIMIT", "The price is over the approved " + o.itemLimit()
+                    + " KRW. Send the buyer a price check first.");
+        }
         o.setReceiptUrl(files.store(receipt));
         o.setActualPrice(actualPrice);
-        if (actualPrice <= o.getBudget()) {
-            o.setStatus(OrderStatus.PURCHASED);
-            o.setPurchasedAt(Instant.now());
-            notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.PURCHASED, o.getTraveler().getName(),
-                    o.getProductName(), actualPrice, o.getTraveler().getName() + " bought " + o.getProductName()
-                    + ". Receipt uploaded.");
-        } else {
-            long extra = actualPrice - o.getBudget();
-            o.setExtraItemAmount(extra);
-            o.setExtraFee(pricing.feeOn(extra));
-            o.setStatus(OrderStatus.AWAITING_APPROVAL);
-            notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.OVER_BUDGET, o.getTraveler().getName(),
-                    o.getProductName(), extra, "The actual price of " + o.getProductName()
-                    + " is over your budget by " + extra + " KRW. Please approve or reject.");
+        o.setStatus(OrderStatus.PURCHASED);
+        o.setPurchasedAt(Instant.now());
+        notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.PURCHASED, o.getTraveler().getName(),
+                o.getProductName(), actualPrice, o.getTraveler().getName() + " bought " + o.getProductName()
+                + ". Receipt uploaded.");
+        return mapper.order(o, userId);
+    }
+
+    /**
+     * Before buying: the shelf price is higher than the budget. The traveler sends a photo of the price tag
+     * and the price; the buyer approves (and pays the extra) or rejects. Only one price check per order.
+     */
+    @Transactional
+    public OrderDto priceCheck(Long userId, Long orderId, long price, MultipartFile priceTag) {
+        Order o = findForParticipant(userId, orderId);
+        requireTraveler(o, userId);
+        requireStatus(o, OrderStatus.PAID);
+        if (o.getExtraItemAmount() > 0) {
+            throw ApiException.conflict("ALREADY_APPROVED", "The buyer already approved a higher price for this order");
         }
+        if (price <= o.getBudget()) {
+            throw ApiException.badRequest("NOT_OVER_BUDGET", "The price is within the budget. You can buy it now.");
+        }
+        long extra = price - o.getBudget();
+        o.setPriceTagUrl(files.store(priceTag));
+        o.setQuotedPrice(price);
+        o.setExtraItemAmount(extra);
+        o.setExtraFee(pricing.feeOn(extra));
+        o.setStatus(OrderStatus.AWAITING_APPROVAL);
+        notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.OVER_BUDGET, o.getTraveler().getName(),
+                o.getProductName(), extra, o.getProductName() + " costs " + extra
+                + " KRW more than your budget. Check the price tag and approve or reject before the traveler buys it.");
         return mapper.order(o, userId);
     }
 
@@ -169,7 +194,7 @@ public class OrderService {
 
     // ---------------------------------------------------------------- buyer actions (B8)
 
-    /** Buyer rejects an over-budget receipt: order cancelled and a refund is simulated. */
+    /** Buyer rejects the higher price: the traveler does not buy, the order is cancelled and refunded (simulated). */
     @Transactional
     public OrderDto reject(Long userId, Long orderId) {
         Order o = findForParticipant(userId, orderId);
@@ -178,7 +203,7 @@ public class OrderService {
         refundAll(o);
         o.setStatus(OrderStatus.CANCELLED);
         o.setCancelledAt(Instant.now());
-        o.setCancelReason("Buyer rejected the over-budget price");
+        o.setCancelReason("Buyer rejected the higher price");
         notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.REJECTED, o.getBuyer().getName(),
                 o.getProductName(), null, o.getBuyer().getName() + " rejected the over-budget price for "
                 + o.getProductName() + ". The order was cancelled.");
@@ -239,6 +264,18 @@ public class OrderService {
     public void markPaid(Order o) {
         o.setStatus(OrderStatus.PAID);
         o.setPaidAt(Instant.now());
+        Offer offer = o.getOffer();
+        if (offer != null && offer.isPurchased()) {
+            // Already bought before listing: the listing's receipt is the purchase, at the listed price.
+            o.setReceiptUrl(offer.getReceiptUrl());
+            o.setActualPrice(o.getBudget());
+            o.setStatus(OrderStatus.PURCHASED);
+            o.setPurchasedAt(Instant.now());
+            notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.PAID, o.getBuyer().getName(),
+                    o.getProductName(), o.initialCharge(), o.getBuyer().getName() + " paid for " + o.getProductName()
+                    + ". You already have it, so hand it over after your trip.");
+            return;
+        }
         notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.PAID, o.getBuyer().getName(),
                 o.getProductName(), o.initialCharge(), o.getBuyer().getName() + " paid for " + o.getProductName()
                 + ". You can buy it on your trip.");
@@ -248,12 +285,12 @@ public class OrderService {
         o.setStatus(OrderStatus.PAYMENT_FAILED);
     }
 
+    /** Buyer approved the higher price and paid the extra: the traveler may now buy up to the new limit. */
     public void onExtraPaymentSuccess(Order o) {
-        o.setStatus(OrderStatus.PURCHASED);
-        o.setPurchasedAt(Instant.now());
+        o.setStatus(OrderStatus.PAID);
         notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.EXTRA_PAID, o.getBuyer().getName(),
                 o.getProductName(), o.getExtraItemAmount(), o.getBuyer().getName() + " approved and paid the extra "
-                + o.getExtraItemAmount() + " KRW for " + o.getProductName() + ".");
+                + o.getExtraItemAmount() + " KRW for " + o.getProductName() + ". You can buy it now.");
     }
 
     // ---------------------------------------------------------------- helpers
@@ -296,16 +333,18 @@ public class OrderService {
     }
 
     /**
-     * Simulated settlement:
+     * Simulated settlement. L = item limit (B + approved extra), P = receipt price (P <= L).
      *   traveler payout = P + R
-     *   buyer refund    = B - P when the receipt is under budget (0 otherwise)
-     *   platform keeps  = F + extra fee
+     *   buyer refund    = L - P, plus the part of the extra fee that was not needed
+     *   platform keeps  = F + fee on the extra actually spent (P - B, if any)
      */
     private void settle(Order o) {
-        long actual = o.getActualPrice() == null ? o.getBudget() : o.getActualPrice();
+        long limit = o.itemLimit();
+        long actual = o.getActualPrice() == null ? limit : o.getActualPrice();
         long payout = actual + o.getReward();
-        long refund = Math.max(0, o.getBudget() - actual);
-        long platform = o.getFee() + o.getExtraFee();
+        long extraFeeKept = Math.min(o.getExtraFee(), pricing.feeOn(Math.max(0, actual - o.getBudget())));
+        long refund = Math.max(0, limit - actual) + (o.getExtraFee() - extraFeeKept);
+        long platform = o.getFee() + extraFeeKept;
         settlements.save(new Settlement(o, payout, refund, platform));
         if (refund > 0) {
             Payment p = new Payment(o, PaymentType.REFUND, refund, "refund-" + o.getId() + "-" + System.nanoTime(), true);

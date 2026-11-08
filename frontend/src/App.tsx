@@ -14,6 +14,7 @@ import NewTrip from './pages/NewTrip';
 import Notifications from './pages/Notifications';
 import OfferDetail from './pages/OfferDetail';
 import OfferForm from './pages/OfferForm';
+import OrderChat from './pages/OrderChat';
 import OrderDetail from './pages/OrderDetail';
 import PayResult from './pages/PayResult';
 import RequestBoard from './pages/RequestBoard';
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/my-requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
         <Route path="/orders" element={<RequireAuth><MyOrders role="buyer" /></RequireAuth>} />
         <Route path="/orders/:id" element={<RequireAuth><OrderDetail /></RequireAuth>} />
+        <Route path="/orders/:id/chat" element={<RequireAuth><OrderChat /></RequireAuth>} />
         <Route path="/orders/:id/pay" element={<RequireAuth><Checkout /></RequireAuth>} />
         <Route path="/pay/success" element={<RequireAuth><PayResult success /></RequireAuth>} />
         <Route path="/pay/fail" element={<RequireAuth><PayResult success={false} /></RequireAuth>} />

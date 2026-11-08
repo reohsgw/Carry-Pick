@@ -57,7 +57,10 @@ export function Wordmark({ to }: { to?: string }) {
   const inner = (
     <>
       <span className="logo-mark"><Plane size={16} strokeWidth={2} /></span>
-      <span className="brand-name">carrypick<b>.</b></span>
+      <span className="brand-copy">
+        <span className="brand-name">CarryPick</span>
+        <small className="brand-tagline">Travel shopping</small>
+      </span>
     </>
   );
   return to ? <Link to={to} className="brand" aria-label="CarryPick">{inner}</Link> : <span className="brand" aria-label="CarryPick">{inner}</span>;

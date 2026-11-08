@@ -35,7 +35,9 @@ public final class Forms {
             @Size(max = 500) String imageUrl,
             @Positive long estPrice,
             @PositiveOrZero long reward,
-            @Min(1) @Max(99) int quantity) {}
+            @Min(1) @Max(99) int quantity,
+            /** Receipt of an item the traveler already bought; null when estPrice is an estimate. */
+            @Size(max = 500) String receiptUrl) {}
 
     public record RequestForm(
             @NotBlank @Size(min = 2, max = 2) String countryCode,
@@ -53,6 +55,8 @@ public final class Forms {
     public record AcceptForm(Long tripId) {}
 
     public record CancelForm(@Size(max = 200) String reason) {}
+
+    public record MessageForm(@Size(max = 1000) String text, @Size(max = 500) String imageUrl) {}
 
     public record PrepareForm(@NotNull Long orderId) {}
 
