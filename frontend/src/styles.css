@@ -1592,3 +1592,297 @@ html:lang(ko) .offer-searchbar label span { font-size: 12px; letter-spacing: 0; 
 @media (prefers-reduced-motion: reduce) {
   .ticket-grid > * { transform: none !important; }
 }
+
+/* ==================================================================
+ * V7: antique travel ledger (CarryPick_Website_Standalone_v7)
+ * Navy ink, terracotta and muted teal on flat, square-cornered torn paper. Serif navigation,
+ * navy active states, terracotta feature bands, antique postage stamps. Visual only.
+ * ================================================================== */
+
+:root {
+  --ink: #173447;
+  --ink-2: #173447;
+  --ink-3: #0f2533;
+  --muted: #665c4f;
+  --faint: #8a7d6c;
+  --coral: #ad5d43;
+  --turq: #557c79;
+  --lime: #b18a48;
+  --lime-hover: #c09a58;
+  --lime-soft: #d6e1da;
+  --lime-wash: #efe0c2;
+  --lime-text: #9d5d46;
+  --lime-deep: #9d5d46;
+  --page: #ead6ae;
+  --sheet: #f6ead0;
+  --sunk: #e5d2ac;
+  --line: #c8b28c;
+  --line-2: #d8c49f;
+  --good: #47734f;
+  --kraft: #b58a62;
+  --v7-paper:
+    linear-gradient(113deg, transparent 0 24%, rgb(107 72 42 / 0.045) 24.6%, transparent 25.2% 59%, rgb(255 255 255 / 0.16) 59.6%, transparent 60.3%),
+    linear-gradient(30deg, transparent 0 35%, rgb(112 76 46 / 0.035) 35.6%, transparent 36.3% 78%, rgb(255 255 255 / 0.12) 78.4%, transparent 79.2%),
+    var(--paper-fiber-light),
+    linear-gradient(180deg, #f2e4c6, #e9d4ad);
+  --v7-paper-blend: soft-light, soft-light, multiply, normal;
+  --v7-shadow: 0 12px 20px rgb(70 44 25 / 0.12), 0 3px 5px rgb(70 44 25 / 0.06);
+  --v7-terracotta: linear-gradient(105deg, rgb(255 255 255 / 0.03), transparent 32%), var(--paper-fiber), linear-gradient(180deg, #b5654c, #a95740);
+  --v7-band: polygon(.5% 5%, 6% 1%, 15% 4%, 25% 1%, 37% 4%, 49% 1%, 61% 4%, 73% 1%, 86% 4%, 98.7% 2%, 99.5% 14%, 98.6% 30%, 99.4% 48%, 98.5% 65%, 99.3% 82%, 98.5% 96%, 88% 99%, 77% 96%, 65% 99%, 53% 96%, 41% 99%, 29% 96%, 17% 99%, 2% 95%, .5% 80%, 1.5% 64%, .4% 48%, 1.4% 31%, .4% 15%);
+  --v7-map: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='560' viewBox='0 0 1200 560'%3E%3Cg fill='none' stroke='%238f6d4b' stroke-width='1.5' opacity='.20'%3E%3Cpath d='M95 190c70-55 144-83 222-96 64-10 111 7 157-22 57-36 77-83 153-91 76-8 124 25 200 8 68-15 116-57 196-49'/%3E%3Cpath d='M87 370c96-44 151-24 226-50 70-25 85-70 166-84 89-15 144 40 236 8 71-25 112-72 206-65' stroke-dasharray='7 8'/%3E%3Cpath d='M300 130c21 12 48 10 68 25 23 18 26 47 54 60 27 13 54-3 83 6 33 10 55 40 86 56'/%3E%3Cpath d='M779 90c-14 35-2 62-14 94-12 34-44 46-56 78-14 36 12 69 4 111'/%3E%3C/g%3E%3Cg fill='%23947654' opacity='.08'%3E%3Cellipse cx='240' cy='220' rx='86' ry='46'/%3E%3Cellipse cx='425' cy='170' rx='58' ry='34'/%3E%3Cellipse cx='710' cy='206' rx='95' ry='48'/%3E%3Cellipse cx='920' cy='300' rx='74' ry='41'/%3E%3C/g%3E%3C/svg%3E");
+  --v7-hero-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='520' viewBox='0 0 1000 520'%3E%3Cg fill='none' stroke='%238f6e4c' stroke-width='1.2' opacity='.28'%3E%3Cpath d='M70 145c84-58 149-60 220-91 72-31 134-64 211-42 63 18 98 65 166 71 75 7 128-34 232-20'/%3E%3Cpath d='M77 360c74-35 135-14 203-42 63-26 84-75 161-81 77-6 130 39 213 13 82-26 137-86 262-66' stroke-dasharray='8 9'/%3E%3Cpath d='M359 156c21 10 46 7 66 20 24 16 32 42 56 56 27 16 60 8 86 24 33 20 48 52 74 73'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ page + frame */
+
+body, body:is(*) {
+  color: #203243;
+  background-color: #a97f59;
+  background-image: radial-gradient(circle at 14% 18%, rgb(255 255 255 / 0.08), transparent 26%), var(--paper-fiber), linear-gradient(180deg, #b88d64 0%, #9e744f 100%);
+  background-size: auto;
+  background-blend-mode: screen, multiply, normal;
+}
+.app {
+  position: relative;
+  border-image: repeating-linear-gradient(135deg, #a45440 0 19px, #ead9b7 19px 38px, #446979 38px 57px, #ead9b7 57px 76px) 10 round;
+  background-color: var(--page);
+  background-image: linear-gradient(rgb(238 218 181 / 0.83), rgb(238 218 181 / 0.83)), var(--paper-fiber-light), linear-gradient(180deg, #e5c89b, #e6cda4 100%);
+  background-blend-mode: normal, multiply, normal;
+  box-shadow: 0 30px 70px rgb(54 34 20 / 0.28);
+}
+.app::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--v7-map) top center / 100% 520px no-repeat, repeating-linear-gradient(175deg, rgb(94 61 36 / 0.025) 0 2px, transparent 2px 6px);
+  mix-blend-mode: multiply;
+}
+
+/* ------------------------------------------------------------------ header + navigation */
+
+.app-header {
+  background: linear-gradient(180deg, rgb(239 222 188 / 0.97), rgb(230 207 164 / 0.96));
+  border-bottom: 1px solid rgb(92 62 39 / 0.18);
+  box-shadow: 0 7px 16px rgb(67 41 23 / 0.1);
+  backdrop-filter: none;
+}
+.brand { position: relative; isolation: isolate; padding: 4px 18px 4px 8px; }
+.brand::before {
+  content: ''; position: absolute; inset: -6px -10px -6px -12px; z-index: -1;
+  background: linear-gradient(180deg, #f2deb5, #e2c397);
+  clip-path: polygon(2% 10%, 9% 2%, 20% 6%, 31% 1%, 44% 5%, 55% 1%, 67% 5%, 79% 1%, 91% 6%, 99% 12%, 97% 28%, 100% 44%, 97% 61%, 100% 78%, 96% 94%, 84% 98%, 70% 94%, 56% 99%, 43% 95%, 29% 99%, 14% 94%, 3% 97%, 1% 82%, 3% 64%, 0 47%, 3% 31%);
+}
+.logo-mark { background: #aa7f3f; color: #f7ead0; box-shadow: none; transform: rotate(-7deg); }
+.logo-mark::before, .logo-mark::after { background: #f0dcb4; }
+.brand-name { color: #251d17; }
+.brand-tagline { color: #795c3e; }
+
+.icon-btn { color: var(--ink); }
+.avatar-btn, .app-header .header-right .icon-btn {
+  background: #e9d4ae; color: var(--ink); border: 1px solid rgb(92 63 39 / 0.16);
+}
+.dot { border-color: #e9d4ae; }
+
+.desktop-nav-item {
+  color: #42382e; font-family: var(--display); font-weight: 700;
+  background: linear-gradient(180deg, #f3e4c5, #e5cba0); border: 1px solid rgb(107 76 45 / 0.18); border-radius: 4px;
+  box-shadow: 0 4px 9px rgb(63 39 21 / 0.07);
+}
+.desktop-nav-item:hover, .desktop-nav-item.active {
+  background: #173447; color: #f4e8cf; border-color: #173447;
+}
+.mobile-nav { background: linear-gradient(180deg, rgb(239 222 188 / 0.98), rgb(230 207 164 / 0.98)); border-top: 1px solid rgb(92 62 39 / 0.2); color: #6f6456; }
+.mobile-nav-item.active { background: #173447; color: #f4e8cf; box-shadow: none; border-radius: 4px; }
+
+/* ------------------------------------------------------------------ type */
+
+.font-display, .empty-title, .product-title, h1.font-display, h2.font-display, h3.font-display {
+  color: var(--ink); font-family: var(--display); font-weight: 500; letter-spacing: -0.025em;
+}
+html:lang(ko) .font-display { font-weight: 600; letter-spacing: -0.02em; }
+.section-copy, .page-copy, .hero-body { color: #6f6456; }
+.eyebrow, .pill { background: var(--lime-soft); color: #9d5d46; letter-spacing: 0.16em; border-radius: 0; }
+html:lang(ko) .eyebrow, html:lang(ko) .pill { letter-spacing: 0.04em; }
+.script-note { color: #9d5d46; }
+.link-button:hover, .card-link:hover { color: var(--coral); }
+.reward, .product-cat b { color: #9d5d46; }
+
+/* ------------------------------------------------------------------ flat torn-paper sheets */
+
+.card, .summary-card, .request-card, .stat-card, .empty, .scan, .demo, .pass, .status-strip, .quote, .compare div,
+.country-card, .offer-card, .notice.is-info, .home-section, .home-section + .home-section, .product-card,
+.filter-sidebar, .offer-searchbar, .ticket-card, .modal {
+  border-radius: 0 !important;
+  background-color: #efe0c0;
+  background-image: var(--v7-paper);
+  background-blend-mode: var(--v7-paper-blend);
+  border: 1px solid rgb(104 72 43 / 0.16);
+  filter: none;
+}
+.home-section, .home-section + .home-section, .product-card, .country-card, .filter-sidebar, .card, .stat-card, .summary-card {
+  box-shadow: var(--v7-shadow);
+}
+.card-grid > *, .scroll-row > *, .scroll-row > .product-card, .scroll-row > .country-card,
+.ticket-grid > .ticket-card, .scroll-row > .product-card .product-media { transform: none !important; }
+.scroll-row > .product-card:hover, .ticket-grid > .ticket-card:hover { transform: translateY(-3px) !important; }
+.thumb { border-radius: 0; background: var(--sunk); }
+.stat-grid > :nth-child(1) { background-color: var(--lime-soft); background-image: none; }
+.stat-grid > :nth-child(2) { background-color: var(--sheet); background-image: none; }
+.stat-grid > :nth-child(3) { background-color: #e8d6a8; background-image: none; }
+.rows > * + *, .kv, .card-link, .pass-foot, .request-foot, .meta-grid, .receipt-lines, .price-line { border-color: rgb(95 60 35 / 0.22) !important; }
+
+/* ------------------------------------------------------------------ terracotta feature bands */
+
+.dark-panel, .dashboard-hero, .dashboard-hero.is-lime, .order-hero {
+  background-color: #ad5b43 !important;
+  background-image: var(--v7-terracotta) !important;
+  background-blend-mode: screen, multiply, normal !important;
+  color: #fff1d8 !important; border: 1px solid #95503d !important; border-radius: 0 !important;
+  clip-path: var(--v7-band) !important; box-shadow: none !important;
+}
+.dark-panel h2, .dashboard-hero h1, .order-hero h1, .dark-panel strong, .order-hero strong, .dashboard-hero strong { color: #fff1d8 !important; }
+.dark-panel p, .dashboard-hero p, .dashboard-hero.is-lime p, .order-hero .route-line, .order-hero p { color: #f0d3bc !important; }
+.dark-panel .eyebrow, .dashboard-hero .pill, .dashboard-hero.is-lime .pill, .order-hero .pill { background: rgb(255 241 216 / 0.16); color: #f0d3bc; }
+.dashboard-hero::after, .order-hero::after { border-color: rgb(255 241 216 / 0.35) !important; color: rgb(255 241 216 / 0.55) !important; }
+.dashboard-hero .glass-btn, .order-hero .glass-btn { background: #f3e4c5; color: #9b533f; border: 0; font-family: var(--display); font-weight: 700; }
+.dashboard-hero .btn-lime, .dashboard-hero .btn-primary, .dark-panel .btn-lime, .dark-panel .btn-primary {
+  background: #f3e4c5 !important; color: #9b533f !important; border-color: transparent !important;
+}
+.cta-panel {
+  background-color: var(--lime-soft); background-image: var(--paper-fiber-light), linear-gradient(180deg, #dbe5de, #c9d8cf);
+  background-blend-mode: multiply, normal; border-radius: 0; box-shadow: var(--v7-shadow);
+}
+.cta-panel .eyebrow { background: rgb(255 255 255 / 0.45); color: #9d5d46; }
+.cta-panel p { color: #5c5a50; }
+.steps li { border-radius: 0; border-style: solid; border-color: rgb(95 60 35 / 0.2); background: rgb(246 234 208 / 0.6); }
+.steps li span { color: #9d5d46; }
+
+/* ------------------------------------------------------------------ buttons: flat ledger tickets */
+
+.btn, .glass-btn, .ticket-btn, .ticket-pill, .round-arrow {
+  border-radius: 0 !important; font-family: var(--display); letter-spacing: 0.01em;
+  border: 1px solid rgb(100 70 43 / 0.22) !important; box-shadow: 0 5px 9px rgb(63 39 21 / 0.08) !important;
+}
+.btn-quiet, .ticket-btn, .glass-btn, .round-arrow, .offer-actions .btn-quiet { background: #f1dfbb !important; color: #173447 !important; }
+.btn-quiet:not(:disabled):hover, .product-card:hover .ticket-btn, .glass-btn:hover { background: #ead2a6 !important; }
+.offer-actions .btn-quiet.is-on { background: #173447 !important; color: #f4e8cf !important; border-color: #173447 !important; }
+.btn-primary { background: #ad5d43 !important; color: #fff0d8 !important; border-color: #9b503c !important; }
+.btn-primary:not(:disabled):hover { background: #9b503c !important; }
+.btn-lime { background: #b18a48 !important; color: #fff3dc !important; border-color: #8f6d34 !important; }
+.btn-lime:not(:disabled):hover { background: #9f7c3f !important; }
+.btn-primary::before, .btn-primary::after, .btn-lime::before, .btn-lime::after,
+.ticket-btn::before, .ticket-btn::after, .ticket-pill::before, .ticket-pill::after { background: #e8d2ab; }
+.ticket-pill { background: #efe0c2 !important; }
+.route-arrow { color: #ad5d43; }
+
+/* ------------------------------------------------------------------ chips, tabs, forms */
+
+.chip {
+  font-family: var(--display); color: #5b4938; background: #f2e4c8; border: 1px solid #d1ba91; border-radius: 0;
+  box-shadow: 0 4px 8px rgb(69 43 25 / 0.05);
+}
+.chip:hover { background: #f6ead0; }
+.chip[aria-pressed='true'], .segmented button[aria-selected='true'], .segmented button[aria-pressed='true'],
+.lang button[aria-pressed='true'] { background: #173447; color: #f5ead2; border-color: #173447; }
+.segmented { background: #ccb187; border-radius: 4px; }
+.segmented button { border-radius: 3px; font-family: var(--display); font-weight: 700; color: #42382e; }
+.tabs button { font-family: var(--display); }
+.tabs button[aria-selected='true'] { border-color: #173447; color: #173447; }
+.tab-count { background: #173447; color: #f4e8cf; }
+.searchbar, .field input, .field select, .field textarea, .money, .stepper, .select, .offer-searchbar input, .offer-searchbar select {
+  border-radius: 0 !important; background: #f4e8ce; border-color: rgb(95 60 35 / 0.18);
+}
+.searchbar:focus-within, .field input:focus, .field select:focus, .field textarea:focus, .money:focus-within {
+  border-color: #557c79; box-shadow: 0 0 0 3px rgb(85 124 121 / 0.22);
+}
+.mode-switch button { border-radius: 0; }
+.mode-switch button[aria-pressed='true'] { background: #e1e8e2; border-color: #557c79; box-shadow: 0 0 0 2px rgb(85 124 121 / 0.35); }
+.mode-switch button[aria-pressed='true'] svg { color: #557c79; }
+.filter-sidebar input[type='range'] { accent-color: #ad5d43; }
+.check-row input { accent-color: #557c79; }
+
+/* ------------------------------------------------------------------ antique postage stamps */
+
+.code, .code.is-big, .rank-badge, .best-tag, .country-card .code.is-big {
+  color: #fff1dd !important;
+  background: linear-gradient(180deg, #b6654e, #a55440) !important;
+  box-shadow: 0 6px 10px rgb(67 41 23 / 0.14), inset 0 0 0 1px rgb(255 255 255 / 0.16) !important;
+}
+.scroll-row > .country-card:nth-child(3n+2) .code { background: linear-gradient(180deg, #527586, #385c6a) !important; }
+.scroll-row > .country-card:nth-child(3n+3) .code { background: linear-gradient(180deg, #9f7c3f, #866630) !important; }
+.best-tag { border-radius: 0; }
+.stamp { color: #ad5d43; border-radius: 0; background: rgb(246 234 208 / 0.6); }
+.stamp.is-coral { color: #ad5d43; }
+.stamp.is-teal { color: #557c79; }
+.badge, .demo-tag { border-radius: 0; }
+.tone-neutral { background: #e2d0ab; color: #5b4938; }
+.tone-action { background: #ad5d43; color: #fff1dd; }
+.tone-progress { background: #d6e1da; color: #2f5550; }
+.tone-good { background: #cfdccf; color: #2f5a3a; }
+.avatar { background: var(--lime-soft); color: #173447; }
+.avatar.is-big, .profile .avatar { background: #173447; color: #f4e8cf; }
+.offer-head .avatar.is-big { background: #557c79; color: #fff1dd; }
+.ticket-grid > .ticket-card:nth-child(3n+2) .offer-head .avatar.is-big { background: #b56e66; }
+.ticket-grid > .ticket-card:nth-child(3n+3) .offer-head .avatar.is-big { background: #b2764b; }
+
+/* ------------------------------------------------------------------ cards */
+
+.country-card-name::after { color: #ad5d43; }
+.country-card-meta span:last-child { border-radius: 0; background: #efe0c2; border-style: solid; font-family: var(--display); }
+.product-media { border-radius: 0 !important; filter: saturate(0.62) sepia(0.12); }
+.product-media::after { border-radius: 0; }
+.detail-media, .receipt-photo, .offer-media { border-radius: 0; }
+.ticket-card, .offer-card { border: 1px dashed rgb(93 64 39 / 0.32) !important; }
+.offer-ticket, .compare-col { border-radius: 0; background: rgb(245 232 205 / 0.74); border: 1px dashed rgb(91 61 37 / 0.28); }
+.compare-col.is-best { box-shadow: 0 0 0 3px rgb(85 124 121 / 0.3); }
+.route-chip { border-radius: 0; color: #ad5d43; border-color: #ad5d43; }
+
+/* ------------------------------------------------------------------ home hero: travel-journal page */
+
+.hero-section {
+  background-color: #e6cd9f !important;
+  background-image: linear-gradient(rgb(235 213 176 / 0.66), rgb(235 213 176 / 0.66)), var(--v7-hero-lines), var(--paper-fiber-light), linear-gradient(180deg, #ebd5ac, #e2c79a) !important;
+  background-size: auto, cover, auto, auto !important;
+  background-position: center !important;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat !important;
+  background-blend-mode: normal, multiply, multiply, normal !important;
+  border-radius: 0 !important;
+}
+.hero-title { color: #173447; text-shadow: none; }
+.hero-collage { filter: saturate(0.75) sepia(0.07); }
+.compass { filter: sepia(0.25) saturate(0.8); }
+.hero-section .searchbar { background: #f2e3c5; box-shadow: 0 7px 13px rgb(70 44 25 / 0.08); }
+
+/* ------------------------------------------------------------------ status */
+
+.timeline::before { background: linear-gradient(180deg, #557c79, #c3ad86); }
+.timeline-item.is-done .timeline-dot { background: #557c79; }
+.timeline-item.is-current .timeline-dot { background: #b18a48; box-shadow: 0 0 0 2px #557c79; }
+.notice.is-warn { background: #efdfb8; color: #6f4f1c; }
+.notice.is-good, .settle { background: #d9e2d6; color: #2f5a3a; }
+.spinner { border-color: #dcc7a0; border-top-color: #ad5d43; }
+
+/* ------------------------------------------------------------------ desktop */
+
+@media (min-width: 900px) {
+  .app { max-width: 1580px; margin: 12px auto; border: 10px solid transparent; border-image: repeating-linear-gradient(135deg, #a45440 0 19px, #ead9b7 19px 38px, #446979 38px 57px, #ead9b7 57px 76px) 10 round; }
+  .app::after { display: none; }
+  .content { padding: 30px 42px 56px; }
+  .content.is-flush { padding-top: 30px; }
+  .brand-name { font-size: 34px; }
+  .logo-mark { width: 46px; height: 34px; }
+  .section-heading h2 { font-size: 46px; }
+  html:lang(ko) .section-heading h2 { font-size: 36px; }
+  .hero-section { min-height: 570px; }
+  .country-card .code.is-big { width: 64px; height: 74px; font-size: 18px; }
+
+  /* brass seal instead of the round AIR MAIL postmark */
+  .section-heading:not(:has(> :nth-child(2)))::before {
+    content: '✦'; font-size: 20px; letter-spacing: 0; color: #8c6b34;
+    border: 4px double rgb(133 99 54 / 0.72);
+    background: radial-gradient(circle, #d9bd7d 0 24%, #b58b47 25% 28%, #ead7ad 29% 58%, #9c783e 59% 63%, transparent 64%);
+    box-shadow: 0 6px 12px rgb(71 43 23 / 0.13);
+  }
+  .section-heading:not(:has(> :nth-child(2)))::after { content: 'POSTAGE · AIR MAIL'; color: #985b48; }
+}
+@media (max-width: 899.98px) {
+  .app { border-image: repeating-linear-gradient(135deg, #a45440 0 19px, #ead9b7 19px 38px, #446979 38px 57px, #ead9b7 57px 76px) 9 round; }
+}
