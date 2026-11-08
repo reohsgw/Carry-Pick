@@ -211,8 +211,8 @@ export function Modal({ open, onClose, title, eyebrow, children }: {
 }
 
 /** Sticky bottom bar for the main action on detail screens. */
-export function ActionBar({ children }: { children: ReactNode }) {
-  return <div className="action-bar">{children}</div>;
+export function ActionBar({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`action-bar ${className}`}>{children}</div>;
 }
 
 /** White rounded card with an optional small heading row. */

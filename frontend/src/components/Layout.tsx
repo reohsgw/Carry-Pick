@@ -4,7 +4,7 @@ import { Bell, ChevronLeft, Home, Menu, Plane, Search, ShoppingBag, Ticket, User
 import { useI18n } from '../i18n';
 import { useSession } from '../session';
 import { NotificationList } from './NotificationList';
-import { initials } from './ui';
+import { ActionBar, initials } from './ui';
 
 /**
  * Screen: sticky header + content + the role's bottom navigation.
@@ -193,5 +193,30 @@ function MenuButton() {
         </nav>
       )}
     </div>
+  );
+}
+
+/**
+ * Detail page with a price column: on laptops and wider, `children` fill the left column and `aside`
+ * (the payment summary) sits on the right and stays in view while scrolling, with the page's `actions`
+ * (e.g. the Book button) right under it. On phones it is one column, with the aside after the details
+ * and the actions in the usual bar fixed to the bottom of the screen.
+ * Render as a <form> by passing `as="form"` plus form props.
+ */
+export function DetailLayout({ aside, actions, children, as = 'div', ...rest }: {
+  aside: ReactNode; actions?: ReactNode; children: ReactNode; as?: 'div' | 'form';
+} & React.FormHTMLAttributes<HTMLFormElement>) {
+  const Tag = as;
+  return (
+    <>
+      <Tag className="detail-layout" {...(rest as object)}>
+        <div className="detail-main">{children}</div>
+        <aside className="detail-aside">
+          {aside}
+          {actions && <div className="detail-actions only-desktop">{actions}</div>}
+        </aside>
+      </Tag>
+      {actions && <ActionBar className="only-mobile">{actions}</ActionBar>}
+    </>
   );
 }

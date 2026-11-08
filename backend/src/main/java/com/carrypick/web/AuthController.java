@@ -28,19 +28,17 @@ public class AuthController {
         this.notifications = notifications;
     }
 
-    /** C1 */
+
     @PostMapping("/auth/signup")
     public AuthResponse signup(@Valid @RequestBody SignupForm form) {
         return auth.signup(form);
     }
 
-    /** C1 */
     @PostMapping("/auth/login")
     public AuthResponse login(@Valid @RequestBody LoginForm form) {
         return auth.login(form);
     }
 
-    /** C2 */
     @GetMapping("/users/me")
     public Map<String, Object> me(@AuthenticationPrincipal AuthUser me) {
         UserDto user = UserDto.of(auth.require(me.id()));

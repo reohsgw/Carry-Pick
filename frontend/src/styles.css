@@ -28,15 +28,16 @@
   --turq: #61c4c6;
   --coral: #ec7147;
   --kraft: #c9a57a;
-  --script: 'Brush Script MT', 'Segoe Script', 'Apple Chancery', cursive;
+  --script: var(--font);
   --bad: #b23a17;
   --bad-wash: #fff0e8;
   --info: #2f5fb8;
   --info-wash: #e8effc;
 
-  --font: 'Figtree Variable', 'IBM Plex Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
-  --font-ko: 'IBM Plex Sans KR', 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
-  --display: Georgia, 'Noto Serif KR', 'Times New Roman', serif;
+  /* Gotham is a licensed font: used when installed (or added as a licensed webfont), otherwise Montserrat, its free look-alike. */
+  --font: 'Gotham', 'Gotham SSm', Montserrat, 'IBM Plex Sans KR', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --font-ko: 'Gotham', 'Gotham SSm', Montserrat, 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  --display: var(--font);
 
   --gutter: 16px;
   --col: 440px;
@@ -1947,4 +1948,122 @@ html:lang(ko) .eyebrow, html:lang(ko) .pill { letter-spacing: 0.04em; }
 @media (max-width: 899.98px) {
   .notif-pop { right: -48px; }
   .notif-pop::before { right: 60px; }
+}
+
+/* ------------------------------------------------------------------ home hero: text + search only (no collage) */
+
+.hero-section { display: block !important; min-height: 0 !important; }
+.hero-inner { align-items: center; text-align: center; padding: 44px 20px 40px !important; }
+.hero-title { max-width: 16ch !important; margin-inline: auto; }
+.hero-body { max-width: 620px; margin-inline: auto; }
+.hero-search { width: 100%; max-width: 760px !important; margin-inline: auto; padding: 8px 8px 8px 20px; text-align: left; }
+.hero-search input { font-size: 17px; padding: 14px 0; }
+.hero-search-btn { min-height: 54px; padding: 0 30px; font-size: 17px; font-weight: 700; gap: 8px; }
+@media (min-width: 900px) {
+  .hero-inner { padding: 76px 40px 72px !important; }
+  .hero-search-btn { min-height: 58px; padding: 0 40px; font-size: 18px; }
+}
+@media (max-width: 899.98px) {
+  .hero-search-btn { padding: 0 20px; }
+}
+
+/* ------------------------------------------------------------------ home hero: scrapbook pieces around the centred search */
+
+.hero-section { position: relative; }
+.hero-inner { position: relative; z-index: 1; }
+.hero-around { display: none; }
+@media (min-width: 1280px) {
+  .hero-inner { padding-block: 120px !important; }
+  .hero-search { max-width: min(700px, 47vw) !important; }
+  .hero-around { display: block; position: absolute; inset: 0; pointer-events: none; }
+  .hero-around img { filter: saturate(0.75) sepia(0.07); }
+  .hero-around > * { position: absolute; margin: 0; }
+  /* top left: photo postcard */
+  .hero-around .around-photo {
+    left: 3.5%; top: 48px; right: auto; bottom: auto; width: clamp(180px, 16vw, 250px); height: clamp(150px, 13vw, 200px);
+    padding: 8px 8px 46px; transform: rotate(-6deg);
+  }
+  .hero-around .around-photo figcaption { position: absolute; left: 12px; right: 12px; bottom: 8px; display: grid; font-size: 12px; color: var(--ink); line-height: 1.25; text-align: left; }
+  .hero-around .around-photo figcaption small { color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* top right: compass and a stamp */
+  .hero-around .around-compass { right: 6%; top: 44px; left: auto; width: 104px; height: 104px; }
+  .hero-around .around-compass::after { width: 50px; height: 50px; }
+  .hero-around .around-stamp { right: 4%; top: 176px; transform: rotate(9deg); }
+  /* bottom left: boarding pass */
+  .hero-around .around-ticket { left: 4.5%; bottom: 44px; top: auto; right: auto; width: clamp(190px, 15vw, 230px); padding: 16px 20px; transform: rotate(5deg); text-align: left; }
+  .hero-around .around-ticket .ticket-route { font-size: 26px; }
+  /* bottom right: snack photo */
+  .hero-around .around-snacks {
+    right: 4%; bottom: 40px; top: auto; left: auto; width: clamp(180px, 16vw, 250px); height: clamp(130px, 11vw, 170px);
+    padding: 8px; transform: rotate(-7deg);
+  }
+}
+
+/* Hero photos only: slow blur out, swap destination, sharpen back in (timing matches BLUR_MS in BuyerHome.tsx). */
+.hero-around img.fx { transition: filter 300ms ease-in-out, opacity 300ms ease-in-out; }
+.hero-around.is-blurred img.fx { filter: saturate(0.75) sepia(0.07) blur(10px); opacity: 0.55; }
+@media (prefers-reduced-motion: reduce) { .hero-around .fx { transition: none; } }
+
+/* Hero: airplane flying along a dotted flight path (top right, replaces the compass). */
+@media (min-width: 1280px) {
+  .hero-around .around-flight { right: 3.5%; top: 40px; width: clamp(170px, 15vw, 230px); height: auto; color: #8c6b34; overflow: visible; }
+  .hero-around .around-stamp { top: 196px; }
+}
+@media (min-width: 1280px) {
+  .hero-around .around-flight { width: clamp(190px, 17vw, 260px); transform: rotate(3deg); filter: drop-shadow(0 12px 16px rgb(75 45 25 / 0.18)); }
+  .hero-around .around-stamp { top: 205px; }
+}
+/* The flight map blurs with the photos when the destination changes. */
+@media (min-width: 1280px) {
+  .hero-around .around-flight.fx { transition: filter 300ms ease-in-out, opacity 300ms ease-in-out; }
+  .hero-around.is-blurred .around-flight.fx { filter: drop-shadow(0 12px 16px rgb(75 45 25 / 0.18)) blur(6px); opacity: 0.55; }
+}
+
+/* ------------------------------------------------------------------ Gotham everywhere: weights and spacing tuned for a geometric sans */
+
+.font-display, .empty-title, .product-title, h1.font-display, h2.font-display, h3.font-display { font-weight: 700; letter-spacing: -0.02em; }
+html:lang(ko) .font-display { font-weight: 700; letter-spacing: -0.02em; }
+.brand-name { font-weight: 800; letter-spacing: -0.03em; font-size: 26px; }
+@media (min-width: 900px) { .brand-name { font-size: 30px; } }
+.script-note { font-weight: 700; font-style: italic; font-size: 18px !important; letter-spacing: 0.02em; transform: rotate(-3deg); }
+.btn, .glass-btn, .ticket-btn, .ticket-pill, .chip, .desktop-nav-item, .nav-dropdown-item, .segmented button, .tabs button { font-weight: 600; letter-spacing: 0; }
+
+/* ------------------------------------------------------------------ detail pages: details left, payment summary right */
+
+.detail-layout { display: flex; flex-direction: column; gap: 16px; }
+.detail-main, .detail-aside { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+@media (min-width: 900px) {
+  .content:has(> .detail-layout) { max-width: 1200px; }
+  .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 28px; align-items: start; }
+  .detail-main { gap: 20px; }
+  /* The summary stays in view while the details scroll (below the sticky header). */
+  .detail-aside { position: sticky; top: 116px; }
+}
+/* Desktop: the page's main button sits under the payment summary in the right column. */
+.detail-actions { display: flex; flex-direction: column; gap: 10px; }
+.detail-actions .btn { width: 100%; }
+@media (min-width: 900px) {
+  .content:has(> .detail-layout) { padding-bottom: 72px; }
+}
+
+/* Hero: keep the heading and search clear of the side pieces (map, postcards) at every wide-screen size. */
+@media (min-width: 1280px) {
+  .hero-inner { padding-inline: clamp(240px, 21vw, 320px) !important; }
+  .hero-title { font-size: clamp(46px, 4.6vw, 74px) !important; }
+}
+
+/* Dropdowns: our own chevron with room around it, instead of the browser arrow squeezed against the edge. */
+select:not([multiple]) {
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23173447' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 18px center !important;
+  background-size: 14px 14px !important;
+  padding-right: 48px !important;
+}
+/* Compact dropdowns (sort menus, the search bar's country picker) get a tighter fit. */
+.select, .searchbar select, .results-bar select {
+  background-position: right 12px center !important;
+  background-size: 12px 12px !important;
+  padding-right: 34px !important;
 }

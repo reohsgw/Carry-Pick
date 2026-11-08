@@ -59,3 +59,32 @@ export function productPhoto(imageUrl: string | null | undefined, category: stri
       return null;
   }
 }
+
+import landmarkJp from './assets/landmark-jp.jpg';
+import landmarkUs from './assets/landmark-us.jpg';
+import landmarkFr from './assets/landmark-fr.jpg';
+import landmarkTh from './assets/landmark-th.jpg';
+import landmarkVn from './assets/landmark-vn.jpg';
+import landmarkId from './assets/landmark-id.jpg';
+import landmarkIt from './assets/landmark-it.jpg';
+import landmarkCn from './assets/landmark-cn.jpg';
+import landmarkHk from './assets/landmark-hk.jpg';
+import landmarkMo from './assets/landmark-mo.jpg';
+
+/**
+ * Landmark photos the home hero's scrapbook pieces rotate through, one per destination.
+ * Purely decorative: some of these places (Italy, China, Hong Kong, Macau) are not ordering
+ * countries in the app, so their names are kept here rather than read from the country list.
+ */
+export const HERO_LANDMARKS: { code: string; name: string; nameKo: string; photo: string }[] = [
+  { code: 'JP', name: 'Japan', nameKo: '일본', photo: landmarkJp },
+  { code: 'US', name: 'United States', nameKo: '미국', photo: landmarkUs },
+  { code: 'FR', name: 'France', nameKo: '프랑스', photo: landmarkFr },
+  { code: 'TH', name: 'Thailand', nameKo: '태국', photo: landmarkTh },
+  { code: 'VN', name: 'Vietnam', nameKo: '베트남', photo: landmarkVn },
+  { code: 'ID', name: 'Indonesia', nameKo: '인도네시아', photo: landmarkId },
+  { code: 'IT', name: 'Italy', nameKo: '이탈리아', photo: landmarkIt },
+  { code: 'CN', name: 'China', nameKo: '중국', photo: landmarkCn },
+  { code: 'HK', name: 'Hong Kong', nameKo: '홍콩', photo: landmarkHk },
+  { code: 'MO', name: 'Macau', nameKo: '마카오', photo: landmarkMo },
+];

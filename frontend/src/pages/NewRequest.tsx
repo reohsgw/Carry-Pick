@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
-import { Screen } from '../components/Layout';
-import { ActionBar, Field, ImagePicker, MoneyInput, Notice, Sheet } from '../components/ui';
+import { DetailLayout, Screen } from '../components/Layout';
+import { Field, ImagePicker, MoneyInput, Notice, Sheet } from '../components/ui';
 import { isoDay, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -48,8 +48,22 @@ export default function NewRequest() {
   }
 
   return (
-    <Screen back title={t('req.title')} hideNav>
-      <form id="request-form" onSubmit={submit} className="stack">
+    <Screen back title={t('req.title')} hideNav wide>
+      <DetailLayout
+        actions={(
+          <>
+          <button form="request-form" className="btn btn-primary btn-block" disabled={create.isPending || !maxBudget}>
+            {create.isPending ? t('req.posting') : t('req.submit')}
+          </button>
+          </>
+        )}
+        as="form" id="request-form" onSubmit={submit}
+        aside={(
+            <Sheet title={t('req.youPay')}>
+              <ReceiptStrip quote={q} budgetLabel={t('price.itemBudget')} note={t('req.youPayNote')} />
+            </Sheet>
+        )}
+      >
         <Sheet>
           <div className="stack">
             <Field label={t('req.country')}>
@@ -87,18 +101,10 @@ export default function NewRequest() {
           </div>
         </Sheet>
 
-        <Sheet title={t('req.youPay')}>
-          <ReceiptStrip quote={q} budgetLabel={t('price.itemBudget')} note={t('req.youPayNote')} />
-        </Sheet>
 
         {create.error && <Notice tone="bad">{errText(create.error)}</Notice>}
-      </form>
+      </DetailLayout>
 
-      <ActionBar>
-        <button form="request-form" className="btn btn-primary btn-block" disabled={create.isPending || !maxBudget}>
-          {create.isPending ? t('req.posting') : t('req.submit')}
-        </button>
-      </ActionBar>
     </Screen>
   );
 }
