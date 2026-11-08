@@ -1,5 +1,8 @@
 server:
   port: ${PORT:8080}
+  # Behind a host that terminates HTTPS (Railway, Render, Fly), trust its X-Forwarded-* headers
+  # so generated links (e.g. the Swagger server URL) use https.
+  forward-headers-strategy: framework
 
 spring:
   application:
