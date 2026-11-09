@@ -87,7 +87,7 @@ public class DataSeeder implements ApplicationRunner {
         Offer laduree = offers.save(new Offer(linh, paris, "Ladurée macarons (box of 12)", "Ladurée Champs-Élysées", "Snacks",
                 "Fragile; will hand-carry.", "demo:laduree", 52000, 12000, 2));
         offers.save(new Offer(linh, paris, "Diptyque Baies candle 190g", "Diptyque Saint-Germain", "Home",
-                "Paris boutique price.", null, 98000, 15000, 2));
+                "Paris boutique price.", "demo:diptyque-baies", 98000, 15000, 2));
         offers.save(new Offer(linh, paris, "Bioderma Sensibio H2O 500ml", "Pharmacie Monge", "Beauty",
                 "French pharmacy price, much cheaper than Korea.", null, 16000, 5000, 4));
         Offer mama = offers.save(new Offer(linh, bangkok, "Mama Tom Yum instant noodles (10 pack)", "Big C", "Food",

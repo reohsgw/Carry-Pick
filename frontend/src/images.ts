@@ -12,6 +12,7 @@ import levis501 from './assets/levis-501.jpg';
 import traderJoesTote from './assets/trader-joes-tote.jpg';
 import mamaTomYum from './assets/mama-tom-yum.jpg';
 import narayaBag from './assets/naraya-bag.jpg';
+import diptyqueBaies from './assets/diptyque-baies.jpg';
 import { assetUrl } from './api';
 
 /* Photos taken from the team's Figma design. */
@@ -32,6 +33,7 @@ const DEMO_PHOTOS: Record<string, string> = {
   'trader-joes-tote': traderJoesTote,
   'mama-tom-yum': mamaTomYum,
   'naraya-bag': narayaBag,
+  'diptyque-baies': diptyqueBaies,
 };
 
 /**

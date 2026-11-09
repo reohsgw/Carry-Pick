@@ -53,10 +53,6 @@ export default function Login() {
           <Wordmark />
           <LangToggle />
         </div>
-        <div className="auth-photo-text">
-          <span>{t('login.trust1')}</span>
-          <span>{t('login.trust2')}</span>
-        </div>
       </div>
 
       <div className="auth-body">
@@ -98,7 +94,6 @@ export default function Login() {
           <div className="demo">
             <div className="demo-head">
               <span>{t('login.demo')}</span>
-              <span className="fine">{t('login.demoHint', { pw: DEMO_PASSWORD })}</span>
             </div>
             <div className="demo-buttons">
               <button className="btn btn-quiet btn-small" disabled={busy}
