@@ -72,6 +72,8 @@ import landmarkIt from './assets/landmark-it.jpg';
 import landmarkCn from './assets/landmark-cn.jpg';
 import landmarkHk from './assets/landmark-hk.jpg';
 import landmarkMo from './assets/landmark-mo.jpg';
+import landmarkTw from './assets/landmark-tw.jpg';
+import landmarkGb from './assets/landmark-gb.jpg';
 
 /**
  * Landmark photos the home hero's scrapbook pieces rotate through, one per destination.
@@ -89,4 +91,6 @@ export const HERO_LANDMARKS: { code: string; name: string; nameKo: string; photo
   { code: 'CN', name: 'China', nameKo: '중국', photo: landmarkCn },
   { code: 'HK', name: 'Hong Kong', nameKo: '홍콩', photo: landmarkHk },
   { code: 'MO', name: 'Macau', nameKo: '마카오', photo: landmarkMo },
+  { code: 'TW', name: 'Taiwan', nameKo: '대만', photo: landmarkTw },
+  { code: 'GB', name: 'United Kingdom', nameKo: '영국', photo: landmarkGb },
 ];

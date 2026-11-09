@@ -8072,3 +8072,6 @@ select:not([multiple]) {
 @media (prefers-reduced-motion: reduce) {
   .destination-carousel-circular .destination-slide { transition: none; }
 }
+
+/* Clicking a destination card scrolls here; leave room for the sticky header. */
+.trend-section { scroll-margin-top: 96px; }

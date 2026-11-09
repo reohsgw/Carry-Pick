@@ -50,6 +50,14 @@ export default function BuyerHome() {
     try { localStorage.setItem(COUNTRY_KEY, code); } catch { /* ignore */ }
   }
 
+  // Clicking a destination card shows that country's "Most wanted right now" list.
+  const trendRef = useRef<HTMLElement>(null);
+  function openCountry(code: string) {
+    setCountry(code);
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    trendRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }
+
   const live = (offers.data ?? []).filter((o) => o.bookable).slice(0, 3);
 
   return (
@@ -84,10 +92,11 @@ export default function BuyerHome() {
           noTripsLabel={t('home.noTrips')}
           offersLabel={(n) => t('home.offersCount', { n })}
           onSelect={setCountry}
+          onOpen={openCountry}
         />
       </section>
 
-      <section className="home-section">
+      <section className="home-section trend-section" id="most-wanted" ref={trendRef}>
         <SectionHeading
           eyebrow={t('home.trendEyebrow', { country: name })}
           title={t('home.trendTitle')}
@@ -147,6 +156,7 @@ function DestinationCarousel({
   noTripsLabel,
   offersLabel,
   onSelect,
+  onOpen,
 }: {
   countries: { code: string; name: string; nameKo: string; flag: string }[];
   selected: string;
@@ -155,6 +165,8 @@ function DestinationCarousel({
   noTripsLabel: string;
   offersLabel: (n: number) => string;
   onSelect: (code: string) => void;
+  /** A card was clicked: select it and jump to its ranking. Arrows and dots only browse. */
+  onOpen: (code: string) => void;
 }) {
   const selectedIndex = Math.max(0, countries.findIndex((c) => c.code === selected));
 
@@ -215,7 +227,7 @@ function DestinationCarousel({
               aria-pressed={active}
               aria-hidden={Math.abs(offset) > 3 ? 'true' : undefined}
               tabIndex={Math.abs(offset) > 3 ? -1 : 0}
-              onClick={() => selectIndex(index)}
+              onClick={() => onOpen(c.code)}
             >
               <div className="destination-photo-wrap">
                 {photo ? (
