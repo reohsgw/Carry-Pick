@@ -17,21 +17,17 @@ class PricingServiceTest {
     void smallItemHasNoTax() {
         Quote q = pricing.quote(12_000, 4_000);
         assertEquals(1_600, q.fee());   // 10% of 16,000
-        assertEquals(0, q.tax());       // 12,000 is under the 150,000 threshold
+        assertEquals(0, q.tax());
         assertEquals(17_600, q.total());
     }
 
     @Test
-    void expensiveItemGetsEstimatedTax() {
+    void expensiveItemHasNoTaxEither() {
+        // CarryPick never charges duty: the traveler declares it at customs.
         Quote q = pricing.quote(260_000, 20_000);
         assertEquals(28_000, q.fee());
-        assertEquals(26_000, q.tax());  // 10% of 260,000
-        assertEquals(334_000, q.total());
-    }
-
-    @Test
-    void exactlyAtThresholdIsNotTaxed() {
-        assertEquals(0, pricing.quote(150_000, 0).tax());
+        assertEquals(0, q.tax());
+        assertEquals(308_000, q.total());
     }
 
     @Test

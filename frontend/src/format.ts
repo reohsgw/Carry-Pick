@@ -75,10 +75,8 @@ export function cityCode(city: string | null | undefined, countryCode: string): 
 /** Same formula as the Spring PricingService. The server value is the one actually charged. */
 export function quote(config: AppConfig | undefined, budget: number, reward: number): Quote {
   const feeRate = config?.feeRate ?? 0.1;
-  const threshold = config?.taxThresholdKrw ?? 150000;
-  const taxRate = config?.taxRate ?? 0.1;
   const fee = Math.round(feeRate * (budget + reward));
-  const tax = budget > threshold ? Math.round(taxRate * budget) : 0;
+  const tax = 0; // customs duty is the traveler's to declare; CarryPick does not charge it
   return { budget, reward, fee, tax, total: budget + reward + fee + tax };
 }
 

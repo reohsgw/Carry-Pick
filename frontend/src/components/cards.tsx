@@ -227,7 +227,6 @@ export function ReceiptStrip({ quote, budgetLabel, note, extra }: {
     { label: budgetLabel ?? t('price.itemEstimate'), value: quote.budget },
     { label: t('price.reward'), value: quote.reward },
     { label: t('price.fee'), value: quote.fee },
-    { label: t('price.tax'), value: quote.tax, muted: quote.tax === 0, note: quote.tax === 0 ? t('price.taxNone') : undefined },
   ];
   return (
     <div className="receipt-strip">
