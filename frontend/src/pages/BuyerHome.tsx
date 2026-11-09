@@ -74,25 +74,17 @@ export default function BuyerHome() {
 
       </section>
 
-      <section className="home-section">
+      <section className="home-section destination-section">
         <SectionHeading eyebrow={t('home.destEyebrow')} title={t('home.destTitle')} />
-        <div className="scroll-row">
-          {countries.map((c) => {
-            const info = perCountry[c.code];
-            return (
-              <button key={c.code} className="country-card" aria-pressed={c.code === country} onClick={() => setCountry(c.code)}>
-                <Code className="is-big">{c.code}</Code>
-                <div>
-                  <p className="country-card-name">{lang === 'ko' ? c.nameKo : c.name}</p>
-                  <div className="country-card-meta">
-                    <span>{info?.city ?? ''}</span>
-                    <span>{info ? t('home.offersCount', { n: info.offers }) : t('home.noTrips')}</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        <DestinationCarousel
+          countries={countries}
+          selected={country}
+          perCountry={perCountry}
+          lang={lang}
+          noTripsLabel={t('home.noTrips')}
+          offersLabel={(n) => t('home.offersCount', { n })}
+          onSelect={setCountry}
+        />
       </section>
 
       <section className="home-section">
@@ -143,6 +135,138 @@ export default function BuyerHome() {
         </ol>
       </section>
     </Screen>
+  );
+}
+
+
+function DestinationCarousel({
+  countries,
+  selected,
+  perCountry,
+  lang,
+  noTripsLabel,
+  offersLabel,
+  onSelect,
+}: {
+  countries: { code: string; name: string; nameKo: string; flag: string }[];
+  selected: string;
+  perCountry: Record<string, { offers: number; city: string | null } | undefined>;
+  lang: string;
+  noTripsLabel: string;
+  offersLabel: (n: number) => string;
+  onSelect: (code: string) => void;
+}) {
+  const selectedIndex = Math.max(0, countries.findIndex((c) => c.code === selected));
+
+  const photoByCode = useMemo(() =>
+    Object.fromEntries(HERO_LANDMARKS.map((item) => [item.code, item.photo])) as Record<string, string>,
+  []);
+
+  const circularOffset = (index: number) => {
+    const n = countries.length;
+    if (!n) return 0;
+    let diff = index - selectedIndex;
+    if (diff > n / 2) diff -= n;
+    if (diff < -n / 2) diff += n;
+    return diff;
+  };
+
+  const slotClass = (offset: number) => {
+    if (offset === 0) return 'slot-center';
+    if (offset === -1) return 'slot-left-1';
+    if (offset === 1) return 'slot-right-1';
+    if (offset === -2) return 'slot-left-2';
+    if (offset === 2) return 'slot-right-2';
+    if (offset === -3) return 'slot-left-3';
+    if (offset === 3) return 'slot-right-3';
+    return 'slot-hidden';
+  };
+
+  const selectIndex = (index: number) => {
+    if (!countries.length) return;
+    const safe = (index + countries.length) % countries.length;
+    onSelect(countries[safe].code);
+  };
+
+  return (
+    <div className="destination-carousel-shell destination-carousel-circular">
+      <button
+        type="button"
+        className="destination-carousel-arrow is-prev"
+        aria-label="Previous destination"
+        onClick={() => selectIndex(selectedIndex - 1)}
+      >
+        ‹
+      </button>
+
+      <div className="destination-carousel-track" aria-live="polite">
+        {countries.map((c, index) => {
+          const info = perCountry[c.code];
+          const photo = photoByCode[c.code];
+          const active = c.code === selected;
+          const offset = circularOffset(index);
+          return (
+            <button
+              type="button"
+              key={c.code}
+              data-country-index={index}
+              data-carousel-offset={offset}
+              className={`destination-slide ${slotClass(offset)}${active ? ' is-active' : ''}${photo ? '' : ' no-photo'}`}
+              aria-pressed={active}
+              aria-hidden={Math.abs(offset) > 3 ? 'true' : undefined}
+              tabIndex={Math.abs(offset) > 3 ? -1 : 0}
+              onClick={() => selectIndex(index)}
+            >
+              <div className="destination-photo-wrap">
+                {photo ? (
+                  <img src={photo} alt="" className="destination-photo" />
+                ) : (
+                  <div className="destination-photo-fallback" aria-hidden>
+                    <span>{c.flag}</span>
+                    <small>{c.code}</small>
+                  </div>
+                )}
+              </div>
+
+              <div className="destination-label">
+                <Code>{c.code}</Code>
+                <div className="destination-copy">
+                  <strong>{lang === 'ko' ? c.nameKo : c.name}</strong>
+                  <span>{info?.city || c.name}</span>
+                </div>
+                <div className="destination-postmark" aria-hidden>≋</div>
+              </div>
+
+              <div className="destination-offer-note">
+                {info ? offersLabel(info.offers) : noTripsLabel}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        className="destination-carousel-arrow is-next"
+        aria-label="Next destination"
+        onClick={() => selectIndex(selectedIndex + 1)}
+      >
+        ›
+      </button>
+
+      <div className="destination-carousel-dots" aria-label="Choose destination">
+        {countries.map((c, index) => (
+          <button
+            type="button"
+            key={c.code}
+            className={c.code === selected ? 'is-active' : ''}
+            aria-label={lang === 'ko' ? c.nameKo : c.name}
+            aria-current={c.code === selected ? 'true' : undefined}
+            onClick={() => selectIndex(index)}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
