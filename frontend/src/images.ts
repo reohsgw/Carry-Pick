@@ -36,11 +36,7 @@ const DEMO_PHOTOS: Record<string, string> = {
   'diptyque-baies': diptyqueBaies,
 };
 
-/**
- * The photo to show for a product: the traveler's own upload if there is one,
- * otherwise a category photo so lists don't look empty in the demo. Categories without a
- * matching photo return null and get an icon tile instead.
- */
+
 export function productPhoto(imageUrl: string | null | undefined, category: string | null | undefined): string | null {
   if (imageUrl?.startsWith('demo:')) {
     const demo = DEMO_PHOTOS[imageUrl.slice('demo:'.length)];
@@ -75,11 +71,7 @@ import landmarkMo from './assets/landmark-mo.jpg';
 import landmarkTw from './assets/landmark-tw.jpg';
 import landmarkGb from './assets/landmark-gb.jpg';
 
-/**
- * Landmark photos the home hero's scrapbook pieces rotate through, one per destination.
- * Purely decorative: some of these places (Italy, China, Hong Kong, Macau) are not ordering
- * countries in the app, so their names are kept here rather than read from the country list.
- */
+
 export const HERO_LANDMARKS: { code: string; name: string; nameKo: string; photo: string }[] = [
   { code: 'JP', name: 'Japan', nameKo: '일본', photo: landmarkJp },
   { code: 'US', name: 'United States', nameKo: '미국', photo: landmarkUs },
