@@ -82,7 +82,17 @@ export default function BuyerHome() {
       </section>
 
       <section className="home-section destination-section">
-        <SectionHeading eyebrow={t('home.destEyebrow')} title={t('home.destTitle')} />
+        <div className="dest-heading">
+          <div className="dest-heading-row">
+            <span className="dest-heading-rule" aria-hidden />
+            <h2 className="dest-heading-pill">{t('home.destEyebrow')}</h2>
+            <span className="dest-heading-rule" aria-hidden />
+          </div>
+          <svg className="dest-heading-brush" viewBox="0 0 300 14" aria-hidden>
+            <path d="M4 9 C 60 3, 130 4, 200 5 S 280 7, 296 6" />
+          </svg>
+          <p className="dest-heading-copy">{t('home.destTitle')}</p>
+        </div>
         <DestinationCarousel
           countries={countries}
           selected={country}

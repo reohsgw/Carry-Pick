@@ -8199,3 +8199,63 @@ select:not([multiple]) {
   .destination-carousel-compact .destination-slide.slot-center .destination-photo-wrap { height: 235px; }
   .destination-carousel-hint { font-size: 12px; padding-inline: 28px; }
 }
+
+/* "Choose a destination" heading: centred pill title, rules either side, brush underline, subtitle. */
+.dest-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 8px auto 18px;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+}
+.dest-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 40px);
+  width: 100%;
+}
+.dest-heading-rule {
+  flex: 0 1 120px;
+  height: 2px;
+  background: #ad5d43;
+  opacity: 0.85;
+}
+.dest-heading-pill {
+  margin: 0;
+  padding: 12px clamp(22px, 4vw, 44px);
+  border-radius: 999px;
+  background: #cfe3e8;
+  color: #a8432c;
+  font-family: var(--font);
+  font-size: clamp(20px, 2.6vw, 34px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.dest-heading-brush {
+  width: clamp(150px, 16vw, 230px);
+  height: 12px;
+  margin-top: 2px;
+}
+.dest-heading-brush path {
+  fill: none;
+  stroke: #ad5d43;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.dest-heading-copy {
+  margin: 10px 0 0;
+  color: #4b3a2e;
+  font-size: clamp(15px, 1.5vw, 20px);
+  font-weight: 500;
+}
+@media (max-width: 520px) {
+  .dest-heading-rule { flex-basis: 28px; }
+  .dest-heading-pill { white-space: normal; }
+}
