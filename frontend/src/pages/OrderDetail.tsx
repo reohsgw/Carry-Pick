@@ -132,7 +132,9 @@ function BuyerActions({ order: o }: { order: Order }) {
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
   const err = confirm.error ?? reject.error ?? cancel.error;
 
-  const canCancel = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID'].includes(o.status);
+  // Cancel is possible until the traveler uploads the receipt (same rule as OrderService.CANCELLABLE).
+  const canCancel = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL'].includes(o.status);
+  const paid = o.status === 'PAID' || o.status === 'AWAITING_APPROVAL';
 
   return (
     <>
@@ -140,7 +142,7 @@ function BuyerActions({ order: o }: { order: Order }) {
       {payment.error && <Notice tone="bad">{payment.error}</Notice>}
       {canCancel && (
         <button className="link danger center-block" disabled={cancel.isPending}
-          onClick={() => window.confirm(t('order.cancelConfirm') + (o.status === 'PAID' ? ` ${t('order.cancelRefund')}` : '')) && cancel.mutate()}>
+          onClick={() => window.confirm(t('order.cancelConfirm') + (paid ? ` ${t('order.cancelRefund')}` : '')) && cancel.mutate()}>
           {t('order.cancel')}
         </button>
       )}
@@ -223,7 +225,7 @@ function TravelerActions({ order: o }: { order: Order }) {
         ? <Notice tone="good">{t('pc.approvedLimit', { amount: krw(o.itemLimit) })}</Notice>
         : <Notice>{t('order.budgetLimit', { amount: krw(o.budget) })}</Notice>)}
       {err && <Notice tone="bad">{errText(err)}</Notice>}
-      {['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID'].includes(o.status) && (
+      {['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL'].includes(o.status) && (
         <button className="link danger center-block" disabled={cancel.isPending}
           onClick={() => window.confirm(t('order.travelerCancelConfirm')) && cancel.mutate()}>
           {t('order.cancel')}

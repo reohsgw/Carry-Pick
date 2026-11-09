@@ -23,8 +23,9 @@ import java.util.Set;
  */
 @Service
 public class OrderService {
-    private static final Set<OrderStatus> CANCELLABLE =
-            EnumSet.of(OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_FAILED, OrderStatus.PAID);
+    /** Either side may cancel until the traveler uploads the receipt (status PURCHASED). */
+    private static final Set<OrderStatus> CANCELLABLE = EnumSet.of(OrderStatus.PENDING_PAYMENT,
+            OrderStatus.PAYMENT_FAILED, OrderStatus.PAID, OrderStatus.AWAITING_APPROVAL);
 
     private final OrderRepository orders;
     private final PaymentRepository payments;
@@ -231,10 +232,11 @@ public class OrderService {
     public OrderDto cancel(Long userId, Long orderId, String reason) {
         Order o = findForParticipant(userId, orderId);
         if (!CANCELLABLE.contains(o.getStatus())) {
-            throw ApiException.conflict("CANNOT_CANCEL", "Orders can only be cancelled before the item is purchased");
+            throw ApiException.conflict("CANNOT_CANCEL",
+                    "Orders can only be cancelled until the traveler uploads the receipt");
         }
         boolean byBuyer = o.isBuyer(userId);
-        if (o.getStatus() == OrderStatus.PAID) refundAll(o);
+        if (o.getStatus() == OrderStatus.PAID || o.getStatus() == OrderStatus.AWAITING_APPROVAL) refundAll(o);
         o.setStatus(OrderStatus.CANCELLED);
         o.setCancelledAt(Instant.now());
         o.setCancelReason(reason == null || reason.isBlank()

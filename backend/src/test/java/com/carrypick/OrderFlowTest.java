@@ -192,6 +192,32 @@ class OrderFlowTest {
     }
 
     @Test
+    void cancel_allowedUntilReceiptUploaded() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        String traveler = login("traveler@carrypick.test");
+
+        // During a price check (no receipt yet) the buyer can still cancel, and gets everything back.
+        long first = body(post("/api/orders", buyer, "{\"offerId\":" + firstBookableOffer("JP") + ",\"quantity\":1}"), 201)
+                .get("id").asLong();
+        pay(buyer, first, "mock_ok_cancel_1");
+        JsonNode paid = body(get("/api/orders/" + first).header("Authorization", "Bearer " + buyer), 200);
+        multipartOk(traveler, "/api/orders/" + first + "/price-check", "photo", "price", paid.get("budget").asLong() + 5000);
+        assertStatus(buyer, first, "AWAITING_APPROVAL");
+        JsonNode cancelled = body(post("/api/orders/" + first + "/cancel", buyer, null), 200);
+        assertThat(cancelled.get("status").asText()).isEqualTo("CANCELLED");
+        assertThat(cancelled.get("payments").findValuesAsText("type")).contains("REFUND");
+
+        // Once the traveler has uploaded the receipt, neither side can cancel.
+        long second = body(post("/api/orders", buyer, "{\"offerId\":" + firstBookableOffer("JP") + ",\"quantity\":1}"), 201)
+                .get("id").asLong();
+        pay(buyer, second, "mock_ok_cancel_2");
+        purchase(traveler, second, 1000);
+        assertStatus(buyer, second, "PURCHASED");
+        mvc.perform(post("/api/orders/" + second + "/cancel", buyer, null)).andExpect(status().isConflict());
+        mvc.perform(post("/api/orders/" + second + "/cancel", traveler, null)).andExpect(status().isConflict());
+    }
+
+    @Test
     void securityRules() throws Exception {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");

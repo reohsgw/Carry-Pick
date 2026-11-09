@@ -200,9 +200,6 @@ function DestinationCarousel({
 
   return (
     <div className="destination-carousel-shell destination-carousel-circular destination-carousel-compact">
-      <p className="destination-carousel-hint">
-        {lang === 'ko' ? '국가를 선택하면 인기 상품으로 이동해요 ↓' : 'Choose a country to see what is most wanted ↓'}
-      </p>
       <button
         type="button"
         className="destination-carousel-arrow is-prev"
