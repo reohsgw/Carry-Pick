@@ -50,6 +50,13 @@ export default function BuyerHome() {
     try { localStorage.setItem(COUNTRY_KEY, code); } catch { /* ignore */ }
   }
 
+  function selectCountryAndShowMostWanted(code: string) {
+    setCountry(code);
+    window.requestAnimationFrame(() => {
+      document.getElementById('most-wanted')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   const live = (offers.data ?? []).filter((o) => o.bookable).slice(0, 3);
 
   return (
@@ -84,10 +91,11 @@ export default function BuyerHome() {
           noTripsLabel={t('home.noTrips')}
           offersLabel={(n) => t('home.offersCount', { n })}
           onSelect={setCountry}
+          onCountryOpen={selectCountryAndShowMostWanted}
         />
       </section>
 
-      <section className="home-section">
+      <section id="most-wanted" className="home-section most-wanted-section">
         <SectionHeading
           eyebrow={t('home.trendEyebrow', { country: name })}
           title={t('home.trendTitle')}
@@ -147,6 +155,7 @@ function DestinationCarousel({
   noTripsLabel,
   offersLabel,
   onSelect,
+  onCountryOpen,
 }: {
   countries: { code: string; name: string; nameKo: string; flag: string }[];
   selected: string;
@@ -155,6 +164,7 @@ function DestinationCarousel({
   noTripsLabel: string;
   offersLabel: (n: number) => string;
   onSelect: (code: string) => void;
+  onCountryOpen: (code: string) => void;
 }) {
   const selectedIndex = Math.max(0, countries.findIndex((c) => c.code === selected));
 
@@ -189,7 +199,10 @@ function DestinationCarousel({
   };
 
   return (
-    <div className="destination-carousel-shell destination-carousel-circular">
+    <div className="destination-carousel-shell destination-carousel-circular destination-carousel-compact">
+      <p className="destination-carousel-hint">
+        {lang === 'ko' ? '국가를 선택하면 인기 상품으로 이동해요 ↓' : 'Choose a country to see what is most wanted ↓'}
+      </p>
       <button
         type="button"
         className="destination-carousel-arrow is-prev"
@@ -215,7 +228,9 @@ function DestinationCarousel({
               aria-pressed={active}
               aria-hidden={Math.abs(offset) > 3 ? 'true' : undefined}
               tabIndex={Math.abs(offset) > 3 ? -1 : 0}
-              onClick={() => selectIndex(index)}
+              onClick={() => {
+                onCountryOpen(c.code);
+              }}
             >
               <div className="destination-photo-wrap">
                 {photo ? (
