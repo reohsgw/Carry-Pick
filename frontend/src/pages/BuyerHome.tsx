@@ -6,7 +6,7 @@ import { api } from '../api';
 import { OfferCard, ProductCard } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Code, ErrorBox, Loading, SectionHeading } from '../components/ui';
-import { countryName } from '../format';
+import { countryName, displayCode } from '../format';
 import { HERO_LANDMARKS } from '../images';
 import { useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -245,13 +245,13 @@ function DestinationCarousel({
                 ) : (
                   <div className="destination-photo-fallback" aria-hidden>
                     <span>{c.flag}</span>
-                    <small>{c.code}</small>
+                    <small>{displayCode(c.code)}</small>
                   </div>
                 )}
               </div>
 
               <div className="destination-label">
-                <Code>{c.code}</Code>
+                <Code>{displayCode(c.code)}</Code>
                 <div className="destination-copy">
                   <strong>{lang === 'ko' ? c.nameKo : c.name}</strong>
                   <span>{info?.city || c.name}</span>
@@ -402,7 +402,7 @@ function HeroAround({ perCountry }: { perCountry: Record<string, { offers: numbe
       <span className="stamp is-teal around-stamp"><span>Verified route</span><b>Ready to carry</b></span>
       <div className="scrap ticket around-ticket">
         <span className="stamp is-coral"><span>Air ticket</span><b>Boarding pass</b></span>
-        <div className="ticket-route">{here.code} → KR</div>
+        <div className="ticket-route">{displayCode(here.code)} → KR</div>
         <div className="ticket-line"><span>Offers</span><b>{perCountry[here.code]?.offers ?? 0}</b></div>
       </div>
       <figure className="scrap postcard around-snacks">

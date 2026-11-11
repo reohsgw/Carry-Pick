@@ -6,7 +6,7 @@ import { api } from '../api';
 import { firstName, OfferCard } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Code, Empty, ErrorBox, Loading } from '../components/ui';
-import { countryName, shortDate } from '../format';
+import { countryName, displayCode, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -47,7 +47,7 @@ export default function CountryOffers() {
         <h1 className="page-title font-display">{t('country.title')}</h1>
         <p className="page-copy">{t('country.copy', { country: name })}</p>
         <div className="route-row">
-          <Code className="is-big">{code}</Code>
+          <Code className="is-big">{displayCode(code)}</Code>
           <ArrowRight size={16} />
           <Code className="is-big">KR</Code>
         </div>

@@ -67,9 +67,18 @@ const CITY_CODES: Record<string, string> = {
 const COUNTRY_HUB: Record<string, string> = { JP: 'TYO', US: 'NYC', FR: 'PAR', GB: 'LON', TH: 'BKK', VN: 'HAN', ID: 'JKT', TW: 'TPE' };
 export const HOME_CODE = 'SEL';
 
+/**
+ * The country code people see. The data keeps the ISO code (GB), which is what the database,
+ * the backend and the map use, but on screen the United Kingdom reads as UK.
+ */
+export function displayCode(code: string): string {
+  return code === 'GB' ? 'UK' : code;
+}
+
+
 export function cityCode(city: string | null | undefined, countryCode: string): string {
   const key = (city ?? '').trim().toLowerCase();
-  return CITY_CODES[key] ?? COUNTRY_HUB[countryCode] ?? countryCode;
+  return CITY_CODES[key] ?? COUNTRY_HUB[countryCode] ?? displayCode(countryCode);
 }
 
 /** Same formula as the Spring PricingService. The server value is the one actually charged. */

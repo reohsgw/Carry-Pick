@@ -5,7 +5,7 @@ import { api } from '../api';
 import { RequestCard } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Code, Empty, ErrorBox, Loading } from '../components/ui';
-import { boardDate } from '../format';
+import { boardDate, displayCode } from '../format';
 import { useI18n } from '../i18n';
 
 /** T5: Open buyer requests that fit my trips (Figma "Open requests" page). */
@@ -27,7 +27,7 @@ export default function RequestBoard() {
         <div className="trip-chips" aria-label={t('rb.matching')}>
           {trips.data.map((tr) => (
             <span key={tr.id} className="trip-chip">
-              <Code>{tr.countryCode}</Code>
+              <Code>{displayCode(tr.countryCode)}</Code>
               {tr.city ?? ''} {boardDate(tr.departDate)} – {boardDate(tr.returnDate)}
             </span>
           ))}
