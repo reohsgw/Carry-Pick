@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Search as SearchIcon } from 'lucide-react';
+import HeroLogo from '../components/HeroLogo';
 import { api } from '../api';
 import { OfferCard, ProductCard } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -63,7 +64,7 @@ export default function BuyerHome() {
     <Screen flush>
       <section className="hero-section">
         <div className="hero-inner">
-          <h1 className="hero-title font-display">{t('home.heroTitle')}</h1>
+          <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
           <p className="hero-body">{t('home.heroBody')}</p>
           <form
             className="hero-search"

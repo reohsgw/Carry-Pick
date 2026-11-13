@@ -901,7 +901,7 @@ button.row:hover {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgb(10 18 14 / 0.86) 0%, rgb(9 16 13 / 0.3) 75%), linear-gradient(0deg, rgb(11 18 15 / 0.78) 0%, transparent 60%);
+  background: rgb(10 18 14 / 0.55);
 }
 
 .hero-inner {
@@ -1085,7 +1085,7 @@ html:lang(ko) .hero-title {
   display: grid;
   place-items: center;
   color: #7c887f;
-  background: linear-gradient(140deg, #eef1e8, #e2e7dc);
+  background: #e8ece2;
 }
 
 .rank-badge {
@@ -1229,7 +1229,7 @@ html:lang(ko) .dark-panel h2 {
   display: grid;
   place-items: center;
   color: #7c887f;
-  background: linear-gradient(140deg, #eef1e8, #e2e7dc);
+  background: #e8ece2;
 }
 
 .route-chip {
@@ -1409,7 +1409,7 @@ html:lang(ko) .page-title {
   padding: 32px 20px 72px;
   border-radius: 0 0 30px 30px;
   color: #fff;
-  background: radial-gradient(circle at 85% 10%, rgb(199 255 45 / 0.16), transparent 32%), var(--ink-2);
+  background: var(--ink-2);
 }
 
 .dashboard-hero.is-lime {
@@ -1753,7 +1753,7 @@ html:lang(ko) .pill {
   display: grid;
   place-items: center;
   color: #7c887f;
-  background: linear-gradient(140deg, #eef1e8, #e2e7dc);
+  background: #e8ece2;
 }
 
 .detail-title {
@@ -1824,7 +1824,7 @@ html:lang(ko) .detail-title {
   padding: 28px 20px 70px;
   border-radius: 0 0 30px 30px;
   color: #fff;
-  background: radial-gradient(circle at 85% 10%, rgb(199 255 45 / 0.16), transparent 32%), var(--ink-2);
+  background: var(--ink-2);
 }
 
 .order-hero h1 {
@@ -2563,7 +2563,7 @@ html:lang(ko) .modal-head h2 {
   max-height: 180px;
   padding: 18px 20px;
   border-radius: 20px;
-  background: radial-gradient(circle at 85% 10%, rgb(199 255 45 / 0.22), transparent 40%), var(--ink-2);
+  background: var(--ink-2);
   color: #fff;
 }
 
@@ -2984,7 +2984,7 @@ html:lang(ko) .auth h2 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgb(10 18 14 / 0.05), rgb(10 18 14 / 0.78));
+  background: rgb(10 18 14 / 0.25);
 }
 
 .auth-photo-text {
@@ -3473,7 +3473,7 @@ html:lang(ko) .product-title {
 :root {
   --paper-fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .12'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='%23a77a50' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-fiber-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.48' numOctaves='5' seed='21' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='.7 0 0 0 .3  0 .55 0 0 .24  0 0 .38 0 .16  0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='%23f4dfb7' filter='url(%23n)'/%3E%3C/svg%3E");
-  --paper: var(--paper-fiber-light), linear-gradient(180deg, #fff7e7, #f1dfbd);
+  --paper: var(--paper-fiber-light), linear-gradient(#f8ebd2, #f8ebd2);
   /* Torn edges: horizontal jags in %, vertical in px so tall cards never clip their content. */
   --torn: polygon(0 3px, 6% 0, 14% 2px, 23% 0, 33% 3px, 44% 1px, 55% 3px, 66% 0, 77% 2px, 88% 0, 100% 3px, calc(100% - 2px) 12%, 100% 26%, calc(100% - 3px) 41%, 100% 57%, calc(100% - 2px) 72%, 100% 87%, 100% calc(100% - 3px), 90% 100%, 79% calc(100% - 2px), 67% 100%, 55% calc(100% - 3px), 43% 100%, 31% calc(100% - 2px), 19% 100%, 8% calc(100% - 3px), 0 100%, 2px 86%, 0 70%, 3px 54%, 0 38%, 2px 22%, 0 9%);
   /* Perforated postage-stamp edge. */
@@ -3487,9 +3487,7 @@ body,
 body:is(*) {
   background-color: var(--kraft);
   background-image:
-    var(--paper-fiber),
-    linear-gradient(45deg, rgb(255 255 255 / 0.09) 25%, transparent 25%, transparent 50%, rgb(255 255 255 / 0.09) 50%, rgb(255 255 255 / 0.09) 75%, transparent 75%, transparent),
-    linear-gradient(180deg, #d1ad82 0%, #bd9164 100%);
+    var(--paper-fiber), linear-gradient(45deg, rgb(255 255 255 / 0.09) 25%, transparent 25%, transparent 50%, rgb(255 255 255 / 0.09) 50%, rgb(255 255 255 / 0.09) 75%, transparent 75%, transparent), linear-gradient(#c79f73, #c79f73);
   background-size: auto, 28px 28px, auto;
   background-blend-mode: multiply, soft-light, normal;
 }
@@ -3498,7 +3496,7 @@ body:is(*) {
   border-inline: 6px solid transparent;
   border-image: var(--airmail) 9 round;
   background-color: var(--page);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #efd4a4, #f5e3bf 210px, #f2dfbb 100%);
+  background-image: var(--paper-fiber-light), linear-gradient(#f2ddb5, #f2ddb5);
   background-blend-mode: multiply, normal;
   box-shadow: 0 30px 70px rgb(61 39 23 / 0.28);
 }
@@ -3507,7 +3505,7 @@ body:is(*) {
 
 .app-header {
   background-color: rgb(255 249 236 / 0.95);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, rgb(255 249 236 / 0.97), rgb(244 229 200 / 0.96));
+  background-image: var(--paper-fiber-light), linear-gradient(rgb(250 239 218 / 0.96), rgb(250 239 218 / 0.96));
   background-blend-mode: multiply, normal;
   border-bottom: 1px dashed rgb(91 59 34 / 0.28);
   box-shadow: 0 8px 22px rgb(91 59 34 / 0.08);
@@ -3594,7 +3592,7 @@ body:is(*) {
 .mobile-nav {
   color: var(--muted);
   background-color: rgb(255 248 231 / 0.96);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, rgb(255 249 236 / 0.97), rgb(244 229 200 / 0.97));
+  background-image: var(--paper-fiber-light), linear-gradient(rgb(250 239 218 / 0.97), rgb(250 239 218 / 0.97));
   background-blend-mode: multiply, normal;
   border-top: 1px dashed rgb(91 59 34 / 0.3);
   box-shadow: 0 -12px 35px rgb(80 48 25 / 0.12);
@@ -3620,7 +3618,7 @@ body:is(*) {
 }
 
 .desktop-nav-item.active {
-  background: linear-gradient(180deg, #d9eeeb, #a7d8d2);
+  background: #c0e3df;
   color: var(--ink);
   border-color: rgb(95 60 35 / 0.3);
   box-shadow: 0 5px 12px rgb(75 45 25 / 0.1);
@@ -3690,23 +3688,23 @@ body:is(*) {
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #f08b62, #cf6640);
+  background: #e07951;
   color: #fff;
   border-color: rgb(120 50 25 / 0.35);
   box-shadow: 0 10px 18px rgb(236 113 71 / 0.28), inset 0 1px rgb(255 255 255 / 0.3);
 }
 
 .btn-primary:not(:disabled):hover {
-  background: linear-gradient(180deg, #f39a74, #d5704a);
+  background: #e4855f;
 }
 
 .btn-lime {
-  background: linear-gradient(180deg, #ffe784, #ffc926);
+  background: #ffd855;
   color: var(--ink);
 }
 
 .btn-lime:not(:disabled):hover {
-  background: linear-gradient(180deg, #ffeea0, #ffd23f);
+  background: #ffe070;
 }
 
 .btn-quiet {
@@ -3757,7 +3755,7 @@ body:is(*) {
 
 .action-bar {
   background-color: rgb(255 248 231 / 0.97);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, rgb(255 249 236 / 0.97), rgb(244 229 200 / 0.97));
+  background-image: var(--paper-fiber-light), linear-gradient(rgb(250 239 218 / 0.97), rgb(250 239 218 / 0.97));
   background-blend-mode: multiply, normal;
   border-top: 1px dashed rgb(91 59 34 / 0.3);
 }
@@ -3785,11 +3783,7 @@ body:is(*) {
 .notice.is-info {
   background-color: var(--sheet);
   background-image:
-    linear-gradient(112deg, transparent 0 22%, rgb(112 74 43 / 0.05) 22.6%, transparent 23.2% 52%, rgb(255 255 255 / 0.22) 52.5%, transparent 53.4%),
-    radial-gradient(ellipse at 18% 22%, rgb(255 255 255 / 0.38), transparent 23%),
-    radial-gradient(ellipse at 78% 69%, rgb(148 99 61 / 0.1), transparent 27%),
-    var(--paper-fiber-light),
-    linear-gradient(180deg, #fff7e7, #efdbb7);
+    linear-gradient(112deg, transparent 0 22%, rgb(112 74 43 / 0.05) 22.6%, transparent 23.2% 52%, rgb(255 255 255 / 0.22) 52.5%, transparent 53.4%), linear-gradient(rgb(255 255 255 / 0.19), rgb(255 255 255 / 0.19)), var(--paper-fiber-light), linear-gradient(#f7e9cf, #f7e9cf);
   background-blend-mode: soft-light, screen, multiply, multiply, normal;
   border: 1px solid rgb(94 61 36 / 0.22);
   border-radius: 6px;
@@ -3916,7 +3910,7 @@ a.notif:hover {
   padding: 9px 12px;
   border: 2px dashed currentColor;
   border-radius: 6px 10px 6px 10px / 10px 6px 10px 6px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(247 236 214 / 0.5));
+  background: rgb(251 246 235 / 0.53);
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.18em;
@@ -3999,7 +3993,7 @@ a.notif:hover {
 .product-media .placeholder,
 .offer-media .placeholder,
 .detail-media .placeholder {
-  background: linear-gradient(140deg, #f5e6c7, #e6cc9f);
+  background: #eed9b3;
   color: var(--muted);
 }
 
@@ -4086,7 +4080,7 @@ a.notif:hover {
   margin: 0 calc(var(--gutter) * -1);
   border-radius: 0;
   background-color: #f3dcb0;
-  background-image: radial-gradient(circle at 10% 20%, rgb(255 255 255 / 0.3), transparent 28%), var(--paper-fiber-light), linear-gradient(180deg, #f1d7aa, #f6e6c8);
+  background-image: linear-gradient(rgb(255 255 255 / 0.15), rgb(255 255 255 / 0.15)), var(--paper-fiber-light), linear-gradient(#f4dfb9, #f4dfb9);
   background-blend-mode: normal, multiply, normal;
   border-bottom: 1px dashed rgb(95 60 35 / 0.25);
   overflow: visible;
@@ -4124,7 +4118,7 @@ a.notif:hover {
 .hero-search {
   border: 1px solid rgb(111 75 44 / 0.2);
   border-radius: 12px;
-  background-image: linear-gradient(180deg, rgb(255 252 245 / 0.98), rgb(245 230 200 / 0.95));
+  background-image: linear-gradient(rgb(250 241 223 / 0.96), rgb(250 241 223 / 0.96));
   box-shadow: 0 8px 18px rgb(80 48 25 / 0.1);
   color: var(--muted);
 }
@@ -4144,13 +4138,7 @@ a.notif:hover {
   inset: 26px 12px 18px;
   border-radius: 6px;
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500'%3E%3Cg fill='none' stroke='%23ba8e63' stroke-width='3' opacity='.55'%3E%3Cpath d='M105 394c45-38 78-63 115-77 31-11 71-7 90-29 17-19 11-45 47-65 28-16 59-13 92-34 43-28 55-71 95-94 32-18 81-16 126-36' stroke-dasharray='8 10'/%3E%3Cpath d='M255 128c26 10 34 29 61 34 31 6 56-14 81-7 18 5 19 22 39 29 26 9 47-11 75-6 22 4 45 25 68 39' stroke-dasharray='10 9'/%3E%3Cpath d='M549 149c8 16 30 20 34 41 5 27-26 46-21 68 3 16 22 23 26 40 5 23-17 34-19 56' stroke-dasharray='8 10'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(circle at 18% 66%, rgb(226 178 112 / 0.55) 0 9%, transparent 10%),
-    radial-gradient(circle at 34% 38%, rgb(213 157 104 / 0.38) 0 12%, transparent 13%),
-    radial-gradient(circle at 74% 32%, rgb(213 157 104 / 0.3) 0 12%, transparent 13%),
-    radial-gradient(circle at 62% 74%, rgb(213 157 104 / 0.28) 0 14%, transparent 15%),
-    linear-gradient(118deg, transparent 0 28%, rgb(116 78 45 / 0.08) 28.5%, transparent 29.4% 64%, rgb(255 255 255 / 0.18) 64.6%, transparent 65.5%),
-    var(--paper-fiber-light), linear-gradient(180deg, #f6e4bf, #e9c994);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500' viewBox='0 0 800 500'%3E%3Cg fill='none' stroke='%23ba8e63' stroke-width='3' opacity='.55'%3E%3Cpath d='M105 394c45-38 78-63 115-77 31-11 71-7 90-29 17-19 11-45 47-65 28-16 59-13 92-34 43-28 55-71 95-94 32-18 81-16 126-36' stroke-dasharray='8 10'/%3E%3Cpath d='M255 128c26 10 34 29 61 34 31 6 56-14 81-7 18 5 19 22 39 29 26 9 47-11 75-6 22 4 45 25 68 39' stroke-dasharray='10 9'/%3E%3Cpath d='M549 149c8 16 30 20 34 41 5 27-26 46-21 68 3 16 22 23 26 40 5 23-17 34-19 56' stroke-dasharray='8 10'/%3E%3C/g%3E%3C/svg%3E"), radial-gradient(circle at 18% 66%, rgb(226 178 112 / 0.55) 0 9%, transparent 10%), radial-gradient(circle at 34% 38%, rgb(213 157 104 / 0.38) 0 12%, transparent 13%), radial-gradient(circle at 74% 32%, rgb(213 157 104 / 0.3) 0 12%, transparent 13%), radial-gradient(circle at 62% 74%, rgb(213 157 104 / 0.28) 0 14%, transparent 15%), linear-gradient(118deg, transparent 0 28%, rgb(116 78 45 / 0.08) 28.5%, transparent 29.4% 64%, rgb(255 255 255 / 0.18) 64.6%, transparent 65.5%), var(--paper-fiber-light), linear-gradient(#f0d7aa, #f0d7aa);
   background-size: cover, auto, auto, auto, auto, auto, auto, auto;
   background-blend-mode: normal, normal, normal, normal, normal, soft-light, multiply, normal;
   border: 1px solid rgb(95 60 35 / 0.18);
@@ -4165,7 +4153,7 @@ a.notif:hover {
   width: 84px;
   height: 84px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 30%, #fff 0, #f5e6cb 58%, #ead1a9 100%);
+  background: #f5e7d1;
   border: 4px solid rgb(255 255 255 / 0.7);
   box-shadow: 0 10px 20px rgb(80 48 25 / 0.14);
 }
@@ -4251,7 +4239,7 @@ a.notif:hover {
   width: 200px;
   padding: 14px 18px;
   background-color: #fffaf0;
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #fffaf0, #f3e2c1);
+  background-image: var(--paper-fiber-light), linear-gradient(#f9eed9, #f9eed9);
   background-blend-mode: multiply, normal;
   border: 2px dashed rgb(70 43 25 / 0.35);
   border-radius: 6px;
@@ -4326,7 +4314,7 @@ a.notif:hover {
 
 .cta-panel {
   background-color: #ffe58c;
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #ffeaa0, #f9d462);
+  background-image: var(--paper-fiber-light), linear-gradient(#fcdf81, #fcdf81);
   background-blend-mode: multiply, normal;
   clip-path: var(--torn);
   border-radius: 6px;
@@ -4357,13 +4345,13 @@ a.notif:hover {
 .dashboard-hero,
 .order-hero {
   background-color: var(--ink-2);
-  background-image: radial-gradient(circle at 85% 10%, rgb(255 205 33 / 0.18), transparent 32%), var(--paper-fiber);
+  background-image: var(--paper-fiber);
   background-blend-mode: normal, multiply;
 }
 
 .dashboard-hero.is-lime {
   background-color: #ffe58c;
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #ffeaa0, #f6d067);
+  background-image: var(--paper-fiber-light), linear-gradient(#fbdd84, #fbdd84);
   background-blend-mode: multiply, normal;
 }
 
@@ -4449,7 +4437,7 @@ a.notif:hover {
 .money,
 .stepper {
   border-color: rgb(95 60 35 / 0.2);
-  background: linear-gradient(180deg, rgb(255 253 247 / 0.97), rgb(243 229 198 / 0.88));
+  background: rgb(249 242 224 / 0.93);
   box-shadow: inset 0 2px 6px rgb(80 48 25 / 0.04);
 }
 
@@ -4484,7 +4472,7 @@ a.notif:hover {
 
 .segmented button[aria-selected='true'],
 .segmented button[aria-pressed='true'] {
-  background: linear-gradient(180deg, #d5f0ea, #8fd8cf);
+  background: #b2e4dd;
   color: var(--ink);
 }
 
@@ -4566,7 +4554,7 @@ a.notif:hover {
 .timeline::before {
   width: 3px;
   left: 8px;
-  background: linear-gradient(180deg, var(--turq), #d8ccb5);
+  background: var(--turq);
   border-radius: 3px;
 }
 
@@ -4636,7 +4624,7 @@ a.notif:hover {
 
 .modal {
   background-color: var(--sheet);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #fff7e7, #f1dfbd);
+  background-image: var(--paper-fiber-light), linear-gradient(#f8ebd2, #f8ebd2);
   background-blend-mode: multiply, normal;
 }
 
@@ -4893,7 +4881,7 @@ a.notif:hover {
   padding: 10px 13px;
   border-radius: 4px 14px 14px 14px;
   background-color: var(--sheet);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #fffaf0, #f3e2c1);
+  background-image: var(--paper-fiber-light), linear-gradient(#f9eed9, #f9eed9);
   background-blend-mode: multiply, normal;
   border: 1px solid rgb(94 61 36 / 0.2);
   box-shadow: 0 6px 12px rgb(75 45 25 / 0.08);
@@ -4902,7 +4890,7 @@ a.notif:hover {
 .chat-msg.is-mine .chat-bubble {
   border-radius: 14px 4px 14px 14px;
   border-color: rgb(120 50 25 / 0.3);
-  background-image: linear-gradient(180deg, #ffe3d3, #f9cdb5);
+  background-image: linear-gradient(#fcd8c4, #fcd8c4);
 }
 
 .chat-bubble p {
@@ -4963,7 +4951,7 @@ a.notif:hover {
   border-radius: 12px;
   font-size: 15px;
   line-height: 1.4;
-  background: linear-gradient(180deg, rgb(255 253 247 / 0.97), rgb(243 229 198 / 0.88));
+  background: rgb(249 242 224 / 0.93);
   field-sizing: content;
 }
 
@@ -5043,11 +5031,7 @@ html:lang(ko) .timeline-now {
 
 :root {
   --paper-card:
-    linear-gradient(112deg, transparent 0 22%, rgb(112 74 43 / 0.05) 22.6%, transparent 23.2% 52%, rgb(255 255 255 / 0.22) 52.5%, transparent 53.4%),
-    radial-gradient(ellipse at 18% 22%, rgb(255 255 255 / 0.38), transparent 23%),
-    radial-gradient(ellipse at 78% 69%, rgb(148 99 61 / 0.1), transparent 27%),
-    var(--paper-fiber-light),
-    linear-gradient(180deg, #fff7e7, #efdbb7);
+    linear-gradient(112deg, transparent 0 22%, rgb(112 74 43 / 0.05) 22.6%, transparent 23.2% 52%, rgb(255 255 255 / 0.22) 52.5%, transparent 53.4%), linear-gradient(rgb(255 255 255 / 0.19), rgb(255 255 255 / 0.19)), var(--paper-fiber-light), linear-gradient(#f7e9cf, #f7e9cf);
   --paper-card-blend: soft-light, screen, multiply, multiply, normal;
   --ticket-shadow: 0 7px 14px rgb(75 45 25 / 0.1), inset 0 1px rgb(255 255 255 / 0.38);
 }
@@ -5190,7 +5174,7 @@ html:lang(ko) .pill {
   padding: 6px 10px;
   border: 1px dashed rgb(95 60 35 / 0.32);
   border-radius: 8px;
-  background: linear-gradient(180deg, #fffdf5, #f8ebcf);
+  background: #fcf4e2;
   color: var(--ink);
   font-size: 11px;
   font-weight: 800;
@@ -5300,7 +5284,7 @@ html:lang(ko) .pill {
   padding: 9px 12px;
   border: 1px dashed rgb(95 60 35 / 0.32);
   border-radius: 8px;
-  background: linear-gradient(180deg, #e9f6f3, #c9ebe4);
+  background: #d9f1ec;
   color: var(--ink);
   font-size: 12px;
   font-weight: 800;
@@ -5331,7 +5315,7 @@ html:lang(ko) .pill {
 }
 
 .product-card:hover .ticket-btn {
-  background: linear-gradient(180deg, #d5f0ea, #8fd8cf);
+  background: #b2e4dd;
 }
 
 .product-card:hover .product-name {
@@ -5385,12 +5369,12 @@ html:lang(ko) .order-hero h1 {
   border-radius: 8px;
   color: var(--ink);
   backdrop-filter: none;
-  background: linear-gradient(180deg, #fffdf5, #f8ebcf);
+  background: #fcf4e2;
   box-shadow: var(--ticket-shadow);
 }
 
 .glass-btn:hover {
-  background: linear-gradient(180deg, #fff7e4, #f1dfb7);
+  background: #f8ebce;
 }
 
 .pull-up {
@@ -5466,7 +5450,7 @@ html:lang(ko) .order-hero h1 {
     padding: 10px 14px;
     border: 1px dashed rgb(95 60 35 / 0.28);
     border-radius: 8px;
-    background-image: var(--paper-fiber-light), linear-gradient(180deg, #fff8e7, #efddb9);
+    background-image: var(--paper-fiber-light), linear-gradient(#f7ebd0, #f7ebd0);
     background-blend-mode: multiply, normal;
     box-shadow: var(--ticket-shadow);
     color: var(--muted);
@@ -5474,13 +5458,13 @@ html:lang(ko) .order-hero h1 {
   }
 
   .desktop-nav-item:hover {
-    background-image: var(--paper-fiber-light), linear-gradient(180deg, #fff7e4, #f1dfb7);
+    background-image: var(--paper-fiber-light), linear-gradient(#f8ebce, #f8ebce);
     color: var(--ink);
     border-color: rgb(95 60 35 / 0.4);
   }
 
   .desktop-nav-item.active {
-    background-image: var(--paper-fiber-light), linear-gradient(180deg, #d9eeeb, #a7d8d2);
+    background-image: var(--paper-fiber-light), linear-gradient(#c0e3df, #c0e3df);
     color: var(--ink);
   }
 
@@ -5701,7 +5685,7 @@ html:lang(ko) .offer-searchbar label span {
   padding: 0 12px;
   border: 1px solid rgb(95 60 35 / 0.18);
   border-radius: 10px;
-  background: linear-gradient(180deg, rgb(255 253 247 / 0.97), rgb(243 229 198 / 0.88));
+  background: rgb(249 242 224 / 0.93);
   color: var(--ink);
   font-size: 14px;
 }
@@ -5896,7 +5880,7 @@ html:lang(ko) .offer-searchbar label span {
   padding: 14px;
   border: 1px dashed rgb(95 60 35 / 0.27);
   border-radius: 10px;
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(238 217 181 / 0.5));
+  background-image: var(--paper-fiber-light), linear-gradient(rgb(247 237 220 / 0.53), rgb(247 237 220 / 0.53));
   background-blend-mode: multiply, normal;
 }
 
@@ -5910,7 +5894,7 @@ html:lang(ko) .offer-searchbar label span {
   padding: 7px 12px;
   border: 1px dashed rgb(95 60 35 / 0.32);
   border-radius: 8px;
-  background: linear-gradient(180deg, #fffdf5, #f8ebcf);
+  background: #fcf4e2;
   font-size: 12px;
   font-weight: 800;
   box-shadow: var(--ticket-shadow);
@@ -5976,11 +5960,11 @@ html:lang(ko) .offer-searchbar label span {
 }
 
 .offer-actions .btn-quiet {
-  background-image: linear-gradient(180deg, #e9f6f3, #c9ebe4);
+  background-image: linear-gradient(#d9f1ec, #d9f1ec);
 }
 
 .offer-actions .btn-quiet.is-on {
-  background-image: linear-gradient(180deg, #d5f0ea, #8fd8cf);
+  background-image: linear-gradient(#b2e4dd, #b2e4dd);
   border-color: rgb(95 60 35 / 0.45);
 }
 
@@ -6031,7 +6015,7 @@ html:lang(ko) .offer-searchbar label span {
   padding: 16px;
   border: 1px dashed rgb(95 60 35 / 0.22);
   border-radius: 12px;
-  background: linear-gradient(180deg, #fffaf0, #f6e7c8);
+  background: #fbf1dc;
 }
 
 .compare-col>b {
@@ -6147,13 +6131,10 @@ html:lang(ko) .offer-searchbar label span {
   --good: #47734f;
   --kraft: #b58a62;
   --v7-paper:
-    linear-gradient(113deg, transparent 0 24%, rgb(107 72 42 / 0.045) 24.6%, transparent 25.2% 59%, rgb(255 255 255 / 0.16) 59.6%, transparent 60.3%),
-    linear-gradient(30deg, transparent 0 35%, rgb(112 76 46 / 0.035) 35.6%, transparent 36.3% 78%, rgb(255 255 255 / 0.12) 78.4%, transparent 79.2%),
-    var(--paper-fiber-light),
-    linear-gradient(180deg, #f2e4c6, #e9d4ad);
+    linear-gradient(113deg, transparent 0 24%, rgb(107 72 42 / 0.045) 24.6%, transparent 25.2% 59%, rgb(255 255 255 / 0.16) 59.6%, transparent 60.3%), linear-gradient(30deg, transparent 0 35%, rgb(112 76 46 / 0.035) 35.6%, transparent 36.3% 78%, rgb(255 255 255 / 0.12) 78.4%, transparent 79.2%), var(--paper-fiber-light), linear-gradient(#eedcba, #eedcba);
   --v7-paper-blend: soft-light, soft-light, multiply, normal;
   --v7-shadow: 0 12px 20px rgb(70 44 25 / 0.12), 0 3px 5px rgb(70 44 25 / 0.06);
-  --v7-terracotta: linear-gradient(105deg, rgb(255 255 255 / 0.03), transparent 32%), var(--paper-fiber), linear-gradient(180deg, #b5654c, #a95740);
+  --v7-terracotta: var(--paper-fiber), linear-gradient(#af5e46, #af5e46);
   --v7-band: polygon(.5% 5%, 6% 1%, 15% 4%, 25% 1%, 37% 4%, 49% 1%, 61% 4%, 73% 1%, 86% 4%, 98.7% 2%, 99.5% 14%, 98.6% 30%, 99.4% 48%, 98.5% 65%, 99.3% 82%, 98.5% 96%, 88% 99%, 77% 96%, 65% 99%, 53% 96%, 41% 99%, 29% 96%, 17% 99%, 2% 95%, .5% 80%, 1.5% 64%, .4% 48%, 1.4% 31%, .4% 15%);
   --v7-map: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='560' viewBox='0 0 1200 560'%3E%3Cg fill='none' stroke='%238f6d4b' stroke-width='1.5' opacity='.20'%3E%3Cpath d='M95 190c70-55 144-83 222-96 64-10 111 7 157-22 57-36 77-83 153-91 76-8 124 25 200 8 68-15 116-57 196-49'/%3E%3Cpath d='M87 370c96-44 151-24 226-50 70-25 85-70 166-84 89-15 144 40 236 8 71-25 112-72 206-65' stroke-dasharray='7 8'/%3E%3Cpath d='M300 130c21 12 48 10 68 25 23 18 26 47 54 60 27 13 54-3 83 6 33 10 55 40 86 56'/%3E%3Cpath d='M779 90c-14 35-2 62-14 94-12 34-44 46-56 78-14 36 12 69 4 111'/%3E%3C/g%3E%3Cg fill='%23947654' opacity='.08'%3E%3Cellipse cx='240' cy='220' rx='86' ry='46'/%3E%3Cellipse cx='425' cy='170' rx='58' ry='34'/%3E%3Cellipse cx='710' cy='206' rx='95' ry='48'/%3E%3Cellipse cx='920' cy='300' rx='74' ry='41'/%3E%3C/g%3E%3C/svg%3E");
   --v7-hero-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='520' viewBox='0 0 1000 520'%3E%3Cg fill='none' stroke='%238f6e4c' stroke-width='1.2' opacity='.28'%3E%3Cpath d='M70 145c84-58 149-60 220-91 72-31 134-64 211-42 63 18 98 65 166 71 75 7 128-34 232-20'/%3E%3Cpath d='M77 360c74-35 135-14 203-42 63-26 84-75 161-81 77-6 130 39 213 13 82-26 137-86 262-66' stroke-dasharray='8 9'/%3E%3Cpath d='M359 156c21 10 46 7 66 20 24 16 32 42 56 56 27 16 60 8 86 24 33 20 48 52 74 73'/%3E%3C/g%3E%3C/svg%3E");
@@ -6165,7 +6146,7 @@ body,
 body:is(*) {
   color: #203243;
   background-color: #a97f59;
-  background-image: radial-gradient(circle at 14% 18%, rgb(255 255 255 / 0.08), transparent 26%), var(--paper-fiber), linear-gradient(180deg, #b88d64 0%, #9e744f 100%);
+  background-image: var(--paper-fiber), linear-gradient(#ab815a, #ab815a);
   background-size: auto;
   background-blend-mode: screen, multiply, normal;
 }
@@ -6174,7 +6155,7 @@ body:is(*) {
   position: relative;
   border-image: repeating-linear-gradient(135deg, #a45440 0 19px, #ead9b7 19px 38px, #446979 38px 57px, #ead9b7 57px 76px) 10 round;
   background-color: var(--page);
-  background-image: linear-gradient(rgb(238 218 181 / 0.83), rgb(238 218 181 / 0.83)), var(--paper-fiber-light), linear-gradient(180deg, #e5c89b, #e6cda4 100%);
+  background-image: linear-gradient(rgb(238 218 181 / 0.83), rgb(238 218 181 / 0.83)), var(--paper-fiber-light), linear-gradient(#e6cba0, #e6cba0);
   background-blend-mode: normal, multiply, normal;
   box-shadow: 0 30px 70px rgb(54 34 20 / 0.28);
 }
@@ -6192,7 +6173,7 @@ body:is(*) {
 /* ------------------------------------------------------------------ header + navigation */
 
 .app-header {
-  background: linear-gradient(180deg, rgb(239 222 188 / 0.97), rgb(230 207 164 / 0.96));
+  background: rgb(235 215 176 / 0.96);
   border-bottom: 1px solid rgb(92 62 39 / 0.18);
   box-shadow: 0 7px 16px rgb(67 41 23 / 0.1);
   backdrop-filter: none;
@@ -6209,7 +6190,7 @@ body:is(*) {
   position: absolute;
   inset: -6px -10px -6px -12px;
   z-index: -1;
-  background: linear-gradient(180deg, #f2deb5, #e2c397);
+  background: #ead1a6;
   clip-path: polygon(2% 10%, 9% 2%, 20% 6%, 31% 1%, 44% 5%, 55% 1%, 67% 5%, 79% 1%, 91% 6%, 99% 12%, 97% 28%, 100% 44%, 97% 61%, 100% 78%, 96% 94%, 84% 98%, 70% 94%, 56% 99%, 43% 95%, 29% 99%, 14% 94%, 3% 97%, 1% 82%, 3% 64%, 0 47%, 3% 31%);
 }
 
@@ -6252,7 +6233,7 @@ body:is(*) {
   color: #42382e;
   font-family: var(--display);
   font-weight: 700;
-  background: linear-gradient(180deg, #f3e4c5, #e5cba0);
+  background: #ecd8b3;
   border: 1px solid rgb(107 76 45 / 0.18);
   border-radius: 4px;
   box-shadow: 0 4px 9px rgb(63 39 21 / 0.07);
@@ -6266,7 +6247,7 @@ body:is(*) {
 }
 
 .mobile-nav {
-  background: linear-gradient(180deg, rgb(239 222 188 / 0.98), rgb(230 207 164 / 0.98));
+  background: rgb(235 214 176 / 0.98);
   border-top: 1px solid rgb(92 62 39 / 0.2);
   color: #6f6456;
 }
@@ -6484,7 +6465,7 @@ html:lang(ko) .pill {
 
 .cta-panel {
   background-color: var(--lime-soft);
-  background-image: var(--paper-fiber-light), linear-gradient(180deg, #dbe5de, #c9d8cf);
+  background-image: var(--paper-fiber-light), linear-gradient(#d2dfd7, #d2dfd7);
   background-blend-mode: multiply, normal;
   border-radius: 0;
   box-shadow: var(--v7-shadow);
@@ -6687,16 +6668,16 @@ html:lang(ko) .pill {
 .best-tag,
 .country-card .code.is-big {
   color: #fff1dd !important;
-  background: linear-gradient(180deg, #b6654e, #a55440) !important;
+  background: #ae5d47 !important;
   box-shadow: 0 6px 10px rgb(67 41 23 / 0.14), inset 0 0 0 1px rgb(255 255 255 / 0.16) !important;
 }
 
 .scroll-row>.country-card:nth-child(3n+2) .code {
-  background: linear-gradient(180deg, #527586, #385c6a) !important;
+  background: #456978 !important;
 }
 
 .scroll-row>.country-card:nth-child(3n+3) .code {
-  background: linear-gradient(180deg, #9f7c3f, #866630) !important;
+  background: #937138 !important;
 }
 
 .best-tag {
@@ -6820,7 +6801,7 @@ html:lang(ko) .pill {
 
 .hero-section {
   background-color: #e6cd9f !important;
-  background-image: linear-gradient(rgb(235 213 176 / 0.66), rgb(235 213 176 / 0.66)), var(--v7-hero-lines), var(--paper-fiber-light), linear-gradient(180deg, #ebd5ac, #e2c79a) !important;
+  background-image: linear-gradient(rgb(235 213 176 / 0.66), rgb(235 213 176 / 0.66)), var(--v7-hero-lines), var(--paper-fiber-light), linear-gradient(#e7cea3, #e7cea3) !important;
   background-size: auto, cover, auto, auto !important;
   background-position: center !important;
   background-repeat: no-repeat, no-repeat, repeat, no-repeat !important;
@@ -6849,7 +6830,7 @@ html:lang(ko) .pill {
 /* ------------------------------------------------------------------ status */
 
 .timeline::before {
-  background: linear-gradient(180deg, #557c79, #c3ad86);
+  background: #8c9580;
 }
 
 .timeline-item.is-done .timeline-dot {
@@ -7616,7 +7597,7 @@ select:not([multiple]) {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 58%, rgb(57 35 20 / 0.12));
+  background: rgb(57 35 20 / 0.06);
   box-shadow: inset 0 0 0 1px rgb(255 248 231 / 0.36);
 }
 
@@ -7644,8 +7625,7 @@ select:not([multiple]) {
   justify-items: center;
   gap: 12px;
   background:
-    radial-gradient(circle at 25% 25%, rgb(255 255 255 / 0.36), transparent 24%),
-    linear-gradient(145deg, #d9c59c, #b88e63 58%, #8e6748);
+    linear-gradient(rgb(255 255 255 / 0.18), rgb(255 255 255 / 0.18)), #b5936d;
   color: #fff4dd;
 }
 
@@ -7671,9 +7651,7 @@ select:not([multiple]) {
   margin-top: -4px;
   padding: 14px 15px 14px;
   background:
-    linear-gradient(112deg, transparent 0 38%, rgb(123 82 47 / 0.04) 38.5%, transparent 39.5%),
-    var(--paper-fiber-light),
-    linear-gradient(180deg, #f7e8c8, #ecd3a6);
+    linear-gradient(112deg, transparent 0 38%, rgb(123 82 47 / 0.04) 38.5%, transparent 39.5%), var(--paper-fiber-light), #f2deb7;
   background-blend-mode: soft-light, multiply, normal;
   clip-path: polygon(0 6%, 6% 2%, 13% 6%, 22% 2%, 31% 5%, 41% 1%, 51% 5%, 62% 2%, 72% 5%, 82% 1%, 92% 5%, 100% 2%, 100% 100%, 0 100%);
   border-radius: 0 0 21px 21px;
@@ -7741,11 +7719,11 @@ select:not([multiple]) {
 }
 
 .destination-slide:nth-child(3n+2) .destination-label .code {
-  background: linear-gradient(180deg, #527586, #385c6a) !important;
+  background: #456978 !important;
 }
 
 .destination-slide:nth-child(3n+3) .destination-label .code {
-  background: linear-gradient(180deg, #9f7c3f, #866630) !important;
+  background: #937138 !important;
 }
 
 .destination-carousel-arrow {
@@ -8258,4 +8236,62 @@ select:not([multiple]) {
 @media (max-width: 520px) {
   .dest-heading-rule { flex-basis: 28px; }
   .dest-heading-pill { white-space: normal; }
+}
+
+/* Animated CARRY PICK wordmark in the home hero (components/HeroLogo.tsx). */
+.hero-logo-wrap {
+  width: min(100%, 760px);
+  margin: 0 auto 4px;
+  line-height: 0;
+}
+.hero-logo {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.hero-logo-letters {
+  font-family: Anton, Impact, 'Arial Narrow', sans-serif;
+  font-size: 429.4px;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-synthesis: none;
+}
+.hero-logo-trail {
+  stroke-dasharray: 1640 1640;
+  stroke-dashoffset: 1640;
+  animation: hero-logo-draw 6s linear infinite;
+}
+@keyframes hero-logo-draw {
+  0% { stroke-dashoffset: 1640; opacity: 1; }
+  66% { stroke-dashoffset: 0; opacity: 1; }
+  90% { stroke-dashoffset: 0; opacity: 1; }
+  98%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* Header / login brand: the CARRY PICK logo picture instead of the ticket badge. */
+.brand.brand--logo {
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 4px 0 !important;
+  clip-path: none !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+}
+.brand.brand--logo::before,
+.brand.brand--logo::after { display: none !important; }
+.brand-logo {
+  display: block;
+  width: clamp(132px, 15vw, 190px);
+  height: auto;
+  overflow: visible;
+}
+.brand-logo .hero-logo-letters { font-family: Anton, Impact, 'Arial Narrow', sans-serif; }
+/* On the login photo the red logo needs a light card behind it to stay readable. */
+.auth-top .brand.brand--logo {
+  background: #f6e9cf !important;
+  padding: 8px 14px !important;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgb(20 14 8 / 0.25) !important;
 }

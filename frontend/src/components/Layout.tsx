@@ -5,6 +5,7 @@ import { useI18n } from '../i18n';
 import { useSession } from '../session';
 import { NotificationList } from './NotificationList';
 import { ActionBar, initials } from './ui';
+import HeroLogo from './HeroLogo';
 
 /**
  * Screen: sticky header + content + the role's bottom navigation.
@@ -54,16 +55,10 @@ function BackButton({ back, className = '' }: { back: true | string; className?:
 }
 
 export function Wordmark({ to }: { to?: string }) {
-  const inner = (
-    <>
-      <span className="logo-mark" aria-hidden>✦</span>
-      <span className="brand-copy">
-        <span className="brand-name">CarryPick</span>
-        <small className="brand-tagline">Travel shopping</small>
-      </span>
-    </>
-  );
-  return to ? <Link to={to} className="brand" aria-label="CarryPick">{inner}</Link> : <span className="brand" aria-label="CarryPick">{inner}</span>;
+  const inner = <HeroLogo still className="brand-logo" />;
+  return to
+    ? <Link to={to} className="brand brand--logo" aria-label="CarryPick">{inner}</Link>
+    : <span className="brand brand--logo" aria-label="CarryPick">{inner}</span>;
 }
 
 function HeaderActions() {
