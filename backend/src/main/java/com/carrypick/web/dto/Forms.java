@@ -62,6 +62,8 @@ public final class Forms {
 
     public record AcceptForm(Long tripId) {}
 
+    public record RejectForm(boolean reopenRequest) {}
+
     public record CancelForm(@Size(max = 200) String reason) {}
 
     public record MessageForm(@Size(max = 1000) String text, @Size(max = 500) String imageUrl) {}

@@ -175,6 +175,49 @@ class OrderFlowTest {
     }
 
     @Test
+    void rejectHigherPrice_canReopenRequestForOtherTravelersOnly() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        String kenji = login("traveler@carrypick.test");
+        String linh = login("traveler2@carrypick.test");
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        body(post("/api/trips", linh, """
+                {"countryCode":"JP","city":"Kyoto","departDate":"%s","returnDate":"%s"}
+                """.formatted(today.plusDays(3), today.plusDays(9))), 201);
+
+        long reopened = rejectedRequest(buyer, kenji, today, "Reopen tea", true);
+        JsonNode r1 = body(get("/api/requests/" + reopened).header("Authorization", "Bearer " + buyer), 200);
+        assertThat(r1.get("status").asText()).isEqualTo("OPEN");
+        assertThat(openIds(kenji)).doesNotContain(reopened);
+        assertThat(openIds(linh)).contains(reopened);
+        mvc.perform(post("/api/requests/" + reopened + "/accept", kenji, null)).andExpect(status().isConflict());
+        body(post("/api/requests/" + reopened + "/accept", linh, null), 201);
+
+        long closed = rejectedRequest(buyer, kenji, today, "Closed tea", false);
+        assertThat(body(get("/api/requests/" + closed).header("Authorization", "Bearer " + buyer), 200).get("status").asText()).isEqualTo("CANCELLED");
+        assertThat(openIds(linh)).doesNotContain(closed);
+    }
+
+    private long rejectedRequest(String buyer, String traveler, java.time.LocalDate today, String name, boolean reopen)
+            throws Exception {
+        long requestId = body(post("/api/requests", buyer, """
+                {"countryCode":"JP","productName":"%s","maxBudget":30000,"reward":5000,"deadline":"%s"}
+                """.formatted(name, today.plusDays(30))), 201).get("id").asLong();
+        long orderId = body(post("/api/requests/" + requestId + "/accept", traveler, null), 201).get("id").asLong();
+        pay(buyer, orderId, "mock_ok_reject_" + requestId);
+        multipartOk(traveler, "/api/orders/" + orderId + "/price-check", "photo", "price", 36000);
+        JsonNode rejected = body(post("/api/orders/" + orderId + "/reject", buyer, "{\"reopenRequest\":" + reopen + "}"), 200);
+        assertThat(rejected.get("status").asText()).isEqualTo("CANCELLED");
+        return requestId;
+    }
+
+    private java.util.List<Long> openIds(String token) throws Exception {
+        JsonNode board = body(get("/api/requests/open").header("Authorization", "Bearer " + token), 200);
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        board.forEach(n -> ids.add(n.get("id").asLong()));
+        return ids;
+    }
+
+    @Test
     void cancel_allowedUntilReceiptUploaded() throws Exception {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");

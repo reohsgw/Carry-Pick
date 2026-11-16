@@ -125,7 +125,8 @@ function BuyerActions({ order: o }: { order: Order }) {
   const refresh = () => qc.invalidateQueries();
 
   const confirm = useMutation({ mutationFn: () => api.confirmReceived(o.id), onSuccess: refresh });
-  const reject = useMutation({ mutationFn: () => api.reject(o.id), onSuccess: () => { setApprovalOpen(false); refresh(); } });
+  const [rejectStep, setRejectStep] = useState(false);
+  const reject = useMutation({ mutationFn: (reopen: boolean) => api.reject(o.id, reopen), onSuccess: () => { setApprovalOpen(false); setRejectStep(false); refresh(); } });
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
   const err = confirm.error ?? reject.error ?? cancel.error;
 
@@ -163,7 +164,7 @@ function BuyerActions({ order: o }: { order: Order }) {
         )}
       </ActionBar>
 
-      <Modal open={approvalOpen && o.status === 'AWAITING_APPROVAL'} onClose={() => setApprovalOpen(false)} title={t('order.approvalTitle')} eyebrow={t('st.AWAITING_APPROVAL')}>
+      <Modal open={approvalOpen && o.status === 'AWAITING_APPROVAL'} onClose={() => { setApprovalOpen(false); setRejectStep(false); }} title={t('order.approvalTitle')} eyebrow={t('st.AWAITING_APPROVAL')}>
         <div className="stack">
           <div className="compare">
             <div><span>{t('order.yourBudget')}</span><strong>{krw(o.budget)}</strong></div>
@@ -175,9 +176,22 @@ function BuyerActions({ order: o }: { order: Order }) {
             onClick={() => { setApprovalOpen(false); payment.start(() => api.approve(o.id)); }}>
             {t('order.approve', { amount: krw(o.extraCharge) })}
           </button>
-          <button className="btn btn-quiet btn-block danger" disabled={reject.isPending} onClick={() => reject.mutate()}>
-            {t('order.reject')}
-          </button>
+          {!rejectStep ? (
+            <button className="btn btn-quiet btn-block danger" disabled={reject.isPending}
+              onClick={() => (o.source === 'REQUEST' ? setRejectStep(true) : reject.mutate(false))}>
+              {t('order.reject')}
+            </button>
+          ) : (
+            <div className="reject-choice stack">
+              <p className="body-text"><b>{t('order.reopenTitle')}</b><br />{t('order.reopenBody', { name: o.traveler.name })}</p>
+              <button className="btn btn-primary btn-block" disabled={reject.isPending} onClick={() => reject.mutate(true)}>
+                {t('order.reopenYes')}
+              </button>
+              <button className="btn btn-quiet btn-block danger" disabled={reject.isPending} onClick={() => reject.mutate(false)}>
+                {t('order.reopenNo')}
+              </button>
+            </div>
+          )}
         </div>
       </Modal>
       {payment.sheet}

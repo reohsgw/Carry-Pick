@@ -81,18 +81,32 @@ export function categoryIcon(category: string | null | undefined): LucideIcon {
   return CATEGORY_ICON[(category ?? '').toLowerCase()] ?? ShoppingBag;
 }
 
+/**
+ * The photo to show for a product, falling back when a file can't be loaded (for example an upload
+ * that is no longer on the server): first the category's stock photo, then nothing (an icon).
+ */
+function usePhoto(src: string | null | undefined, category: string | null | undefined) {
+  const [failed, setFailed] = useState<string[]>([]);
+  useEffect(() => setFailed([]), [src]);
+  const options = [productPhoto(src, category), productPhoto(null, category)]
+    .filter((u, i, all): u is string => !!u && all.indexOf(u) === i && !failed.includes(u));
+  const url = options[0] ?? null;
+  const onError = () => { if (url) setFailed((f) => [...f, url]); };
+  return { url, onError };
+}
+
 export function ProductPhoto({ src, category, iconSize = 36 }: { src?: string | null; category?: string | null; iconSize?: number }) {
-  const url = productPhoto(src, category);
+  const { url, onError } = usePhoto(src, category);
   const Icon = categoryIcon(category);
-  return url ? <img src={url} alt="" /> : <div className="placeholder"><Icon size={iconSize} strokeWidth={1.4} aria-hidden /></div>;
+  return url ? <img src={url} alt="" onError={onError} /> : <div className="placeholder"><Icon size={iconSize} strokeWidth={1.4} aria-hidden /></div>;
 }
 
 export function ProductThumb({ src, category, size = 56 }: { src?: string | null; category?: string | null; size?: number }) {
-  const url = productPhoto(src, category);
+  const { url, onError } = usePhoto(src, category);
   const Icon = categoryIcon(category);
   return (
     <div className="thumb" style={{ width: size, height: size }}>
-      {url ? <img src={url} alt="" /> : <Icon size={Math.round(size * 0.42)} strokeWidth={1.5} aria-hidden />}
+      {url ? <img src={url} alt="" onError={onError} /> : <Icon size={Math.round(size * 0.42)} strokeWidth={1.5} aria-hidden />}
     </div>
   );
 }
@@ -238,11 +252,13 @@ export function initials(name: string): string {
 export function Avatar({ name, src, className = '', size }: {
   name: string; src?: string | null; className?: string; size?: number;
 }) {
-  const url = assetUrl(src);
+  const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [src]);
+  const url = broken ? null : assetUrl(src);
   const style = size ? { width: size, height: size, fontSize: Math.round(size * 0.38) } : undefined;
   return (
     <span className={`avatar${url ? ' has-photo' : ''} ${className}`.trim()} style={style} aria-hidden>
-      {url ? <img src={url} alt="" /> : initials(name)}
+      {url ? <img src={url} alt="" onError={() => setBroken(true)} /> : initials(name)}
     </span>
   );
 }

@@ -78,7 +78,7 @@ public class OrderService {
         if (r.getBuyer().getId().equals(userId)) {
             throw ApiException.badRequest("OWN_REQUEST", "You cannot accept your own request");
         }
-        if (r.getStatus() != RequestStatus.OPEN || r.getDeadline().isBefore(Today.get())) {
+        if (r.getStatus() != RequestStatus.OPEN || r.getDeadline().isBefore(Today.get()) || r.excludes(userId)) {
             throw ApiException.conflict("REQUEST_NOT_OPEN", "This request is no longer open");
         }
         List<Trip> myTrips = trips.findByTravelerIdAndReturnDateGreaterThanEqualOrderByDepartDateAsc(userId, Today.get());
@@ -171,7 +171,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto reject(Long userId, Long orderId) {
+    public OrderDto reject(Long userId, Long orderId, boolean reopenRequest) {
         Order o = findForParticipant(userId, orderId);
         requireBuyer(o, userId);
         requireStatus(o, OrderStatus.AWAITING_APPROVAL);
@@ -179,9 +179,25 @@ public class OrderService {
         o.setStatus(OrderStatus.CANCELLED);
         o.setCancelledAt(Instant.now());
         o.setCancelReason("Buyer rejected the higher price");
+        if (o.getOffer() != null) {
+            o.getOffer().release(o.getQuantity());
+        }
+        PurchaseRequest r = o.getRequest();
+        boolean reopened = false;
+        if (r != null) {
+            r.exclude(o.getTraveler().getId());
+            r.setTraveler(null);
+            if (reopenRequest && !r.getDeadline().isBefore(Today.get())) {
+                r.setStatus(RequestStatus.OPEN);
+                reopened = true;
+            } else {
+                r.setStatus(reopenRequest ? RequestStatus.EXPIRED : RequestStatus.CANCELLED);
+            }
+        }
         notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.REJECTED, o.getBuyer().getName(),
                 o.getProductName(), null, o.getBuyer().getName() + " rejected the over-budget price for "
-                + o.getProductName() + ". The order was cancelled.");
+                + o.getProductName() + ". The order was cancelled."
+                + (reopened ? " The request was offered to other travelers." : ""));
         return mapper.order(o, userId);
     }
 

@@ -229,7 +229,7 @@ export const api = {
   sendMessage: (id: number, b: { text: string | null; imageUrl: string | null }) =>
     post<ChatMessage>(`/api/orders/${id}/messages`, b),
   approve: (id: number) => post<PaymentPrepare>(`/api/orders/${id}/approve`),
-  reject: (id: number) => post<Order>(`/api/orders/${id}/reject`),
+  reject: (id: number, reopenRequest = false) => post<Order>(`/api/orders/${id}/reject`, { reopenRequest }),
   deliver: (id: number) => post<Order>(`/api/orders/${id}/deliver`),
   confirmReceived: (id: number) => post<Order>(`/api/orders/${id}/confirm`),
   cancelOrder: (id: number, reason?: string) => post<Order>(`/api/orders/${id}/cancel`, { reason }),

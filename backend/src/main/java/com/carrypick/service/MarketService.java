@@ -154,6 +154,7 @@ public class MarketService {
         Set<String> countries = myTrips.stream().map(Trip::getCountryCode).collect(Collectors.toSet());
         return requests.findByStatusAndCountryCodeInOrderByDeadlineAsc(RequestStatus.OPEN, countries).stream()
                 .filter(r -> !r.getBuyer().getId().equals(userId))
+                .filter(r -> !r.excludes(userId))
                 .filter(r -> !r.getDeadline().isBefore(today))
                 .filter(r -> matchingTrip(myTrips, r) != null)
                 .map(mapper::request)

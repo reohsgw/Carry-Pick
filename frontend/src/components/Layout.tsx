@@ -59,7 +59,10 @@ export function Wordmark({ to }: { to?: string }) {
 function HeaderActions() {
   const { user, unread } = useSession();
   const { t } = useI18n();
+  const [photoBroken, setPhotoBroken] = useState(false);
+  useEffect(() => setPhotoBroken(false), [user?.avatarUrl]);
   if (!user) return null;
+  const photo = photoBroken ? null : assetUrl(user.avatarUrl);
   return (
     <>
       <NavLink to="/search" className="icon-btn only-desktop" aria-label={t('nav.search')}>
@@ -67,8 +70,8 @@ function HeaderActions() {
       </NavLink>
       <NotificationsButton unread={unread} />
       <MenuButton />
-      <Link to="/me" className={`avatar-btn${user.avatarUrl ? ' has-photo' : ''}`} aria-label={t('me.title')}>
-        {user.avatarUrl ? <img src={assetUrl(user.avatarUrl) ?? ''} alt="" /> : initials(user.name)}
+      <Link to="/me" className={`avatar-btn${photo ? ' has-photo' : ''}`} aria-label={t('me.title')}>
+        {photo ? <img src={photo} alt="" onError={() => setPhotoBroken(true)} /> : initials(user.name)}
       </Link>
     </>
   );
@@ -88,7 +91,6 @@ function useNav() {
   return [
     { to: '/', label: t('nav.discover'), icon: Home, end: true },
     { to: '/offers', label: t('nav.offers'), icon: Ticket, end: true, active: offers || undefined },
-    { to: '/search', label: t('nav.search'), icon: Search, desktopOnly: true },
     { to: '/t', label: t('nav.travel'), icon: Plane, active: carrying ? false : undefined },
     { to: '/orders', label: t('nav.orders'), icon: ShoppingBag, active: carrying || undefined },
     { to: '/me', label: t('nav.me'), icon: User, mobileOnly: true },
@@ -100,7 +102,7 @@ function BottomNav() {
   if (!items) return null;
   return (
     <nav className="mobile-nav" aria-label="Main">
-      {items.filter((it) => !it.desktopOnly).map((it) => (
+      {items.map((it) => (
         <NavLink key={it.to} to={it.to} end={it.end} className={({ isActive }) => `mobile-nav-item ${it.active ?? isActive ? 'active' : ''}`}>
           <it.icon size={20} strokeWidth={1.8} aria-hidden />
           <span>{it.label}</span>

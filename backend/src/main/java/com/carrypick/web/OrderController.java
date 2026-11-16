@@ -72,8 +72,9 @@ public class OrderController {
     }
 
     @PostMapping("/orders/{id}/reject")
-    public OrderDto reject(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
-        return orders.reject(me.id(), id);
+    public OrderDto reject(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                           @RequestBody(required = false) RejectForm form) {
+        return orders.reject(me.id(), id, form != null && form.reopenRequest());
     }
 
     @PostMapping("/orders/{id}/deliver")

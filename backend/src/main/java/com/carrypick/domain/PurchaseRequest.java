@@ -50,6 +50,9 @@ public class PurchaseRequest {
 
     private Instant createdAt = Instant.now();
 
+    @Column(length = 1000)
+    private String excludedTravelers;
+
     protected PurchaseRequest() {}
 
     public PurchaseRequest(User buyer, String countryCode, String productName, String productLink, String imageUrl,
@@ -82,6 +85,18 @@ public class PurchaseRequest {
     public RequestStatus getStatus() { return status; }
     public void setStatus(RequestStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public boolean excludes(Long travelerId) {
+        if (excludedTravelers == null || travelerId == null) return false;
+        for (String s : excludedTravelers.split(",")) if (s.equals(String.valueOf(travelerId))) return true;
+        return false;
+    }
+
+    public void exclude(Long travelerId) {
+        if (travelerId == null || excludes(travelerId)) return;
+        excludedTravelers = excludedTravelers == null || excludedTravelers.isBlank()
+                ? String.valueOf(travelerId) : excludedTravelers + "," + travelerId;
+    }
 
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }

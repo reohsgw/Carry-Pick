@@ -7,10 +7,12 @@ import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import CountryPicker from '../components/CountryPicker';
 import { useCountry } from '../country';
-import { Avatar, Empty, ErrorBox, Loading, ProductThumb } from '../components/ui';
+import { Avatar, Empty, ErrorBox, Loading, ProductPhoto, ProductThumb } from '../components/ui';
 import { ALL_COUNTRIES, daysUntil, krw, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
+
+const MAX_COMPARE = 5;
 
 type Sort = 'best' | 'reward' | 'arrival';
 type Window = 'any' | '7' | '14';
@@ -75,7 +77,7 @@ export default function TravelerOffers() {
   }
 
   function toggleCompare(id: number) {
-    setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length < 3 ? [...c, id] : c));
+    setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length < MAX_COMPARE ? [...c, id] : c));
   }
 
   return (
@@ -83,7 +85,7 @@ export default function TravelerOffers() {
       <section className="home-section offers-page">
         <div className="section-heading">
           <div>
-            <p className="script-note">{t('to.script')}</p>
+            <p className="eyebrow">{t('to.script')}</p>
             <h2 className="font-display">{t('to.title')}</h2>
             <p className="section-copy">{t('to.copy')}</p>
           </div>
@@ -174,7 +176,7 @@ export default function TravelerOffers() {
                 {list.map((o, i) => (
                   <TicketCard
                     key={o.id} offer={o} best={i === 0 && sort === 'best'}
-                    comparing={compare.includes(o.id)} compareFull={compare.length >= 3}
+                    comparing={compare.includes(o.id)} compareFull={compare.length >= MAX_COMPARE}
                     onCompare={() => toggleCompare(o.id)}
                   />
                 ))}
@@ -199,6 +201,7 @@ export default function TravelerOffers() {
             {compared.map((o) => (
               <div key={o.id} className={`compare-col ${o.unitQuote.total === cheapest && compared.length > 1 ? 'is-best' : ''}`}>
                 {o.unitQuote.total === cheapest && compared.length > 1 && <span className="best-tag">{t('to.bestValue')}</span>}
+                <div className="compare-photo"><ProductPhoto src={o.imageUrl} category={o.category} /></div>
                 <b>{o.productName}</b>
                 <span className="fine">{t('to.traveler')}</span>
                 <b>{firstName(o.traveler.name)}</b>
