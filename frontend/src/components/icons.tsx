@@ -60,3 +60,16 @@ export const Ticket = carbon(Carbon.Ticket, 'Ticket');
 export const User = carbon(Carbon.User, 'User');
 export const UtensilsCrossed = carbon(Carbon.Restaurant, 'UtensilsCrossed');
 export const X = carbon(Carbon.Close, 'X');
+
+// Notification types
+export const NotifBooked = carbon(Carbon.Calendar, 'NotifBooked');
+export const NotifAccepted = carbon(Carbon.TaskApproved, 'NotifAccepted');
+export const NotifPaid = carbon(Carbon.Purchase, 'NotifPaid');
+export const NotifPurchased = carbon(Carbon.Receipt, 'NotifPurchased');
+export const NotifOverBudget = carbon(Carbon.WarningAlt, 'NotifOverBudget');
+export const NotifDelivered = carbon(Carbon.DeliveryParcel, 'NotifDelivered');
+export const NotifRejected = carbon(Carbon.ThumbsDown, 'NotifRejected');
+export const NotifSettled = carbon(Carbon.Wallet, 'NotifSettled');
+export const NotifCancelled = carbon(Carbon.CloseOutline, 'NotifCancelled');
+export const NotifExtraPaid = carbon(Carbon.Money, 'NotifExtraPaid');
+export const NotifMessage = carbon(Carbon.Chat, 'NotifMessage');

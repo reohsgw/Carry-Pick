@@ -30,11 +30,13 @@ public class OrderService {
     private final PricingService pricing;
     private final NotificationService notifications;
     private final FileStorageService files;
+    private final ReceiptScanService receipts;
     private final Mapper mapper;
 
     public OrderService(OrderRepository orders, PaymentRepository payments, SettlementRepository settlements,
                         TripRepository trips, MarketService market, AuthService auth, PricingService pricing,
-                        NotificationService notifications, FileStorageService files, Mapper mapper) {
+                        NotificationService notifications, FileStorageService files,
+                        ReceiptScanService receipts, Mapper mapper) {
         this.orders = orders;
         this.payments = payments;
         this.settlements = settlements;
@@ -44,6 +46,7 @@ public class OrderService {
         this.pricing = pricing;
         this.notifications = notifications;
         this.files = files;
+        this.receipts = receipts;
         this.mapper = mapper;
     }
 
@@ -124,6 +127,7 @@ public class OrderService {
             throw ApiException.conflict("OVER_LIMIT", "The price is over the approved " + o.itemLimit()
                     + " KRW. Send the buyer a price check first.");
         }
+        receipts.requireReceipt(receipt);
         o.setReceiptUrl(files.store(receipt));
         o.setActualPrice(actualPrice);
         o.setStatus(OrderStatus.PURCHASED);

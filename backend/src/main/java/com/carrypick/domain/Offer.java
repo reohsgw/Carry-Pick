@@ -108,6 +108,7 @@ public class Offer {
     public String getCategory() { return category; }
     public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public long getEstPrice() { return estPrice; }
     public long getReward() { return reward; }
     public int getQuantity() { return quantity; }

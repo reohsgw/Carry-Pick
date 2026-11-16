@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 180" fill="none" stroke="#F4ECDD" stroke-linecap="round">
+  <circle cx="90" cy="90" r="82" stroke-width="7" stroke-dasharray="120 6 60 6 90 6 140 6"/>
+  <circle cx="90" cy="90" r="70" stroke-width="3" stroke-dasharray="70 6 110 6 50 6 130 6"/>
+  <circle cx="90" cy="90" r="58" stroke-width="4" stroke-dasharray="40 7 80 7 30 7 60 7 50 7"/>
+  <g stroke-width="3">
+    <circle cx="90" cy="90" r="36"/>
+    <ellipse cx="90" cy="90" rx="15" ry="36"/>
+    <path d="M90 54v72M54 90h72M60 72h60M60 108h60"/>
+  </g>
+  <path fill="#F4ECDD" stroke="#9E4B37" stroke-width="3" stroke-linejoin="round" transform="translate(90 92) rotate(45) scale(1.25)" d="M0,-36 C4,-36 6,-30 6,-23 L6,-9 L34,8 L34,15 L6,6 L6,22 L14,29 L14,34 L0,30 L-14,34 L-14,29 L-6,22 L-6,6 L-34,15 L-34,8 L-6,-9 L-6,-23 C-6,-30 -4,-36 0,-36 Z"/>
+  <g stroke-width="7">
+    <path d="M192 58c18-12 36-12 54 0s36 12 54 0"/><path d="M314 50c10-4 22-2 36 4"/>
+    <path d="M196 90c18-12 36-12 54 0s36 12 54 0s28-10 46-2"/>
+    <path d="M192 122c14-9 28-10 42-4"/><path d="M246 126c18 10 36 10 54 0s30-10 48-2"/>
+  </g>
+</svg>

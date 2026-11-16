@@ -93,7 +93,7 @@ export function ReceiptCapture({ file, onFile, onAmount }: {
 
       {scan && (
         <div className="scan">
-          <p className={`scan-source ${scan.mock ? 'is-mock' : ''}`}>{scan.mock ? t('buy.scanMock') : t('buy.scanResult')}</p>
+          {scan.mock && <p className="scan-source is-mock">{t('buy.scanMock')}</p>}
           {scan.store && <div className="scan-store">{scan.store}</div>}
           <ul className="scan-items">
             {scan.items.map((it, i) => (
@@ -118,9 +118,6 @@ export function ReceiptCapture({ file, onFile, onAmount }: {
                   <small>{t('buy.rate', { rate: scan.krwPerUnit, cur: scan.currency })}</small>
                 )}
               </div>
-              <button type="button" className="btn btn-quiet btn-small" onClick={() => onAmount(scan.totalKrw!)}>
-                {t('buy.useAmount')}
-              </button>
             </div>
           )}
           {scan.customsFlags.length > 0 && (

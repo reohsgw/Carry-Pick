@@ -6328,8 +6328,14 @@ html:lang(ko) .pill {
 
 .dashboard-hero::after,
 .order-hero::after {
-  border-color: rgb(244 236 221 / 0.35) !important;
-  color: rgb(244 236 221 / 0.55) !important;
+  content: '' !important;
+  width: 130px !important;
+  height: 65px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: url('./assets/airmail-stamp-light.svg') center / contain no-repeat !important;
+  opacity: 0.6;
+  transform: translateY(-50%) rotate(-8deg) !important;
 }
 
 .dashboard-hero .glass-btn,
@@ -9251,3 +9257,91 @@ html:lang(ko) .cta-panel h2.cta-title { font-size: clamp(30px, 3.4vw, 46px); lin
 .compare-col > b:first-of-type { font-size: 14px !important; padding-right: 0 !important; margin-bottom: 4px !important; }
 .compare-col > .fine { font-size: 12px; }
 .compare-col .btn { margin-top: 8px !important; }
+
+/* Notification type icons */
+.notif {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 12px !important;
+  padding-left: 16px !important;
+}
+.notif-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.notif-icon {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgb(111 154 156 / 0.18);
+  color: #4E7779;
+}
+.notif-icon.is-good { background: rgb(111 154 156 / 0.18); color: #3F6F62; }
+.notif-icon.is-warn { background: rgb(227 185 79 / 0.24); color: #8A6A16; }
+.notif-icon.is-bad { background: rgb(182 90 67 / 0.16); color: #9E4B37; }
+.is-unread .notif::before {
+  left: 42px !important;
+  top: 13px !important;
+  z-index: 1;
+  box-shadow: 0 0 0 2px #F4ECDD;
+}
+
+/* Phone: give the hero search placeholder enough room */
+@media (max-width: 599.98px) {
+  .hero-search {
+    gap: 8px !important;
+    padding: 6px 6px 6px 16px !important;
+  }
+  .hero-search > svg {
+    display: none;
+  }
+  .hero-search input {
+    padding: 12px 0 !important;
+    text-overflow: ellipsis;
+  }
+  .hero-search input::placeholder {
+    font-size: 14px;
+  }
+  .hero-search-btn {
+    min-height: 46px !important;
+    padding: 0 16px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* Phone: "Can't find it?" panel — steps as compact rows so all three fit on one screen */
+@media (max-width: 599.98px) {
+  .cta-panel p.cta-bubble { margin-bottom: 18px; padding: 6px 16px; font-size: 18px; line-height: 24px; }
+  .cta-panel h2.cta-title { font-size: 30px; }
+  html:lang(ko) .cta-panel h2.cta-title { font-size: 26px; }
+  .cta-panel p.cta-body { font-size: 16px; line-height: 24px; }
+  .cta-actions { margin-top: 20px; }
+
+  .steps.comic-steps { grid-template-columns: minmax(0, 1fr); max-width: none; gap: 12px; margin-top: 28px; }
+  .steps.comic-steps > li.comic-step {
+    flex-direction: row;
+    align-items: center;
+    transform: none !important;
+    box-shadow: 4px 4px 0 #2E3A46;
+  }
+  .step-comic {
+    flex: none;
+    width: 108px;
+    border-bottom: 0;
+    border-right: 3px solid #2E3A46;
+  }
+  .steps .comic-caption {
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    padding: 12px 14px;
+    font-size: 16px;
+    line-height: 22px;
+  }
+}

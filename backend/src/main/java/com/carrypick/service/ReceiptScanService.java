@@ -66,6 +66,24 @@ public class ReceiptScanService {
         return parse(callClaude(image), false, cfg.model());
     }
 
+    /**
+     * Blocks an upload only when the AI is sure the photo is not a receipt. Anything it can't judge
+     * (mock mode, PDFs, photos over 5MB, the AI being down or unreadable) is let through, so travelers
+     * are never stuck because of the AI.
+     */
+    public void requireReceipt(MultipartFile image) {
+        if (cfg == null || cfg.isMock() || image == null || image.isEmpty()) return;
+        if (!IMAGE_TYPES.contains(image.getContentType()) || image.getSize() > MAX_BYTES) return;
+        try {
+            scan(image);
+        } catch (ApiException e) {
+            if ("NOT_A_RECEIPT".equals(e.getCode())) throw e;
+            log.info("Receipt check skipped ({}); accepting the upload", e.getCode());
+        } catch (RuntimeException e) {
+            log.warn("Receipt check failed; accepting the upload", e);
+        }
+    }
+
     private static String base64(MultipartFile image) {
         try {
             return Base64.getEncoder().encodeToString(image.getBytes());

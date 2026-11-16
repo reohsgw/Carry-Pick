@@ -35,6 +35,16 @@ class ReceiptScanServiceTest {
     }
 
     @Test
+    void receiptCheckLetsEverythingThroughWhenItCannotJudge() {
+        MockMultipartFile cat = new MockMultipartFile("receipt", "cat.png", "image/png", new byte[] {1, 2, 3});
+        MockMultipartFile pdf = new MockMultipartFile("receipt", "r.pdf", "application/pdf", new byte[] {1});
+        assertDoesNotThrow(() -> mockService.requireReceipt(cat));
+        assertDoesNotThrow(() -> mockService.requireReceipt(pdf));
+        // Real provider but no reachable API: the AI failing must not block the traveler.
+        assertDoesNotThrow(() -> service("anthropic").requireReceipt(cat));
+    }
+
+    @Test
     void rejectsNonImages() {
         ApiException e = assertThrows(ApiException.class, () ->
                 mockService.scan(new MockMultipartFile("image", "r.pdf", "application/pdf", new byte[] {1})));

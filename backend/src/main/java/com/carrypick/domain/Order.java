@@ -114,6 +114,7 @@ public class Order {
     public String getProductName() { return productName; }
     public String getCountryCode() { return countryCode; }
     public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public int getQuantity() { return quantity; }
     public long getBudget() { return budget; }
     public long getReward() { return reward; }

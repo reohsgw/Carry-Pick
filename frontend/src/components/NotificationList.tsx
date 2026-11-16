@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Bell } from './icons';
-import { api, type Notification } from '../api';
+import {
+  Bell, NotifAccepted, NotifBooked, NotifCancelled, NotifDelivered, NotifExtraPaid, NotifMessage,
+  NotifOverBudget, NotifPaid, NotifPurchased, NotifRejected, NotifSettled, type Icon,
+} from './icons';
+import { api, type Notification, type NotificationKind } from '../api';
 import { dateTime, krw } from '../format';
 import { useI18n, type Key, type T } from '../i18n';
 import { useSession } from '../session';
@@ -17,6 +20,20 @@ function sentence(n: Notification, t: T): string {
     amount: n.kind === 'BOOKED' ? n.amount : n.amount == null ? '' : krw(n.amount),
   });
 }
+
+const KIND_ICON: Record<NotificationKind, { icon: Icon; tone: 'neutral' | 'good' | 'warn' | 'bad' }> = {
+  BOOKED: { icon: NotifBooked, tone: 'neutral' },
+  REQUEST_ACCEPTED: { icon: NotifAccepted, tone: 'good' },
+  PAID: { icon: NotifPaid, tone: 'good' },
+  PURCHASED: { icon: NotifPurchased, tone: 'neutral' },
+  OVER_BUDGET: { icon: NotifOverBudget, tone: 'warn' },
+  DELIVERED: { icon: NotifDelivered, tone: 'neutral' },
+  REJECTED: { icon: NotifRejected, tone: 'bad' },
+  SETTLED: { icon: NotifSettled, tone: 'good' },
+  CANCELLED: { icon: NotifCancelled, tone: 'bad' },
+  EXTRA_PAID: { icon: NotifExtraPaid, tone: 'good' },
+  MESSAGE: { icon: NotifMessage, tone: 'neutral' },
+};
 
 export function NotificationList() {
   const { refreshMe } = useSession();
@@ -34,15 +51,21 @@ export function NotificationList() {
   return (
     <ul className="rows notif-list">
       {list.data.map((n) => {
+        const { icon: KindIcon, tone } = (n.kind && KIND_ICON[n.kind]) || { icon: Bell, tone: 'neutral' as const };
         const body = (
           <>
-            <span className="notif-text">{sentence(n, t)}</span>
-            <span className="notif-at">{dateTime(n.createdAt, lang)}</span>
+            <span className={`notif-icon is-${tone}`} aria-hidden><KindIcon size={18} /></span>
+            <span className="notif-body">
+              <span className="notif-text">{sentence(n, t)}</span>
+              <span className="notif-at">{dateTime(n.createdAt, lang)}</span>
+            </span>
           </>
         );
+        const href = n.orderId == null ? null
+          : n.kind === 'MESSAGE' ? `/orders/${n.orderId}/chat` : `/orders/${n.orderId}`;
         return (
           <li key={n.id} className={n.read ? '' : 'is-unread'}>
-            {n.orderId ? <Link to={`/orders/${n.orderId}`} className="notif">{body}</Link> : <div className="notif">{body}</div>}
+            {href ? <Link to={href} className="notif">{body}</Link> : <div className="notif">{body}</div>}
           </li>
         );
       })}

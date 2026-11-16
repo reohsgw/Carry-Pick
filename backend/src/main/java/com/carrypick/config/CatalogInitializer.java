@@ -1,3 +1,4 @@
+//just for demo 
 package com.carrypick.config;
 
 import com.carrypick.domain.*;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 @org.springframework.core.annotation.Order(2)
@@ -38,6 +40,20 @@ public class CatalogInitializer implements ApplicationRunner {
             {"Levi's 501 Original jeans", "리바이스 501 오리지널 청바지", "Levi's 501 Original", "리바이스, 리바이스 501, 청바지, 데님, levis, jeans", "Fashion", "US"},
     };
 
+    /** Demo offers that got a bundled photo after the first seed; older databases still hold null. */
+    private static final Map<String, String> DEMO_PHOTOS = Map.ofEntries(
+            Map.entry("Tokyo Banana (8 pcs)", "demo:tokyo-banana"),
+            Map.entry("Royce' Nama Chocolate", "demo:royce"),
+            Map.entry("Anessa Perfect UV Sunscreen 60ml", "demo:anessa"),
+            Map.entry("Uniqlo Japan-limited graphic T-shirt", "demo:uniqlo-tshirt"),
+            Map.entry("Kit Kat regional flavors set", "demo:kitkat"),
+            Map.entry("Ladurée macarons (box of 12)", "demo:laduree"),
+            Map.entry("Diptyque Baies candle 190g", "demo:diptyque-baies"),
+            Map.entry("Mama Tom Yum instant noodles (10 pack)", "demo:mama-tom-yum"),
+            Map.entry("Naraya cotton bag", "demo:naraya-bag"),
+            Map.entry("Trader Joe's tote bag", "demo:trader-joes-tote"),
+            Map.entry("Levi's 501 Original jeans", "demo:levis-501"));
+
     private final ProductRepository products;
     private final ProductService catalog;
     private final OfferRepository offers;
@@ -58,6 +74,8 @@ public class CatalogInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         for (String[] e : STARTER_CATALOG) upsert(e);
 
+        backfillDemoPhotos();
+
         List<Offer> looseOffers = offers.findByProductIsNull();
         for (Offer o : looseOffers) o.setProduct(catalog.resolve(null, o.getProductName(), o.getCategory(), o.getCountryCode()));
         List<PurchaseRequest> looseRequests = requests.findByProductIsNull();
@@ -72,6 +90,29 @@ public class CatalogInitializer implements ApplicationRunner {
             log.info("Catalog: linked {} offers, {} requests and {} orders to products",
                     looseOffers.size(), looseRequests.size(), looseOrders.size());
         }
+    }
+
+    private void backfillDemoPhotos() {
+        int fixed = 0;
+        for (Offer o : offers.findAll()) {
+            String photo = DEMO_PHOTOS.get(o.getProductName());
+            if (photo == null || o.getImageUrl() != null || !isDemoUser(o.getTraveler())) continue;
+            o.setImageUrl(photo);
+            fixed++;
+        }
+        for (Order o : orders.findAll()) {
+            Offer offer = o.getOffer();
+            if (o.getImageUrl() == null && offer != null && offer.getImageUrl() != null
+                    && offer.getImageUrl().startsWith("demo:")) {
+                o.setImageUrl(offer.getImageUrl());
+                fixed++;
+            }
+        }
+        if (fixed > 0) log.info("Catalog: filled in {} missing demo photos", fixed);
+    }
+
+    private static boolean isDemoUser(User u) {
+        return u != null && u.getEmail() != null && u.getEmail().endsWith("@carrypick.test");
     }
 
     private void upsert(String[] e) {
