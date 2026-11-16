@@ -1,10 +1,5 @@
 import { useEffect, useId, useState } from 'react';
 
-/*
- * Animated "CARRY PICK" wordmark for the home hero: a plane flies along a blue trail that
- * weaves over and under the letters, then fades and repeats every 6 seconds.
- * Everything is one SVG so it scales with the screen.
- */
 
 const RED = '#B03035';
 const BLUE = '#4FA9DE';

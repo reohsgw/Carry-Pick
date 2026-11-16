@@ -394,6 +394,13 @@ function HeroAround({ perCountry }: { perCountry: Record<string, { offers: numbe
   const here = HERO_LANDMARKS[i % n];
   const snapshot = HERO_LANDMARKS[(i + Math.floor(n / 2)) % n];
   return (
+    <>
+    {/* Faint full-width photo behind the hero that fades to the same destination as the postcard. */}
+    <div className="hero-backdrop" aria-hidden>
+      {HERO_LANDMARKS.map((l) => (
+        <img key={l.code} src={l.photo} alt="" className={l.code === here.code ? 'is-on' : undefined} />
+      ))}
+    </div>
     <div className={`hero-around ${blurred ? 'is-blurred' : ''}`} aria-hidden>
       <figure className="scrap postcard around-photo">
         <img className="fx" src={here.photo} alt="" />
@@ -410,5 +417,6 @@ function HeroAround({ perCountry }: { perCountry: Record<string, { offers: numbe
         <img className="fx" src={snapshot.photo} alt="" />
       </figure>
     </div>
+    </>
   );
 }
