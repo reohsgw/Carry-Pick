@@ -11,14 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- *   GET  /api/trips      -> all upcoming trips
- *   GET  /api/trips/me   -> my trips (traveler home)
- *   POST /api/trips      -> register a trip for the logged-in traveler
- *
- * @AuthenticationPrincipal gives the user from the JWT (see JwtAuthFilter), so the client
- * can't pretend to be someone else by sending a different id.
- */
 @RestController
 @RequestMapping("/api/trips")
 public class TripController {

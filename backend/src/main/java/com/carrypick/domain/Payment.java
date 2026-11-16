@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
-/** One payment attempt (or simulated refund) for an order. */
 @Entity
 @Table(name = "payments")
 public class Payment {
@@ -21,7 +20,6 @@ public class Payment {
 
     private long amount;
 
-    /** The orderId we send to Toss (must be unique per payment attempt). */
     @Column(nullable = false, unique = true)
     private String tossOrderId;
 
@@ -33,7 +31,6 @@ public class Payment {
 
     private String failReason;
 
-    /** True for refunds and mock-mode payments: no real money moved. */
     private boolean simulated;
 
     private Instant createdAt = Instant.now();

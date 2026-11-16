@@ -4,12 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
+import ProductPicker from '../components/ProductPicker';
 import { Field, ImagePicker, MoneyInput, Notice, Sheet } from '../components/ui';
 import { isoDay, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 
-/** B5: Post a purchase request. */
 export default function NewRequest() {
   const { config } = useSession();
   const { t, lang } = useI18n();
@@ -18,8 +18,12 @@ export default function NewRequest() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const [countryCode, setCountry] = useState(params.get('country') ?? 'JP');
+  const [countryCode, setCountry] = useState(() => {
+    const c = params.get('country');
+    return c && c !== 'ALL' ? c : 'JP';
+  });
   const [productName, setName] = useState(params.get('q') ?? '');
+  const [productId, setProductId] = useState<number | null>(null);
   const [productLink, setLink] = useState('');
   const [imageUrl, setImage] = useState<string | null>(null);
   const [options, setOptions] = useState('');
@@ -32,7 +36,7 @@ export default function NewRequest() {
     mutationFn: () =>
       api.createRequest({
         countryCode, productName, productLink, imageUrl, options, note,
-        maxBudget: Number(maxBudget), reward: Number(reward || 0), deadline,
+        maxBudget: Number(maxBudget), reward: Number(reward || 0), deadline, productId,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myRequests'] });
@@ -71,9 +75,18 @@ export default function NewRequest() {
                 {config?.countries.map((c) => <option key={c.code} value={c.code}>{lang === 'ko' ? c.nameKo : c.name}</option>)}
               </select>
             </Field>
-            <Field label={t('req.product')}>
-              <input value={productName} onChange={(e) => setName(e.target.value)} required maxLength={120} placeholder={t('req.productPh')} />
-            </Field>
+            <div className="field">
+              <label className="field-label" htmlFor="req-product">{t('req.product')}</label>
+              <ProductPicker
+                inputId="req-product"
+                value={productName}
+                productId={productId}
+                country={countryCode}
+                required
+                placeholder={t('req.productPh')}
+                onChange={(name, p) => { setName(name); setProductId(p?.id ?? null); }}
+              />
+            </div>
             <Field label={t('req.photo')} optional><ImagePicker value={imageUrl} onChange={setImage} /></Field>
             <Field label={t('req.link')} optional>
               <input type="url" value={productLink} onChange={(e) => setLink(e.target.value)} placeholder="https://" />
@@ -100,7 +113,6 @@ export default function NewRequest() {
             </Field>
           </div>
         </Sheet>
-
 
         {create.error && <Notice tone="bad">{errText(create.error)}</Notice>}
       </DetailLayout>

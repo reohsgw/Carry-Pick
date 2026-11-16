@@ -1,14 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { errorInfo } from './api';
 
-/*
- * Two languages, one dictionary each. Korean is the default because the first users are in Korea.
- * `ko` is typed against `en`, so a missing key is a compile error.
- * Use {name} placeholders; t('key', { name: 'Minji' }).
- */
-
 const en = {
-  // common
   'app.name': 'CarryPick',
   'common.loading': 'Loading',
   'common.retry': 'Try again',
@@ -25,7 +18,6 @@ const en = {
   'common.today': 'Today',
   'lang.label': 'Language',
 
-  // errors
   'err.network': 'Cannot reach the server. Check that the Spring Boot API is running on port 8080.',
   'err.generic': 'Something went wrong. Try again.',
   'err.BAD_CREDENTIALS': 'Email or password is incorrect.',
@@ -36,6 +28,7 @@ const en = {
   'err.REQUEST_NOT_OPEN': 'This request is no longer open.',
   'err.CANNOT_CANCEL': 'Orders can only be cancelled before the item is bought.',
   'err.FILE_TYPE': 'Use a JPG, PNG, WEBP or GIF photo.',
+  'err.AVATAR_INVALID': 'Please upload a JPG, PNG, WEBP or GIF picture.',
   'err.FILE_TOO_LARGE': 'The photo must be 5 MB or smaller.',
   'err.NOT_A_RECEIPT': "This photo doesn't look like a receipt.",
   'err.AI_FAILED': "Couldn't read the receipt right now. Enter the price yourself.",
@@ -43,7 +36,6 @@ const en = {
   'err.TRIP_DATE': 'Check the trip dates. Departure must be in the future.',
   'err.DEADLINE': 'The deadline must be tomorrow or later.',
 
-  // nav
   'nav.home': 'Home',
   'nav.search': 'Search',
   'nav.orders': 'Orders',
@@ -53,7 +45,6 @@ const en = {
   'orders.buying': 'Buying',
   'orders.carrying': 'Carrying',
 
-  // login
   'login.tagline': 'Things from abroad, carried home by travelers already going there. You pay the receipt price, plus a small reward.',
   'login.tab.login': 'Log in',
   'login.tab.signup': 'Sign up',
@@ -73,7 +64,6 @@ const en = {
   'login.demoBuyer': 'Buyer demo',
   'login.demoTraveler': 'Traveler demo',
 
-  // buyer home
   'home.board': 'Departures',
   'home.boardHint': 'Travelers leaving soon. Tap a flight to see what they can bring.',
   'home.col.date': 'Date',
@@ -86,6 +76,7 @@ const en = {
   'home.popularHint': 'Paid orders, last {days} days.',
   'home.popularEmpty': 'No orders from {country} yet. The list fills in as people order.',
   'home.orders': '{n} orders',
+  'home.estPrice': 'Est.',
   'home.seeOffer': 'See offer',
   'home.requestIt': 'Request it',
   'home.order': '1 order',
@@ -94,7 +85,6 @@ const en = {
   'home.requestBody': 'Post what you want with a budget. A traveler going there can take it on.',
   'home.requestCta': 'Post a request',
 
-  // country offers
   'country.all': 'All',
   'country.sort.soonest': 'Arrives soonest',
   'country.sort.cheapest': 'Lowest total',
@@ -104,7 +94,6 @@ const en = {
   'country.backOn': 'Back {date}',
   'country.perItem': 'total per item',
 
-  // search
   'search.title': 'Search',
   'search.placeholder': 'Sunscreen, chocolate, jeans',
   'search.allCountries': 'All countries',
@@ -113,8 +102,9 @@ const en = {
   'search.noOffers': 'No offers match “{q}”.',
   'search.noOffersHint': 'Post a request with your budget. A traveler going there can accept it.',
   'search.othersWant': 'Other buyers are also looking for',
+  'search.suggestEyebrow': 'Not quite it?',
+  'search.suggestTitle': 'You might like these',
 
-  // offer detail
   'offer.title': 'Offer',
   'offer.traveler': 'Traveler',
   'offer.trip': 'Trip',
@@ -134,7 +124,6 @@ const en = {
   'offer.unavailable': 'Not available',
   'offer.mine': 'Edit your offer',
 
-  // price breakdown
   'price.itemEstimate': 'Item price (estimate)',
   'price.itemBudget': 'Item (max budget)',
   'price.itemActual': 'Item (receipt)',
@@ -148,7 +137,6 @@ const en = {
   'price.refund': 'Refund to buyer',
   'price.simulated': 'Settlement is simulated. No real money moves.',
 
-  // request form
   'req.title': 'Post a request',
   'req.country': 'Country',
   'req.product': 'Product name',
@@ -168,12 +156,10 @@ const en = {
   'req.submit': 'Post request',
   'req.posting': 'Posting',
 
-  // image picker
   'img.add': 'Add photo',
   'img.uploading': 'Uploading',
   'img.remove': 'Remove',
 
-  // checkout
   'pay.title': 'Checkout',
   'pay.heading': 'Payment',
   'pay.note': 'The item amount is held until hand-over. If the receipt is lower, the difference comes back when you confirm.',
@@ -200,7 +186,6 @@ const en = {
   'pay.sdkFail': "Couldn't load the Toss Payments window.",
   'pay.noKey': 'Toss client key is missing on the server (TOSS_CLIENT_KEY).',
 
-  // orders list
   'orders.buyerTitle': 'My orders',
   'orders.travelerTitle': 'Orders to carry',
   'orders.tab.active': 'In progress',
@@ -222,7 +207,6 @@ const en = {
   'req.status.EXPIRED': 'Expired',
   'req.status.CANCELLED': 'Withdrawn',
 
-  // order detail
   'order.title': 'Order',
   'order.no': 'Order no.',
   'order.traveler': 'Traveler',
@@ -256,7 +240,6 @@ const en = {
   'order.handedOverConfirm': 'Mark this as handed over to the buyer?',
   'order.saving': 'Saving',
 
-  // timeline
   'tl.created': 'Order placed',
   'tl.paid': 'Paid',
   'tl.payFailed': 'Payment failed',
@@ -272,7 +255,6 @@ const en = {
   'tl.delivered.waiting': "Not handed over yet",
   'tl.settled.waiting': "Waiting for the buyer to confirm receipt",
 
-  // purchase modal + AI receipt
   'buy.title': 'Purchase details',
   'buy.receipt': 'Receipt photo',
   'buy.receiptHint': 'Take a photo of the whole receipt. It is shown to the buyer.',
@@ -338,7 +320,6 @@ const en = {
   'err.ALREADY_APPROVED': "The buyer already approved a higher price for this order.",
   'err.NOT_OVER_BUDGET': "The price is within the budget. You can buy it now.",
 
-  // traveler home
   't.title': 'Traveler',
   't.toDo': 'Orders to handle',
   't.pending': 'Rewards on the way',
@@ -360,7 +341,6 @@ const en = {
   'offer.status.SOLD_OUT': 'Sold out',
   'offer.status.CLOSED': 'Closed',
 
-  // new trip
   'trip.title': 'Register a trip',
   'trip.country': 'Country',
   'trip.city': 'City',
@@ -372,7 +352,6 @@ const en = {
   'trip.note': 'You will see buyer requests for this country whose deadline is after your return.',
   'trip.save': 'Save trip',
 
-  // offer form
   'of.new': 'New offer',
   'of.edit': 'Edit offer',
   'of.needTrip': 'Register an upcoming trip first.',
@@ -390,6 +369,20 @@ const en = {
   'of.closeConfirm': 'Close this offer? Buyers can no longer book it.',
   'of.saveChanges': 'Save changes',
   'of.publish': 'Publish offer',
+  'pp.hint': 'Pick it from the list so buyers can find it in Korean, English or the local language.',
+  'pp.linked': 'Linked to the product catalog',
+  'pp.change': 'Change',
+  'pp.suggestions': 'Matching products',
+  'pp.addNew': 'Add “{name}” as a new product',
+  'pp.newTitle': 'New product: {name}',
+  'pp.nameKo': 'Korean name',
+  'pp.nameLocal': 'Name in the local language',
+  'pp.aliases': 'Other search words',
+  'pp.aliasesPh': 'e.g. other spellings, what it is (comma separated)',
+  'pp.save': 'Add product',
+  'pp.saving': 'Adding…',
+  'pp.cancel': 'Cancel',
+  'home.catsLabel': 'Shop by category',
   'cat.Snacks': 'Snacks',
   'cat.Food': 'Food',
   'cat.Beauty': 'Beauty',
@@ -398,7 +391,6 @@ const en = {
   'cat.Electronics': 'Electronics',
   'cat.Other': 'Other',
 
-  // request board / detail
   'rb.title': 'Requests for you',
   'rb.matching': 'Matched to your trips',
   'rb.needTrip': 'Register a trip to see requests.',
@@ -423,9 +415,14 @@ const en = {
   'rd.accept': 'Accept and earn {reward}',
   'rd.accepting': 'Accepting',
 
-  // my page
   'me.title': 'My page',
   'me.test': 'Test account',
+  'me.photoAdd': 'Add profile photo',
+  'me.photoChange': 'Change photo',
+  'me.photoRemove': 'Remove photo',
+  'me.photoSaving': 'Saving…',
+  'me.photoType': 'Please choose a JPG, PNG, WEBP or GIF picture.',
+  'me.photoSize': 'Please choose a picture smaller than 5 MB.',
   'me.mode': 'Mode',
   'me.buyer': 'Buyer',
   'me.buyerSub': 'Find and request items',
@@ -440,7 +437,6 @@ const en = {
   'me.modeToss': 'Toss test mode',
   'me.modeMock': 'mock mode',
 
-  // notifications
   'n.title': 'Notifications',
   'n.empty': 'No notifications yet.',
   'n.BOOKED': '{actor} booked {amount} × {product}. Waiting for payment.',
@@ -454,7 +450,6 @@ const en = {
   'n.CANCELLED': '{actor} cancelled the order for {product}.',
   'n.EXTRA_PAID': "{actor} approved and paid the extra {amount} for {product}. You can buy it now.",
 
-  // statuses
   'st.PENDING_PAYMENT': 'Awaiting payment',
   'st.PAYMENT_FAILED': 'Payment failed',
   'st.PAID': 'Paid',
@@ -465,7 +460,6 @@ const en = {
   'st.SETTLED': 'Settled',
   'st.CANCELLED': 'Cancelled',
 
-  // next step, buyer / traveler
   'next.b.PENDING_PAYMENT': 'Complete payment to confirm the order',
   'next.t.PENDING_PAYMENT': 'Waiting for the buyer to pay',
   'next.b.PAYMENT_FAILED': 'Payment failed. Try again or cancel',
@@ -551,6 +545,10 @@ const en = {
   'home.liveEmpty': 'No traveler is bringing items from {country} yet.',
   'home.ctaEyebrow': "Can't find it?",
   'home.ctaTitle': 'Tell travelers what you need.',
+  'home.ctaTitleA': 'Tell travelers',
+  'home.ctaTitleB': 'what you need.',
+  'home.ctaPerk1': 'Free to post',
+  'home.ctaPerk2': 'You only pay once a traveler accepts',
   'home.ctaBtn': 'Create a request',
   'home.step1': 'Post your wish',
   'home.step2': 'Match a traveler',
@@ -643,6 +641,7 @@ const ko: Record<Key, string> = {
   'err.REQUEST_NOT_OPEN': '이미 마감된 요청이에요.',
   'err.CANNOT_CANCEL': '상품을 구매하기 전에만 취소할 수 있어요.',
   'err.FILE_TYPE': 'JPG, PNG, WEBP, GIF 사진만 올릴 수 있어요.',
+  'err.AVATAR_INVALID': 'JPG, PNG, WEBP, GIF 사진만 올릴 수 있어요.',
   'err.FILE_TOO_LARGE': '사진은 5MB 이하여야 해요.',
   'err.NOT_A_RECEIPT': '영수증 사진이 아닌 것 같아요.',
   'err.AI_FAILED': '지금은 영수증을 읽을 수 없어요. 금액을 직접 입력해 주세요.',
@@ -690,6 +689,7 @@ const ko: Record<Key, string> = {
   'home.popularHint': '최근 {days}일 결제 기준',
   'home.popularEmpty': '아직 {country} 주문이 없어요. 주문이 생기면 순위가 채워져요.',
   'home.orders': '{n}건',
+  'home.estPrice': '예상가',
   'home.seeOffer': '오퍼 보기',
   'home.requestIt': '요청하기',
   'home.order': '1건',
@@ -715,6 +715,8 @@ const ko: Record<Key, string> = {
   'search.noOffers': '“{q}”에 맞는 상품이 없어요.',
   'search.noOffersHint': '예산과 함께 구매 요청을 올리면 그 나라에 가는 여행자가 수락할 수 있어요.',
   'search.othersWant': '다른 구매자도 찾고 있어요',
+  'search.suggestEyebrow': '찾던 상품이 아닌가요?',
+  'search.suggestTitle': '이런 상품은 어때요?',
 
   'offer.title': '상품',
   'offer.traveler': '여행자',
@@ -980,6 +982,20 @@ const ko: Record<Key, string> = {
   'of.closeConfirm': '판매를 마감할까요? 더 이상 예약을 받지 않아요.',
   'of.saveChanges': '변경 저장',
   'of.publish': '상품 올리기',
+  'pp.hint': '목록에서 골라 주시면 구매자가 한국어, 영어, 현지어 어느 것으로 검색해도 찾을 수 있어요.',
+  'pp.linked': '상품 카탈로그에 연결됨',
+  'pp.change': '변경',
+  'pp.suggestions': '일치하는 상품',
+  'pp.addNew': '“{name}”을(를) 새 상품으로 추가',
+  'pp.newTitle': '새 상품: {name}',
+  'pp.nameKo': '한국어 이름',
+  'pp.nameLocal': '현지어 이름',
+  'pp.aliases': '다른 검색어',
+  'pp.aliasesPh': '예: 다른 표기, 어떤 상품인지 (쉼표로 구분)',
+  'pp.save': '상품 추가',
+  'pp.saving': '추가 중…',
+  'pp.cancel': '취소',
+  'home.catsLabel': '카테고리별 쇼핑',
   'cat.Snacks': '과자',
   'cat.Food': '식품',
   'cat.Beauty': '뷰티',
@@ -1014,6 +1030,12 @@ const ko: Record<Key, string> = {
 
   'me.title': '마이 페이지',
   'me.test': '테스트 계정',
+  'me.photoAdd': '프로필 사진 추가',
+  'me.photoChange': '사진 변경',
+  'me.photoRemove': '사진 삭제',
+  'me.photoSaving': '저장 중…',
+  'me.photoType': 'JPG, PNG, WEBP, GIF 사진만 올릴 수 있어요.',
+  'me.photoSize': '5MB보다 작은 사진을 골라 주세요.',
   'me.mode': '모드',
   'me.buyer': '구매자',
   'me.buyerSub': '상품 찾기, 요청하기',
@@ -1136,6 +1158,10 @@ const ko: Record<Key, string> = {
   'home.liveEmpty': '아직 {country}에서 상품을 가져오는 여행자가 없어요.',
   'home.ctaEyebrow': '찾는 상품이 없나요?',
   'home.ctaTitle': '원하는 상품을 여행자에게 알려 주세요.',
+  'home.ctaTitleA': '원하는 상품을',
+  'home.ctaTitleB': '여행자에게 알려 주세요.',
+  'home.ctaPerk1': '등록은 무료',
+  'home.ctaPerk2': '여행자가 수락한 뒤에만 결제해요',
   'home.ctaBtn': '구매 요청 만들기',
   'home.step1': '원하는 상품 올리기',
   'home.step2': '여행자와 매칭',
@@ -1227,7 +1253,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(savedLang);
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
-    try { localStorage.setItem(LANG_KEY, l); } catch { /* keep for this tab only */ }
+    try { localStorage.setItem(LANG_KEY, l); } catch { }
     document.documentElement.lang = l;
   }, []);
   const value = useMemo<I18n>(() => {
@@ -1243,7 +1269,6 @@ export function useI18n(): I18n {
   return v;
 }
 
-/** Small segmented KO / EN switch. */
 export function LangToggle({ dark }: { dark?: boolean }) {
   const { lang, setLang, t } = useI18n();
   return (
@@ -1257,7 +1282,6 @@ export function LangToggle({ dark }: { dark?: boolean }) {
   );
 }
 
-/** Error to a sentence in the current language: known server codes are translated, others keep the server text. */
 export function useErrorText() {
   const { t } = useI18n();
   return useCallback(

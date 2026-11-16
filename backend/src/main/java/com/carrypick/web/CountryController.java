@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** GET /api/countries - the fixed list of countries the app supports (domain/Countries.java). */
 @RestController
 public class CountryController {
     @GetMapping("/api/countries")

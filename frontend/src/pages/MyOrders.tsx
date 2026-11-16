@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ClipboardList, Package, Plus } from 'lucide-react';
+import { ClipboardList, Package, Plus } from '../components/icons';
 import { api, type Order } from '../api';
 import { OrderRow, RequestCard } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -11,7 +11,6 @@ const DONE = new Set(['COMPLETED', 'SETTLED']);
 
 type Tab = 'active' | 'done' | 'cancelled' | 'requests';
 
-/** B7 (buyer dashboard, Figma "Your finds, all in one place.") and the traveler's order list, switched by Buying / Carrying. */
 export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
   const { t } = useI18n();
   const navigate = useNavigate();

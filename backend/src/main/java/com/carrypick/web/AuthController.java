@@ -28,7 +28,6 @@ public class AuthController {
         this.notifications = notifications;
     }
 
-
     @PostMapping("/auth/signup")
     public AuthResponse signup(@Valid @RequestBody SignupForm form) {
         return auth.signup(form);
@@ -46,13 +45,11 @@ public class AuthController {
         return Map.of("user", user, "unreadNotifications", unread);
     }
 
-    /** C2: rename or switch Buyer / Traveler mode. */
     @PatchMapping("/users/me")
     public UserDto updateMe(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody UpdateMeForm form) {
         return auth.updateMe(me.id(), form);
     }
 
-    /** Public settings the React app needs (payment mode, Toss client key, pricing rates, countries). */
     @GetMapping("/config")
     public ConfigDto config() {
         var pay = props.payment();

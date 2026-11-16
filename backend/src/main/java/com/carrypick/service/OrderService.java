@@ -16,14 +16,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Order creation and every status change. Each action checks:
- *   1. who is calling (buyer or traveler of this order), and
- *   2. that the order is in a status where this action is allowed.
- */
 @Service
 public class OrderService {
-    /** Either side may cancel until the traveler uploads the receipt (status PURCHASED). */
     private static final Set<OrderStatus> CANCELLABLE = EnumSet.of(OrderStatus.PENDING_PAYMENT,
             OrderStatus.PAYMENT_FAILED, OrderStatus.PAID, OrderStatus.AWAITING_APPROVAL);
 
@@ -53,9 +47,6 @@ public class OrderService {
         this.mapper = mapper;
     }
 
-    // ---------------------------------------------------------------- create
-
-    /** Flow A: buyer books an existing offer (B4). */
     @Transactional
     public OrderDto book(Long userId, BookForm f) {
         User buyer = auth.require(userId);
@@ -80,7 +71,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    /** Flow B: traveler accepts an open request (T6). */
     @Transactional
     public OrderDto acceptRequest(Long userId, Long requestId, Long tripId) {
         User traveler = auth.require(userId);
@@ -111,8 +101,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    // ---------------------------------------------------------------- read
-
     @Transactional(readOnly = true)
     public List<OrderDto> myOrders(Long userId, String role) {
         List<Order> list = "traveler".equalsIgnoreCase(role)
@@ -126,13 +114,6 @@ public class OrderService {
         return mapper.order(findForParticipant(userId, orderId), userId);
     }
 
-    // ---------------------------------------------------------------- traveler actions (T7)
-
-    /**
-     * Traveler bought the item: enter the actual price and upload the receipt.
-     * The price may not go over the limit (budget + approved extra); a higher price needs a price check first.
-     * A lower price is fine: the difference goes back to the buyer at settlement.
-     */
     @Transactional
     public OrderDto purchase(Long userId, Long orderId, long actualPrice, MultipartFile receipt) {
         Order o = findForParticipant(userId, orderId);
@@ -153,10 +134,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    /**
-     * Before buying: the shelf price is higher than the budget. The traveler sends a photo of the price tag
-     * and the price; the buyer approves (and pays the extra) or rejects. Only one price check per order.
-     */
     @Transactional
     public OrderDto priceCheck(Long userId, Long orderId, long price, MultipartFile priceTag) {
         Order o = findForParticipant(userId, orderId);
@@ -193,9 +170,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    // ---------------------------------------------------------------- buyer actions (B8)
-
-    /** Buyer rejects the higher price: the traveler does not buy, the order is cancelled and refunded (simulated). */
     @Transactional
     public OrderDto reject(Long userId, Long orderId) {
         Order o = findForParticipant(userId, orderId);
@@ -211,7 +185,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    /** Buyer confirms receipt: order completed and settlement is simulated immediately. */
     @Transactional
     public OrderDto confirm(Long userId, Long orderId) {
         Order o = findForParticipant(userId, orderId);
@@ -227,7 +200,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    /** Either side cancels before the item is purchased. */
     @Transactional
     public OrderDto cancel(Long userId, Long orderId, String reason) {
         Order o = findForParticipant(userId, orderId);
@@ -250,7 +222,6 @@ public class OrderService {
             if (byBuyer) {
                 r.setStatus(RequestStatus.CANCELLED);
             } else {
-                // Traveler backed out: put the request back on the board.
                 r.setTraveler(null);
                 r.setStatus(r.getDeadline().isBefore(Today.get()) ? RequestStatus.EXPIRED : RequestStatus.OPEN);
             }
@@ -261,14 +232,11 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    // ---------------------------------------------------------------- called by PaymentService
-
     public void markPaid(Order o) {
         o.setStatus(OrderStatus.PAID);
         o.setPaidAt(Instant.now());
         Offer offer = o.getOffer();
         if (offer != null && offer.isPurchased()) {
-            // Already bought before listing: the listing's receipt is the purchase, at the listed price.
             o.setReceiptUrl(offer.getReceiptUrl());
             o.setActualPrice(o.getBudget());
             o.setStatus(OrderStatus.PURCHASED);
@@ -287,7 +255,6 @@ public class OrderService {
         o.setStatus(OrderStatus.PAYMENT_FAILED);
     }
 
-    /** Buyer approved the higher price and paid the extra: the traveler may now buy up to the new limit. */
     public void onExtraPaymentSuccess(Order o) {
         o.setStatus(OrderStatus.PAID);
         notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.EXTRA_PAID, o.getBuyer().getName(),
@@ -295,12 +262,9 @@ public class OrderService {
                 + o.getExtraItemAmount() + " KRW for " + o.getProductName() + ". You can buy it now.");
     }
 
-    // ---------------------------------------------------------------- helpers
-
     public Order findForParticipant(Long userId, Long orderId) {
         Order o = orders.findById(orderId).orElseThrow(() -> ApiException.notFound("Order"));
         if (!o.isBuyer(userId) && !o.isTraveler(userId)) {
-            // Same answer as "not found" so order ids cannot be probed.
             throw ApiException.notFound("Order");
         }
         return o;
@@ -321,7 +285,6 @@ public class OrderService {
         }
     }
 
-    /** Simulated refund of everything the buyer paid. */
     private void refundAll(Order o) {
         long paid = payments.findByOrderIdOrderByCreatedAtAsc(o.getId()).stream()
                 .filter(p -> p.getStatus() == PaymentStatus.SUCCESS && p.getType() != PaymentType.REFUND)
@@ -334,12 +297,6 @@ public class OrderService {
         }
     }
 
-    /**
-     * Simulated settlement. L = item limit (B + approved extra), P = receipt price (P <= L).
-     *   traveler payout = P + R
-     *   buyer refund    = L - P, plus the part of the extra fee that was not needed
-     *   platform keeps  = F + fee on the extra actually spent (P - B, if any)
-     */
     private void settle(Order o) {
         long limit = o.itemLimit();
         long actual = o.getActualPrice() == null ? limit : o.getActualPrice();

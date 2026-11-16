@@ -6,15 +6,6 @@ import { useErrorText, useI18n } from '../i18n';
 import { krw } from '../format';
 import { Modal } from './ui';
 
-/*
- * Payment launcher used by Checkout (B6) and the over-budget approval (B8).
- *
- * mode "mock": shows a fake card sheet inside the app (no keys, works offline).
- * mode "toss": loads the Toss Payments v2 SDK and opens the real TEST payment window.
- *              Toss redirects back to /pay/success or /pay/fail, where we call the server to confirm.
- * Either way the SERVER decides the amount (prepare) and checks it again (confirm).
- */
-
 declare global {
   interface Window {
     TossPayments?: (clientKey: string) => {
@@ -68,10 +59,7 @@ export function usePayment(orderId: number) {
         successUrl: `${origin}/pay/success?order=${orderId}`,
         failUrl: `${origin}/pay/fail?order=${orderId}`,
       });
-      // The browser leaves the page here.
     } catch (e) {
-      // Closing the Toss window rejects the promise; treat it as a soft cancel.
-      // Toss SDK errors carry a code (e.g. USER_CANCEL, INVALID_CLIENT_KEY). Show it so problems can be looked up.
       console.error('Payment window error', e);
       const code = (e as { code?: string })?.code;
       if (code === 'USER_CANCEL' || code === 'PAY_PROCESS_CANCELED') setError(null);
@@ -94,7 +82,6 @@ export function usePayment(orderId: number) {
           amount: mock.amount,
         });
       } else {
-        // Same path a declined card takes in Toss: the server marks the payment FAILED.
         await api.confirmPayment({
           paymentKey: `mock_fail_${Date.now()}`,
           tossOrderId: mock.tossOrderId,
@@ -113,7 +100,7 @@ export function usePayment(orderId: number) {
 
   async function cancelMock() {
     if (mock) {
-      try { await api.failPayment({ tossOrderId: mock.tossOrderId, code: 'USER_CANCEL', message: 'Payment window closed' }); } catch { /* ignore */ }
+      try { await api.failPayment({ tossOrderId: mock.tossOrderId, code: 'USER_CANCEL', message: 'Payment window closed' }); } catch { }
     }
     setMock(null);
     qc.invalidateQueries();

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
-/** One message in an order's chat room. Only the order's buyer and traveler can read or write. */
 @Entity
 @Table(name = "chat_messages")
 public class ChatMessage {
@@ -22,7 +21,6 @@ public class ChatMessage {
     @Column(length = 1000)
     private String text;
 
-    /** Optional photo (e.g. the shelf, a product option, the meeting spot). */
     private String imageUrl;
 
     private Instant createdAt = Instant.now();

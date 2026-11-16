@@ -1,7 +1,5 @@
 import axios, { AxiosError } from 'axios';
 
-/* ------------------------------------------------------------------ types (mirror the Spring DTOs) */
-
 export type Mode = 'BUYER' | 'TRAVELER';
 
 export type OrderStatus =
@@ -15,8 +13,8 @@ export type OrderStatus =
   | 'SETTLED'
   | 'CANCELLED';
 
-export interface User { id: number; email: string; name: string; mode: Mode; test: boolean }
-export interface Person { id: number; name: string }
+export interface User { id: number; email: string; name: string; mode: Mode; test: boolean; avatarUrl?: string | null }
+export interface Person { id: number; name: string; avatarUrl?: string | null }
 export interface Country { code: string; name: string; nameKo: string; currency: string; flag: string }
 export interface Quote { budget: number; reward: number; fee: number; tax: number; total: number }
 
@@ -39,8 +37,17 @@ export interface Offer {
   store: string | null; category: string | null; description: string | null; imageUrl: string | null;
   estPrice: number; reward: number; quantity: number; status: 'ACTIVE' | 'SOLD_OUT' | 'CLOSED';
   bookable: boolean; unitQuote: Quote;
-  /** Set when the traveler already bought the item; estPrice is then the receipt price. */
   receiptUrl: string | null;
+  product: Product | null;
+}
+
+export interface Product {
+  id: number; name: string; nameKo: string | null; nameLocal: string | null; aliases: string | null;
+  category: string | null; countryCode: string | null;
+}
+
+export interface ProductInput {
+  name: string; nameKo?: string; nameLocal?: string; aliases?: string; category?: string; countryCode?: string;
 }
 
 export interface PurchaseRequest {
@@ -48,6 +55,7 @@ export interface PurchaseRequest {
   productLink: string | null; imageUrl: string | null; options: string | null; note: string | null;
   maxBudget: number; reward: number; deadline: string;
   status: 'OPEN' | 'MATCHED' | 'EXPIRED' | 'CANCELLED'; quote: Quote; createdAt: string; orderId: number | null;
+  product: Product | null;
 }
 
 export interface PaymentRecord {
@@ -62,9 +70,7 @@ export interface Order {
   productLink: string | null; quantity: number;
   budget: number; reward: number; fee: number; tax: number; initialCharge: number;
   actualPrice: number | null; receiptUrl: string | null;
-  /** Price check before buying: the higher shelf price and a photo of the price tag. */
   quotedPrice: number | null; priceTagUrl: string | null;
-  /** Most the traveler may spend on the item: budget + approved extra. */
   itemLimit: number;
   extraItemAmount: number; extraFee: number; extraCharge: number;
   expectedDelivery: string | null; cancelReason: string | null;
@@ -72,7 +78,6 @@ export interface Order {
   completedAt: string | null; settledAt: string | null; cancelledAt: string | null;
   payments: PaymentRecord[];
   settlement: { travelerPayout: number; buyerRefund: number; platformFee: number; mock: boolean } | null;
-  /** Chat messages from the other person the viewer has not seen yet. */
   unreadMessages: number;
 }
 
@@ -83,7 +88,11 @@ export interface ChatMessage {
 
 export interface Ranking {
   countryCode: string; demoData: boolean; days: number;
-  items: { rank: number; productName: string; orderCount: number; offerId: number | null; imageUrl: string | null; category: string | null }[];
+  items: {
+    rank: number; productName: string; orderCount: number; offerId: number | null; imageUrl: string | null;
+    category: string | null; productId: number | null; nameKo: string | null;
+    estPrice: number | null;
+  }[];
 }
 
 export interface PaymentPrepare {
@@ -115,16 +124,9 @@ export interface ReceiptScan {
   customsFlags: ReceiptCategory[]; note: string | null;
 }
 
-/* ------------------------------------------------------------------ http client */
-
 export const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '';
 const TOKEN_KEY = 'carrypick.token';
 
-/*
- * The login is kept per browser TAB (sessionStorage), not per browser.
- * That way one tab can be the buyer and another tab the traveler, which is how the demo is tested.
- * Refreshing a tab keeps you logged in; closing the tab logs you out.
- */
 export const tokenStore = {
   get(): string | null {
     try { return sessionStorage.getItem(TOKEN_KEY); } catch { return null; }
@@ -133,7 +135,7 @@ export const tokenStore = {
     try {
       if (token) sessionStorage.setItem(TOKEN_KEY, token);
       else sessionStorage.removeItem(TOKEN_KEY);
-    } catch { /* storage unavailable: stay logged in until reload */ }
+    } catch { }
   },
 };
 
@@ -156,7 +158,6 @@ http.interceptors.response.use(
   },
 );
 
-/** What went wrong, in a form the UI can translate: the server's error code and message. */
 export function errorInfo(err: unknown): { code: string | null; message: string | null; network: boolean } {
   if (axios.isAxiosError(err)) {
     const data = err.response?.data as { code?: string; message?: string } | undefined;
@@ -165,7 +166,6 @@ export function errorInfo(err: unknown): { code: string | null; message: string 
   return { code: null, message: err instanceof Error ? err.message : null, network: false };
 }
 
-/** Image paths from the server are relative ("/uploads/...") */
 export function assetUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   return path.startsWith('http') ? path : `${API_BASE}${path}`;
@@ -176,8 +176,6 @@ const post = <T,>(url: string, body?: unknown) => http.post<T>(url, body).then((
 const patch = <T,>(url: string, body?: unknown) => http.patch<T>(url, body).then((r) => r.data);
 const del = <T,>(url: string) => http.delete<T>(url).then((r) => r.data);
 
-/* ------------------------------------------------------------------ endpoints (see API list in the planning doc) */
-
 export const api = {
   config: () => get<AppConfig>('/api/config'),
 
@@ -185,7 +183,7 @@ export const api = {
     post<{ token: string; user: User }>('/api/auth/signup', b),
   login: (b: { email: string; password: string }) => post<{ token: string; user: User }>('/api/auth/login', b),
   me: () => get<{ user: User; unreadNotifications: number }>('/api/users/me'),
-  updateMe: (b: { name?: string; mode?: Mode }) => patch<User>('/api/users/me', b),
+  updateMe: (b: { name?: string; mode?: Mode; avatarUrl?: string }) => patch<User>('/api/users/me', b),
 
   board: () => get<BoardRow[]>('/api/board'),
   ranking: (country: string) => get<Ranking>(`/api/countries/${country}/ranking`),
@@ -203,6 +201,9 @@ export const api = {
   createTrip: (b: Omit<Trip, 'id'>) => post<Trip>('/api/trips', b),
 
   createRequest: (b: RequestInput) => post<PurchaseRequest>('/api/requests', b),
+  products: (q: string, country?: string) =>
+    get<Product[]>('/api/products', { q, country: country && country !== 'ALL' ? country : undefined }),
+  createProduct: (b: ProductInput) => post<Product>('/api/products', b),
   myRequests: () => get<PurchaseRequest[]>('/api/requests/me'),
   openRequests: () => get<PurchaseRequest[]>('/api/requests/open'),
   request: (id: number) => get<PurchaseRequest>(`/api/requests/${id}`),
@@ -258,9 +259,11 @@ export interface OfferInput {
   tripId: number; productName: string; store?: string; category?: string; description?: string;
   imageUrl?: string | null; estPrice: number; reward: number; quantity: number;
   receiptUrl?: string | null;
+  productId?: number | null;
 }
 
 export interface RequestInput {
   countryCode: string; productName: string; productLink?: string; imageUrl?: string | null;
   options?: string; note?: string; maxBudget: number; reward: number; deadline: string;
+  productId?: number | null;
 }

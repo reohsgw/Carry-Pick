@@ -31,12 +31,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> {})
-                .headers(h -> h.frameOptions(f -> f.sameOrigin())) // lets the H2 console show in a frame
+                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/config", "/api/health", "/uploads/**", "/error").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll() // database viewer, local only
+                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/countries/**", "/api/offers/**", "/api/search", "/api/board", "/api/trips").permitAll()
                         .anyRequest().authenticated())

@@ -26,6 +26,8 @@ public class User {
 
     private boolean test;
 
+    private String avatarUrl;
+
     private Instant createdAt = Instant.now();
 
     protected User() {}
@@ -46,5 +48,7 @@ public class User {
     public Mode getMode() { return mode; }
     public void setMode(Mode mode) { this.mode = mode; }
     public boolean isTest() { return test; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
     public Instant getCreatedAt() { return createdAt; }
 }

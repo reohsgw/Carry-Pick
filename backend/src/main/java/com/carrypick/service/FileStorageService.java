@@ -13,7 +13,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 
-/** Saves uploaded images to a local folder (good enough for the demo). Returns a "/uploads/..." URL. */
 @Service
 public class FileStorageService {
     private static final Map<String, String> ALLOWED = Map.of(

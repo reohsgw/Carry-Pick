@@ -1,22 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, Home, Menu, Plane, Search, ShoppingBag, Ticket, User, X } from 'lucide-react';
+import { Bell, ChevronLeft, Home, Menu, Plane, Search, ShoppingBag, Ticket, User, X } from './icons';
 import { useI18n } from '../i18n';
+import { assetUrl } from '../api';
 import { useSession } from '../session';
 import { NotificationList } from './NotificationList';
 import { ActionBar, initials } from './ui';
 import HeroLogo from './HeroLogo';
 
-/**
- * Screen: sticky header + content + the role's bottom navigation.
- * Without a title the header shows the brand, the bell and the avatar, as in the Figma design. With a title it shows a back button and the title.
- * On desktop widths the header shows the brand, a few icon buttons and a ☰ menu with every page; the bottom
- * navigation is hidden, and a titled screen shows its back button and title above the content.
- * Screens without a title (home, dashboards) use the wide content column unless `wide` says otherwise.
- */
-export function Screen({ title, back, children, hideNav, flush, wide = !title }: {
+export function Screen({ title, back, children, hideNav, flush, wide = !title, headerExtra }: {
   title?: string; back?: boolean | string; children: ReactNode;
   hideNav?: boolean; flush?: boolean; wide?: boolean;
+  headerExtra?: ReactNode;
 }) {
   return (
     <div className="screen">
@@ -24,7 +19,7 @@ export function Screen({ title, back, children, hideNav, flush, wide = !title }:
         {back && <BackButton back={back} className="only-mobile" />}
         {title && <h1 className="header-title only-mobile">{title}</h1>}
         <div className={`header-brand ${title ? 'only-desktop' : ''}`}><Wordmark to="/" /></div>
-        <div className={`header-right ${title ? 'only-desktop' : ''}`}><HeaderActions /></div>
+        <div className={`header-right ${title ? 'only-desktop' : ''}`}>{headerExtra}<HeaderActions /></div>
       </header>
       <main className={`content ${wide ? 'is-wide' : ''} ${flush ? 'is-flush' : ''} ${hideNav ? 'has-actionbar' : ''}`}>
         {title && (
@@ -72,26 +67,23 @@ function HeaderActions() {
       </NavLink>
       <NotificationsButton unread={unread} />
       <MenuButton />
-      <Link to="/me" className="avatar-btn" aria-label={t('me.title')}>{initials(user.name)}</Link>
+      <Link to="/me" className={`avatar-btn${user.avatarUrl ? ' has-photo' : ''}`} aria-label={t('me.title')}>
+        {user.avatarUrl ? <img src={assetUrl(user.avatarUrl) ?? ''} alt="" /> : initials(user.name)}
+      </Link>
     </>
   );
 }
 
-/** Kept for pages that want just the bell on the right. */
 export function BellLink() {
   return <HeaderActions />;
 }
 
-/** The main destinations, shared by the bottom navigation and the desktop header. Everyone can shop and travel. */
 function useNav() {
   const { user } = useSession();
   const { t } = useI18n();
   const { pathname } = useLocation();
   if (!user) return null;
-  // The carrying side of Orders lives under /t, but it belongs to the Orders tab.
   const carrying = pathname.startsWith('/t/orders');
-  // One navigation for everyone: shopping and traveling pages sit side by side, as in the website design.
-  // Search lives in the desktop header (and the home hero); My page also sits behind the avatar.
   const offers = pathname === '/offers' || pathname.startsWith('/country/');
   return [
     { to: '/', label: t('nav.discover'), icon: Home, end: true },
@@ -118,7 +110,6 @@ function BottomNav() {
   );
 }
 
-/** Open/close state for a header popup: closes on navigation, a click outside it, or Escape. */
 function usePopover() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
@@ -136,7 +127,6 @@ function usePopover() {
   return { open, setOpen, ref };
 }
 
-/** Bell: shows the notifications in a popup over the current page instead of opening a new page. */
 function NotificationsButton({ unread }: { unread: number }) {
   const { t } = useI18n();
   const { open, setOpen, ref } = usePopover();
@@ -162,7 +152,6 @@ function NotificationsButton({ unread }: { unread: number }) {
   );
 }
 
-/** Desktop ☰ button: opens a dropdown with every page. Closes on navigation, outside click or Escape. */
 function MenuButton() {
   const items = useNav();
   const { t } = useI18n();
@@ -191,13 +180,6 @@ function MenuButton() {
   );
 }
 
-/**
- * Detail page with a price column: on laptops and wider, `children` fill the left column and `aside`
- * (the payment summary) sits on the right and stays in view while scrolling, with the page's `actions`
- * (e.g. the Book button) right under it. On phones it is one column, with the aside after the details
- * and the actions in the usual bar fixed to the bottom of the screen.
- * Render as a <form> by passing `as="form"` plus form props.
- */
 export function DetailLayout({ aside, actions, children, as = 'div', ...rest }: {
   aside: ReactNode; actions?: ReactNode; children: ReactNode; as?: 'div' | 'form';
 } & React.FormHTMLAttributes<HTMLFormElement>) {

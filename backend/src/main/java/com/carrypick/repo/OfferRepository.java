@@ -8,17 +8,23 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     List<Offer> findByCountryCodeAndStatusOrderByCreatedAtDesc(String countryCode, OfferStatus status);
 
+    List<Offer> findByStatusOrderByCreatedAtDesc(OfferStatus status);
+
+    List<Offer> findByProductIdInAndStatus(Collection<Long> productIds, OfferStatus status);
+
+    List<Offer> findByProductIdAndStatusOrderByCreatedAtDesc(Long productId, OfferStatus status);
+
+    List<Offer> findByProductIsNull();
+
     List<Offer> findByTravelerIdOrderByCreatedAtDesc(Long travelerId);
 
-    List<Offer> findByCountryCodeAndProductNameIgnoreCaseAndStatus(String countryCode, String productName, OfferStatus status);
-
-    /** Keyword search on name, store and category. Country filtering is done in the service. */
     @Query("""
             select o from Offer o
             where o.status = :status
@@ -29,7 +35,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             """)
     List<Offer> search(@Param("q") String q, @Param("status") OfferStatus status);
 
-    /** Close offers whose trip has already ended. */
     @Modifying
     @Query("""
             update Offer o set o.status = :closed

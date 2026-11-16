@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, ClipboardList, MapPinned } from 'lucide-react';
+import { ArrowRight, ClipboardList, MapPinned } from '../components/icons';
 import { api } from '../api';
 import { RequestCard } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -8,7 +8,6 @@ import { Code, Empty, ErrorBox, Loading } from '../components/ui';
 import { boardDate, displayCode } from '../format';
 import { useI18n } from '../i18n';
 
-/** T5: Open buyer requests that fit my trips (Figma "Open requests" page). */
 export default function RequestBoard() {
   const { t } = useI18n();
   const trips = useQuery({ queryKey: ['myTrips'], queryFn: api.myTrips });

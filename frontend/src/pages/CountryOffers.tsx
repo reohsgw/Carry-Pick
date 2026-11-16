@@ -1,18 +1,19 @@
-import { useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Plane, X } from 'lucide-react';
+import { ArrowRight, Plane, X } from '../components/icons';
 import { api } from '../api';
 import { firstName, OfferCard } from '../components/cards';
 import { Screen } from '../components/Layout';
+import CountryPicker from '../components/CountryPicker';
+import { useCountry } from '../country';
 import { Code, Empty, ErrorBox, Loading } from '../components/ui';
-import { countryName, displayCode, shortDate } from '../format';
+import { ALL_COUNTRIES, countryName, displayCode, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
 type Sort = 'soonest' | 'cheapest' | 'newest';
 
-/** B2: Traveler offers for one country (Figma "Traveler offers" page). ?trip= narrows it to one trip. */
 export default function CountryOffers() {
   const { code = 'JP' } = useParams();
   const [params, setParams] = useSearchParams();
@@ -21,13 +22,29 @@ export default function CountryOffers() {
   const { t, lang } = useI18n();
   const name = countryName(config, code, lang);
   const offers = useQuery({ queryKey: ['offers', code], queryFn: () => api.offers(code) });
-  const [category, setCategory] = useState<string>('All');
+  const [category, setCategory] = useState<string>(() => params.get('category') ?? 'All');
   const [sort, setSort] = useState<Sort>('soonest');
+
+  const navigate = useNavigate();
+  const { country, setCountry } = useCountry();
+  useEffect(() => { if (code !== country) setCountry(code); }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
+  const lastCountry = useRef(country);
+  useEffect(() => {
+    if (lastCountry.current === country) return;
+    lastCountry.current = country;
+    if (country !== code) {
+      navigate(`/country/${country}${category !== 'All' ? `?category=${encodeURIComponent(category)}` : ''}`, { replace: true });
+    }
+  }, [country]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const trip = useMemo(() => offers.data?.find((o) => o.trip.id === tripId), [offers.data, tripId]);
   const categories = useMemo(
-    () => ['All', ...Array.from(new Set((offers.data ?? []).map((o) => o.category ?? 'Other')))],
-    [offers.data],
+    () => {
+      const found = Array.from(new Set((offers.data ?? []).map((o) => o.category ?? 'Other')));
+      if (category !== 'All' && !found.includes(category)) found.push(category);
+      return ['All', ...found];
+    },
+    [offers.data, category],
   );
   const list = useMemo(() => {
     const items = (offers.data ?? [])
@@ -41,16 +58,18 @@ export default function CountryOffers() {
   }, [offers.data, category, sort, tripId]);
 
   return (
-    <Screen back="/" title={name} wide>
+    <Screen back="/" title={name} wide headerExtra={<CountryPicker />}>
       <div className="page-hero">
         <p className="eyebrow">{t('country.eyebrow', { country: name, n: offers.data?.filter((o) => o.bookable).length ?? 0 })}</p>
         <h1 className="page-title font-display">{t('country.title')}</h1>
         <p className="page-copy">{t('country.copy', { country: name })}</p>
-        <div className="route-row">
-          <Code className="is-big">{displayCode(code)}</Code>
-          <ArrowRight size={16} />
-          <Code className="is-big">KR</Code>
-        </div>
+        {code !== ALL_COUNTRIES && (
+          <div className="route-row">
+            <Code className="is-big">{displayCode(code)}</Code>
+            <ArrowRight size={16} />
+            <Code className="is-big">KR</Code>
+          </div>
+        )}
       </div>
 
       {trip && (
@@ -87,13 +106,13 @@ export default function CountryOffers() {
       {offers.error && <ErrorBox error={offers.error} onRetry={() => offers.refetch()} />}
       {offers.data && list.length === 0 && (
         <Empty icon={Plane} title={t('country.empty', { country: name })}>
-          <Link to={`/requests/new?country=${code}`} className="btn btn-primary">{t('home.requestCta')}</Link>
+          <Link to={code === ALL_COUNTRIES ? '/requests/new' : `/requests/new?country=${code}`} className="btn btn-primary">{t('home.requestCta')}</Link>
         </Empty>
       )}
       {list.length > 0 && <div className="card-grid">{list.map((o) => <OfferCard key={o.id} offer={o} />)}</div>}
       {list.length > 0 && (
         <p className="fine center">
-          {t('country.footer')} <Link className="link" to={`/requests/new?country=${code}`}>{t('home.requestCta')}</Link>
+          {t('country.footer')} <Link className="link" to={code === ALL_COUNTRIES ? '/requests/new' : `/requests/new?country=${code}`}>{t('home.requestCta')}</Link>
         </p>
       )}
     </Screen>

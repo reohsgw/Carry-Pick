@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-/** T7: AI receipt reader. Logged-in users only (see SecurityConfig: anyRequest().authenticated()). */
 @RestController
 @RequestMapping("/api/receipts")
 public class ReceiptController {

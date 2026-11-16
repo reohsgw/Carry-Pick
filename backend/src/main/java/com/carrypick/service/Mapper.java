@@ -10,7 +10,6 @@ import com.carrypick.repo.SettlementRepository;
 import com.carrypick.web.dto.Dtos.*;
 import org.springframework.stereotype.Component;
 
-/** Converts entities to response DTOs. */
 @Component
 public class Mapper {
     private final PricingService pricing;
@@ -32,7 +31,7 @@ public class Mapper {
         return new OfferDto(o.getId(), PersonDto.of(o.getTraveler()), TripDto.of(o.getTrip()), o.getCountryCode(),
                 o.getProductName(), o.getStore(), o.getCategory(), o.getDescription(), o.getImageUrl(),
                 o.getEstPrice(), o.getReward(), o.getQuantity(), o.getStatus(), o.isBookable(Today.get()),
-                pricing.quote(o.getEstPrice(), o.getReward()), o.getReceiptUrl());
+                pricing.quote(o.getEstPrice(), o.getReward()), o.getReceiptUrl(), ProductDto.of(o.getProduct()));
     }
 
     public RequestDto request(PurchaseRequest r) {
@@ -41,16 +40,14 @@ public class Mapper {
         return new RequestDto(r.getId(), PersonDto.of(r.getBuyer()), PersonDto.of(r.getTraveler()),
                 r.getCountryCode(), r.getProductName(), r.getProductLink(), r.getImageUrl(), r.getOptions(),
                 r.getNote(), r.getMaxBudget(), r.getReward(), r.getDeadline(), r.getStatus(),
-                pricing.quote(r.getMaxBudget(), r.getReward()), r.getCreatedAt(), orderId);
+                pricing.quote(r.getMaxBudget(), r.getReward()), r.getCreatedAt(), orderId, ProductDto.of(r.getProduct()));
     }
 
-    /** Full order view for the order detail screens. */
     public OrderDto order(Order o, Long viewerId) {
         String role = o.isBuyer(viewerId) ? "BUYER" : "TRAVELER";
         return build(o, role, true, unread(o, viewerId));
     }
 
-    /** Lighter order view for lists (no payments / settlement lookups). */
     public OrderDto orderSummary(Order o, Long viewerId) {
         String role = o.isBuyer(viewerId) ? "BUYER" : "TRAVELER";
         return build(o, role, false, unread(o, viewerId));

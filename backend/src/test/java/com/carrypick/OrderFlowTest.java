@@ -16,15 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * End-to-end checks of the two flows in the capstone plan, using the seeded demo accounts
- * and mock payment mode:
- *   Flow A: buyer books a traveler's offer -> pay -> purchase -> deliver -> confirm -> settled
- *   Flow B: buyer posts a request -> traveler accepts -> pay -> price check over budget -> approve + extra pay
- *           -> buy (a bit under the approved price) -> ... settled with the unspent part refunded
- *   Already bought: an offer listed with its receipt is PURCHASED as soon as the buyer pays
- * Plus: payment failure + retry, wrong-role access, and amount tampering.
- */
 @SpringBootTest(properties = {"app.payment.mode=mock", "app.upload-dir=target/test-uploads"})
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -49,7 +40,7 @@ class OrderFlowTest {
         assertStatus(buyer, orderId, "PAID");
 
         long budget = order.get("budget").asLong();
-        purchase(traveler, orderId, budget - 1000); // under budget
+        purchase(traveler, orderId, budget - 1000);
         assertStatus(buyer, orderId, "PURCHASED");
 
         body(post("/api/orders/" + orderId + "/deliver", traveler, null), 200);
@@ -65,7 +56,6 @@ class OrderFlowTest {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");
 
-        // Kenji (traveler) has a Tokyo trip returning in 17 days; deadline 30 days covers it.
         String deadline = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(30).toString();
         JsonNode req = body(post("/api/requests", buyer, """
                 {"countryCode":"JP","productName":"Test matcha set","maxBudget":30000,"reward":5000,"deadline":"%s"}
@@ -79,10 +69,8 @@ class OrderFlowTest {
         long orderId = order.get("id").asLong();
         pay(buyer, orderId, "mock_ok_2");
 
-        // Buying over the 30,000 budget without the buyer's approval is not allowed.
         purchaseExpect(traveler, orderId, 36000, 409);
 
-        // Shelf price is 36,000: send the price tag before buying.
         multipartOk(traveler, "/api/orders/" + orderId + "/price-check", "photo", "price", 36000);
         JsonNode waiting = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + buyer), 200);
         assertThat(waiting.get("status").asText()).isEqualTo("AWAITING_APPROVAL");
@@ -97,7 +85,6 @@ class OrderFlowTest {
         assertThat(approved.get("status").asText()).isEqualTo("PAID");
         assertThat(approved.get("itemLimit").asLong()).isEqualTo(36000);
 
-        // Still over the approved price: blocked. At 35,000 it goes through.
         purchaseExpect(traveler, orderId, 37000, 409);
         purchase(traveler, orderId, 35000);
         assertStatus(buyer, orderId, "PURCHASED");
@@ -106,7 +93,6 @@ class OrderFlowTest {
         JsonNode done = body(post("/api/orders/" + orderId + "/confirm", buyer, null), 200);
         assertThat(done.get("status").asText()).isEqualTo("SETTLED");
         assertThat(done.get("settlement").get("travelerPayout").asLong()).isEqualTo(35000 + 5000);
-        // 1,000 unspent item money + the 100 of extra fee charged on it.
         assertThat(done.get("settlement").get("buyerRefund").asLong()).isEqualTo(1000 + 100);
     }
 
@@ -153,7 +139,6 @@ class OrderFlowTest {
         body(post(room, buyer, "{\"imageUrl\":\"/uploads/shelf.png\"}"), 201);
         mvc.perform(post(room, buyer, "{\"text\":\"   \"}")).andExpect(status().isBadRequest());
 
-        // The traveler sees 2 unread, reads them (which clears the count), and answers.
         JsonNode o = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + traveler), 200);
         assertThat(o.get("unreadMessages").asLong()).isEqualTo(2);
         JsonNode list = body(get(room).header("Authorization", "Bearer " + traveler), 200);
@@ -166,13 +151,11 @@ class OrderFlowTest {
         assertThat(body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + buyer), 200)
                 .get("unreadMessages").asLong()).isEqualTo(1);
 
-        // Only one unread chat notification per order, however many messages arrive.
         JsonNode notes = body(get("/api/notifications").header("Authorization", "Bearer " + traveler), 200);
         long chatNotes = 0;
         for (JsonNode n : notes) if ("MESSAGE".equals(n.get("kind").asText()) && n.get("orderId").asLong() == orderId) chatNotes++;
         assertThat(chatNotes).isEqualTo(1);
 
-        // Nobody else can read or write.
         mvc.perform(get(room).header("Authorization", "Bearer " + stranger)).andExpect(status().isNotFound());
         mvc.perform(post(room, stranger, "{\"text\":\"hi\"}")).andExpect(status().isNotFound());
     }
@@ -196,7 +179,6 @@ class OrderFlowTest {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");
 
-        // During a price check (no receipt yet) the buyer can still cancel, and gets everything back.
         long first = body(post("/api/orders", buyer, "{\"offerId\":" + firstBookableOffer("JP") + ",\"quantity\":1}"), 201)
                 .get("id").asLong();
         pay(buyer, first, "mock_ok_cancel_1");
@@ -207,7 +189,6 @@ class OrderFlowTest {
         assertThat(cancelled.get("status").asText()).isEqualTo("CANCELLED");
         assertThat(cancelled.get("payments").findValuesAsText("type")).contains("REFUND");
 
-        // Once the traveler has uploaded the receipt, neither side can cancel.
         long second = body(post("/api/orders", buyer, "{\"offerId\":" + firstBookableOffer("JP") + ",\"quantity\":1}"), 201)
                 .get("id").asLong();
         pay(buyer, second, "mock_ok_cancel_2");
@@ -226,26 +207,39 @@ class OrderFlowTest {
         long orderId = body(post("/api/orders", buyer, "{\"offerId\":" + offerId + ",\"quantity\":1}"), 201)
                 .get("id").asLong();
 
-        // A stranger cannot see the order.
         mvc.perform(get("/api/orders/" + orderId).header("Authorization", "Bearer " + otherBuyer))
                 .andExpect(status().isNotFound());
-        // The traveler cannot pay or confirm for the buyer.
         mvc.perform(post("/api/payments/prepare", traveler, "{\"orderId\":" + orderId + "}"))
                 .andExpect(status().isForbidden());
-        // The buyer cannot skip ahead to "confirm received".
         mvc.perform(post("/api/orders/" + orderId + "/confirm", buyer, null))
                 .andExpect(status().isConflict());
-        // A tampered amount is rejected.
         JsonNode prep = body(post("/api/payments/prepare", buyer, "{\"orderId\":" + orderId + "}"), 200);
         mvc.perform(post("/api/payments/confirm", buyer, """
                         {"paymentKey":"mock_ok","tossOrderId":"%s","amount":%d}
                         """.formatted(prep.get("tossOrderId").asText(), prep.get("amount").asLong() - 1)))
                 .andExpect(status().isBadRequest());
-        // No token at all.
         mvc.perform(get("/api/orders/me")).andExpect(status().isUnauthorized());
     }
 
-    // ------------------------------------------------------------------ helpers
+    @Test
+    void allCountries_offersAndRankingCoverEveryDestination() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        JsonNode jp = body(get("/api/offers?country=JP").header("Authorization", "Bearer " + buyer), 200);
+        JsonNode all = body(get("/api/offers?country=ALL").header("Authorization", "Bearer " + buyer), 200);
+        JsonNode none = body(get("/api/offers").header("Authorization", "Bearer " + buyer), 200);
+        assertThat(all.size()).isGreaterThan(jp.size());
+        assertThat(none.size()).isEqualTo(all.size());
+        java.util.Set<String> countries = new java.util.HashSet<>();
+        all.forEach(o -> countries.add(o.get("countryCode").asText()));
+        assertThat(countries).contains("JP", "FR", "TH", "US");
+
+        JsonNode ranking = body(get("/api/countries/ALL/ranking").header("Authorization", "Bearer " + buyer), 200);
+        assertThat(ranking.get("countryCode").asText()).isEqualTo("ALL");
+        assertThat(ranking.get("items").get(0).get("productName").asText()).startsWith("Tokyo Banana");
+        java.util.List<String> names = new java.util.ArrayList<>();
+        ranking.get("items").forEach(i -> names.add(i.get("productName").asText()));
+        assertThat(names).anyMatch(n -> n.startsWith("Ladur"));
+    }
 
     private String login(String email) throws Exception {
         JsonNode res = body(post("/api/auth/login", null,

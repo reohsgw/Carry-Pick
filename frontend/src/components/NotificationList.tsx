@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Bell } from 'lucide-react';
+import { Bell } from './icons';
 import { api, type Notification } from '../api';
 import { dateTime, krw } from '../format';
 import { useI18n, type Key, type T } from '../i18n';
@@ -9,7 +9,6 @@ import { useSession } from '../session';
 import { firstName } from './cards';
 import { Empty, ErrorBox, Loading } from './ui';
 
-/** The server sends a kind plus names and numbers, so the sentence is written in the viewer's language. */
 function sentence(n: Notification, t: T): string {
   if (!n.kind) return n.message;
   return t(`n.${n.kind}` as Key, {
@@ -19,10 +18,6 @@ function sentence(n: Notification, t: T): string {
   });
 }
 
-/**
- * The notification list, used by the bell popup and the /notifications page.
- * Showing it marks everything read (the unread dots stay visible until it is shown again).
- */
 export function NotificationList() {
   const { refreshMe } = useSession();
   const { t, lang } = useI18n();

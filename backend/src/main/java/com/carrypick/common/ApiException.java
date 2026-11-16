@@ -2,7 +2,6 @@ package com.carrypick.common;
 
 import org.springframework.http.HttpStatus;
 
-/** Business error returned to the client as { code, message }. */
 public class ApiException extends RuntimeException {
     private final HttpStatus status;
     private final String code;

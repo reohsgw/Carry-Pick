@@ -5,7 +5,6 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-/** Request bodies sent by the React app. */
 public final class Forms {
     private Forms() {}
 
@@ -17,7 +16,7 @@ public final class Forms {
 
     public record LoginForm(@NotBlank String email, @NotBlank String password) {}
 
-    public record UpdateMeForm(@Size(max = 40) String name, Mode mode) {}
+    public record UpdateMeForm(@Size(max = 40) String name, Mode mode, @Size(max = 200) String avatarUrl) {}
 
     public record TripForm(
             @NotBlank @Size(min = 2, max = 2) String countryCode,
@@ -36,8 +35,8 @@ public final class Forms {
             @Positive long estPrice,
             @PositiveOrZero long reward,
             @Min(1) @Max(99) int quantity,
-            /** Receipt of an item the traveler already bought; null when estPrice is an estimate. */
-            @Size(max = 500) String receiptUrl) {}
+            @Size(max = 500) String receiptUrl,
+            Long productId) {}
 
     public record RequestForm(
             @NotBlank @Size(min = 2, max = 2) String countryCode,
@@ -48,7 +47,16 @@ public final class Forms {
             @Size(max = 1000) String note,
             @Positive long maxBudget,
             @PositiveOrZero long reward,
-            @NotNull LocalDate deadline) {}
+            @NotNull LocalDate deadline,
+            Long productId) {}
+
+    public record ProductForm(
+            @NotBlank @Size(max = 120) String name,
+            @Size(max = 120) String nameKo,
+            @Size(max = 120) String nameLocal,
+            @Size(max = 500) String aliases,
+            @Size(max = 40) String category,
+            @Size(max = 3) String countryCode) {}
 
     public record BookForm(@NotNull Long offerId, @Min(1) @Max(99) int quantity) {}
 

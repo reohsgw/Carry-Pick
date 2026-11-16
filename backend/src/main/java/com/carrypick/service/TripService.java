@@ -13,10 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Trips (T2). Business rules live here, not in the controller.
- * Controller = "what URL", Service = "what rules", Repository = "what SQL".
- */
 @Service
 public class TripService {
     private final TripRepository trips;
@@ -27,13 +23,11 @@ public class TripService {
         this.auth = auth;
     }
 
-    /** All trips that haven't ended, soonest first. */
     @Transactional(readOnly = true)
     public List<TripDto> upcoming() {
         return trips.findByReturnDateGreaterThanEqualOrderByDepartDateAsc(Today.get()).stream().map(TripDto::of).toList();
     }
 
-    /** The logged-in traveler's trips (T1). */
     @Transactional(readOnly = true)
     public List<TripDto> mine(Long userId, boolean includePast) {
         List<Trip> list = includePast

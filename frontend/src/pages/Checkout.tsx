@@ -9,7 +9,6 @@ import { krw } from '../format';
 import { useI18n } from '../i18n';
 import { useSession } from '../session';
 
-/** B6: Checkout. Order hero, payment summary and the (test) payment window. */
 export default function Checkout() {
   const id = Number(useParams().id);
   const { config } = useSession();

@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/** A buyer's request for a product no traveler has offered yet. Prices are KRW. */
 @Entity
 @Table(name = "purchase_requests")
 public class PurchaseRequest {
@@ -16,7 +15,6 @@ public class PurchaseRequest {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private User buyer;
 
-    /** Set when a traveler accepts. */
     @ManyToOne(fetch = FetchType.EAGER)
     private User traveler;
 
@@ -25,6 +23,9 @@ public class PurchaseRequest {
 
     @Column(nullable = false)
     private String productName;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Product product;
 
     @Column(length = 1000)
     private String productLink;
@@ -36,10 +37,8 @@ public class PurchaseRequest {
     @Column(length = 1000)
     private String note;
 
-    /** Max budget for the item itself (B). */
     private long maxBudget;
 
-    /** Reward offered to the traveler (R). */
     private long reward;
 
     @Column(nullable = false)
@@ -83,4 +82,7 @@ public class PurchaseRequest {
     public RequestStatus getStatus() { return status; }
     public void setStatus(RequestStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
 }

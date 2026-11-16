@@ -6,7 +6,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
 
-/** Serves uploaded images (receipts, product photos) from the local upload folder. */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     private final AppProperties props;

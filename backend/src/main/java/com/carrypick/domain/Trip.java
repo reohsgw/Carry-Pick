@@ -4,10 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
-/**
- * EXAMPLE ENTITY (complete). A traveler's trip abroad.
- * @ManyToOne = many trips belong to one user (a "traveler_id" column is created).
- */
 @Entity
 public class Trip {
     @Id
@@ -18,7 +14,7 @@ public class Trip {
     private User traveler;
 
     @Column(nullable = false, length = 2)
-    private String countryCode; // "JP", "US", "FR" ...
+    private String countryCode;
 
     @Column(length = 60)
     private String city;
@@ -30,7 +26,7 @@ public class Trip {
     private LocalDate returnDate;
 
     @Column(length = 500)
-    private String luggageNote; // "1 carry-on, about 5 kg"
+    private String luggageNote;
 
     protected Trip() {}
 

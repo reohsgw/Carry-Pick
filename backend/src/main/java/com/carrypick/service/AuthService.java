@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+    private static final java.util.regex.Pattern AVATAR_PATH =
+            java.util.regex.Pattern.compile("^/uploads/[A-Za-z0-9-]{1,64}\\.(jpg|jpeg|png|webp|gif)$");
+
     private final UserRepository users;
     private final PasswordEncoder encoder;
     private final JwtService jwt;
@@ -58,6 +61,16 @@ public class AuthService {
         User u = require(userId);
         if (f.name() != null && !f.name().isBlank()) u.setName(f.name().trim());
         if (f.mode() != null) u.setMode(f.mode());
+        if (f.avatarUrl() != null) {
+            String url = f.avatarUrl().trim();
+            if (url.isEmpty()) {
+                u.setAvatarUrl(null);
+            } else if (AVATAR_PATH.matcher(url).matches()) {
+                u.setAvatarUrl(url);
+            } else {
+                throw ApiException.badRequest("AVATAR_INVALID", "Please upload a JPG, PNG, WEBP or GIF picture");
+            }
+        }
         return UserDto.of(u);
     }
 }

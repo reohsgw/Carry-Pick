@@ -11,12 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Lets the API use the DATABASE_URL that hosts such as Railway, Render and Heroku provide
- * (postgresql://user:password@host:port/db). Java needs jdbc:postgresql://host:port/db with the
- * user and password given separately, so this converts it at startup.
- * An explicit DB_URL still wins; without DATABASE_URL nothing changes (local H2 keeps working).
- */
 public class DatabaseUrlEnvironment implements EnvironmentPostProcessor {
 
     @Override
@@ -25,12 +19,10 @@ public class DatabaseUrlEnvironment implements EnvironmentPostProcessor {
         if (isBlank(databaseUrl) || !isBlank(env.getProperty("DB_URL"))) return;
         Map<String, Object> props = toDataSourceProperties(databaseUrl);
         if (props.isEmpty()) return;
-        // A real database must keep its data between restarts (the default H2 profile drops it).
         props.put("spring.jpa.hibernate.ddl-auto", "update");
         env.getPropertySources().addFirst(new MapPropertySource("databaseUrl", props));
     }
 
-    /** postgres(ql)://user:pass@host:port/db?params → Spring datasource properties; empty if not a Postgres URL. */
     static Map<String, Object> toDataSourceProperties(String databaseUrl) {
         Map<String, Object> props = new LinkedHashMap<>();
         String url = databaseUrl.trim();

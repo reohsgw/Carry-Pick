@@ -3,7 +3,6 @@ package com.carrypick.domain;
 import java.util.List;
 import java.util.Optional;
 
-/** Fixed list of supported countries. Kept in code to stay simple for the prototype. */
 public final class Countries {
     private Countries() {}
 

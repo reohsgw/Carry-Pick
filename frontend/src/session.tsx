@@ -23,7 +23,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     queryKey: ['me'],
     queryFn: api.me,
     enabled: hasToken,
-    refetchInterval: 30_000, // keeps the notification badge fresh
+    refetchInterval: 30_000,
   });
 
   const logout = useCallback(() => {

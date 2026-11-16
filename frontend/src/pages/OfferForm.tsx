@@ -1,16 +1,16 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MapPinned } from 'lucide-react';
+import { MapPinned } from '../components/icons';
 import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { Screen } from '../components/Layout';
+import ProductPicker from '../components/ProductPicker';
 import { ActionBar, Empty, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet } from '../components/ui';
 import { CATEGORIES, cityCode, daysUntil, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 
-/** T3: Create or edit an offer linked to one of my trips. */
 export default function OfferForm() {
   const routeId = useParams().id;
   const editId = routeId ? Number(routeId) : null;
@@ -26,6 +26,7 @@ export default function OfferForm() {
 
   const [tripId, setTripId] = useState<number | ''>(params.get('trip') ? Number(params.get('trip')) : '');
   const [productName, setName] = useState('');
+  const [productId, setProductId] = useState<number | null>(null);
   const [store, setStore] = useState('');
   const [category, setCategory] = useState('Snacks');
   const [description, setDescription] = useState('');
@@ -39,7 +40,7 @@ export default function OfferForm() {
   useEffect(() => {
     const o = existing.data;
     if (!o) return;
-    setTripId(o.trip.id); setName(o.productName); setStore(o.store ?? ''); setCategory(o.category ?? 'Other');
+    setTripId(o.trip.id); setName(o.productName); setProductId(o.product?.id ?? null); setStore(o.store ?? ''); setCategory(o.category ?? 'Other');
     setDescription(o.description ?? ''); setImage(o.imageUrl); setPrice(o.estPrice); setReward(o.reward);
     setQuantity(Math.max(o.quantity, 1));
     setBought(!!o.receiptUrl); setReceipt(o.receiptUrl);
@@ -55,7 +56,7 @@ export default function OfferForm() {
       const body = {
         tripId: Number(tripId), productName, store, category, description, imageUrl,
         estPrice: Number(estPrice), reward: Number(reward || 0), quantity,
-        receiptUrl: bought ? receiptUrl : null,
+        receiptUrl: bought ? receiptUrl : null, productId,
       };
       return editId ? api.updateOffer(editId, body) : api.createOffer(body);
     },
@@ -103,9 +104,22 @@ export default function OfferForm() {
                 ))}
               </select>
             </Field>
-            <Field label={t('of.product')}>
-              <input value={productName} onChange={(e) => setName(e.target.value)} required maxLength={120} />
-            </Field>
+            <div className="field">
+              <label className="field-label" htmlFor="of-product">{t('of.product')}</label>
+              <ProductPicker
+                inputId="of-product"
+                value={productName}
+                productId={productId}
+                country={futureTrips.find((tr) => tr.id === tripId)?.countryCode}
+                category={category}
+                required
+                onChange={(name, p) => {
+                  setName(name);
+                  setProductId(p?.id ?? null);
+                  if (p?.category) setCategory(p.category);
+                }}
+              />
+            </div>
             <Field label={t('req.photo')} optional><ImagePicker value={imageUrl} onChange={setImage} /></Field>
             <div className="two-col">
               <Field label={t('of.store')} optional><input value={store} onChange={(e) => setStore(e.target.value)} maxLength={80} /></Field>

@@ -8,13 +8,11 @@ function toDate(iso: string): Date {
   return iso.length === 10 ? new Date(`${iso}T00:00:00`) : new Date(iso);
 }
 
-/** "10월 28일" / "Oct 28" */
 export function shortDate(iso: string | null | undefined, lang: Lang): string {
   if (!iso) return '-';
   return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
-/** "10.28", the way a departures board prints it. */
 export function boardDate(iso: string): string {
   const d = toDate(iso);
   return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
@@ -27,7 +25,6 @@ export function dateTime(iso: string | null | undefined, lang: Lang): string {
   });
 }
 
-/** yyyy-mm-dd for <input type="date">, n days from today (local time). */
 export function isoDay(daysFromToday = 0): string {
   const d = new Date();
   d.setDate(d.getDate() + daysFromToday);
@@ -44,15 +41,14 @@ export function countryOf(config: AppConfig | undefined, code: string): Country 
   return config?.countries.find((c) => c.code === code) ?? { code, name: code, nameKo: code, currency: '', flag: '' };
 }
 
+export const ALL_COUNTRIES = 'ALL';
+
 export function countryName(config: AppConfig | undefined, code: string, lang: Lang): string {
+  if (code === ALL_COUNTRIES) return lang === 'ko' ? '전체 국가' : 'All countries';
   const c = countryOf(config, code);
   return lang === 'ko' ? c.nameKo : c.name;
 }
 
-/*
- * IATA city codes, so trips read like boarding passes (TYO, PAR, BKK).
- * Unknown cities fall back to a code for the country's main city.
- */
 const CITY_CODES: Record<string, string> = {
   tokyo: 'TYO', '도쿄': 'TYO', osaka: 'OSA', '오사카': 'OSA', kyoto: 'UKY', '교토': 'UKY', fukuoka: 'FUK', '후쿠오카': 'FUK',
   sapporo: 'SPK', '삿포로': 'SPK', okinawa: 'OKA', naha: 'OKA', nagoya: 'NGO',
@@ -67,25 +63,19 @@ const CITY_CODES: Record<string, string> = {
 const COUNTRY_HUB: Record<string, string> = { JP: 'TYO', US: 'NYC', FR: 'PAR', GB: 'LON', TH: 'BKK', VN: 'HAN', ID: 'JKT', TW: 'TPE' };
 export const HOME_CODE = 'SEL';
 
-/**
- * The country code people see. The data keeps the ISO code (GB), which is what the database,
- * the backend and the map use, but on screen the United Kingdom reads as UK.
- */
 export function displayCode(code: string): string {
   return code === 'GB' ? 'UK' : code;
 }
-
 
 export function cityCode(city: string | null | undefined, countryCode: string): string {
   const key = (city ?? '').trim().toLowerCase();
   return CITY_CODES[key] ?? COUNTRY_HUB[countryCode] ?? displayCode(countryCode);
 }
 
-/** Same formula as the Spring PricingService. The server value is the one actually charged. */
 export function quote(config: AppConfig | undefined, budget: number, reward: number): Quote {
   const feeRate = config?.feeRate ?? 0.1;
   const fee = Math.round(feeRate * (budget + reward));
-  const tax = 0; // customs duty is the traveler's to declare; CarryPick does not charge it
+  const tax = 0;
   return { budget, reward, fee, tax, total: budget + reward + fee + tax };
 }
 

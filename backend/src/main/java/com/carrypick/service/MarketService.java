@@ -17,13 +17,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Trips, offers, requests, search and the popular ranking. */
 @Service
 public class MarketService {
     private static final int RANKING_DAYS = 30;
@@ -37,20 +37,19 @@ public class MarketService {
     private final OrderRepository orders;
     private final AuthService auth;
     private final Mapper mapper;
+    private final ProductService catalog;
 
     public MarketService(TripRepository trips, OfferRepository offers, RequestRepository requests,
-                         OrderRepository orders, AuthService auth, Mapper mapper) {
+                         OrderRepository orders, AuthService auth, Mapper mapper, ProductService catalog) {
         this.trips = trips;
         this.offers = offers;
         this.requests = requests;
         this.orders = orders;
         this.auth = auth;
         this.mapper = mapper;
+        this.catalog = catalog;
     }
 
-    // ---------------------------------------------------------------- maintenance
-
-    /** Close offers of ended trips and expire requests past their deadline. Runs hourly and on startup. */
     @Scheduled(initialDelay = 5_000, fixedDelay = 3_600_000)
     @Transactional
     public void housekeeping() {
@@ -59,12 +58,18 @@ public class MarketService {
         requests.expireOld(today, RequestStatus.OPEN, RequestStatus.EXPIRED);
     }
 
-    // ---------------------------------------------------------------- offers (B2, B4, T3)
-
     @Transactional(readOnly = true)
     public List<OfferDto> offersByCountry(String country) {
-        return offers.findByCountryCodeAndStatusOrderByCreatedAtDesc(country.toUpperCase(), OfferStatus.ACTIVE)
-                .stream().map(mapper::offer).toList();
+        List<Offer> found = isAllCountries(country)
+                ? offers.findByStatusOrderByCreatedAtDesc(OfferStatus.ACTIVE)
+                : offers.findByCountryCodeAndStatusOrderByCreatedAtDesc(country.toUpperCase(), OfferStatus.ACTIVE);
+        return found.stream().map(mapper::offer).toList();
+    }
+
+    public static final String ALL_COUNTRIES = "ALL";
+
+    static boolean isAllCountries(String country) {
+        return country == null || country.isBlank() || ALL_COUNTRIES.equalsIgnoreCase(country);
     }
 
     @Transactional(readOnly = true)
@@ -89,6 +94,7 @@ public class MarketService {
                 blankToNull(f.category()), blankToNull(f.description()), blankToNull(f.imageUrl()),
                 f.estPrice(), f.reward(), f.quantity()));
         o.setReceiptUrl(blankToNull(f.receiptUrl()));
+        o.setProduct(catalog.resolve(f.productId(), o.getProductName(), o.getCategory(), o.getCountryCode()));
         return mapper.offer(o);
     }
 
@@ -100,6 +106,7 @@ public class MarketService {
         o.update(f.productName().trim(), blankToNull(f.store()), blankToNull(f.category()),
                 blankToNull(f.description()), blankToNull(f.imageUrl()), f.estPrice(), f.reward(), f.quantity());
         o.setReceiptUrl(blankToNull(f.receiptUrl()));
+        o.setProduct(catalog.resolve(f.productId(), o.getProductName(), o.getCategory(), o.getCountryCode()));
         return mapper.offer(o);
     }
 
@@ -115,8 +122,6 @@ public class MarketService {
         return offers.findById(id).orElseThrow(() -> ApiException.notFound("Offer"));
     }
 
-    // ---------------------------------------------------------------- requests (B5, T5, T6)
-
     @Transactional
     public RequestDto createRequest(Long userId, RequestForm f) {
         User me = auth.require(userId);
@@ -127,6 +132,7 @@ public class MarketService {
         PurchaseRequest r = requests.save(new PurchaseRequest(me, f.countryCode().toUpperCase(),
                 f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
                 blankToNull(f.options()), blankToNull(f.note()), f.maxBudget(), f.reward(), f.deadline()));
+        r.setProduct(catalog.resolve(f.productId(), r.getProductName(), null, r.getCountryCode()));
         return mapper.request(r);
     }
 
@@ -140,10 +146,6 @@ public class MarketService {
         return mapper.request(findRequest(id));
     }
 
-    /**
-     * Request board (T5): open requests in countries where I have a trip that is not over yet
-     * and that returns on or before the request deadline. Excludes my own requests.
-     */
     @Transactional(readOnly = true)
     public List<RequestDto> openRequestsForTraveler(Long userId) {
         LocalDate today = Today.get();
@@ -173,7 +175,6 @@ public class MarketService {
         return requests.findById(id).orElseThrow(() -> ApiException.notFound("Request"));
     }
 
-    /** A trip of the traveler to the request's country that ends by the deadline and is not over. */
     public Trip matchingTrip(List<Trip> travelerTrips, PurchaseRequest r) {
         LocalDate today = Today.get();
         return travelerTrips.stream()
@@ -183,9 +184,6 @@ public class MarketService {
                 .findFirst().orElse(null);
     }
 
-    // ---------------------------------------------------------------- departures board (B1)
-
-    /** Upcoming trips (not yet departed) that have at least one bookable offer, soonest first. */
     @Transactional(readOnly = true)
     public List<BoardRow> board() {
         LocalDate today = Today.get();
@@ -203,37 +201,57 @@ public class MarketService {
                 .toList();
     }
 
-    // ---------------------------------------------------------------- search & ranking (B1, B3)
-
     @Transactional(readOnly = true)
     public SearchDto search(String q, String country) {
         String query = q == null ? "" : q.trim();
-        String c = country == null || country.isBlank() ? null : country.toUpperCase();
-        List<OfferDto> offerHits = offers.search(query, OfferStatus.ACTIVE).stream()
+        String c = isAllCountries(country) ? null : country.toUpperCase();
+        List<Long> productIds = catalog.matchingIds(query);
+        Map<Long, Offer> offerHits = new LinkedHashMap<>();
+        offers.search(query, OfferStatus.ACTIVE).forEach(o -> offerHits.put(o.getId(), o));
+        if (!productIds.isEmpty()) {
+            offers.findByProductIdInAndStatus(productIds, OfferStatus.ACTIVE).forEach(o -> offerHits.putIfAbsent(o.getId(), o));
+        }
+        Map<Long, PurchaseRequest> requestHits = new LinkedHashMap<>();
+        requests.search(query, RequestStatus.OPEN).forEach(r -> requestHits.put(r.getId(), r));
+        if (!productIds.isEmpty()) {
+            requests.findByProductIdInAndStatus(productIds, RequestStatus.OPEN).forEach(r -> requestHits.putIfAbsent(r.getId(), r));
+        }
+        List<OfferDto> offerDtos = offerHits.values().stream()
                 .filter(o -> c == null || o.getCountryCode().equals(c))
+                .sorted(Comparator.comparing(Offer::getCreatedAt).reversed())
                 .map(mapper::offer).toList();
-        List<RequestDto> requestHits = requests.search(query, RequestStatus.OPEN).stream()
+        List<RequestDto> requestDtos = requestHits.values().stream()
                 .filter(r -> c == null || r.getCountryCode().equals(c))
+                .sorted(Comparator.comparing(PurchaseRequest::getCreatedAt).reversed())
                 .map(mapper::request).toList();
-        return new SearchDto(offerHits, requestHits);
+        return new SearchDto(offerDtos, requestDtos);
     }
 
-    /** Top products by paid-or-later orders in the last 30 days. All data is demo data. */
     @Transactional(readOnly = true)
     public RankingDto ranking(String country) {
-        String c = country.toUpperCase();
+        boolean all = isAllCountries(country);
+        String c = all ? ALL_COUNTRIES : country.toUpperCase();
         Instant since = Instant.now().minus(Duration.ofDays(RANKING_DAYS));
-        List<Object[]> rows = orders.rankProducts(c, COUNTED, since);
+        List<Object[]> rows = all ? orders.rankProductsAllCountries(COUNTED, since) : orders.rankProducts(c, COUNTED, since);
         List<RankingItem> items = new ArrayList<>();
         int rank = 1;
         for (Object[] row : rows) {
             if (rank > 10) break;
-            String name = (String) row[0];
+            Product p = catalog.get(((Number) row[0]).longValue());
             long count = ((Number) row[1]).longValue();
-            Offer active = offers.findByCountryCodeAndProductNameIgnoreCaseAndStatus(c, name, OfferStatus.ACTIVE)
-                    .stream().findFirst().orElse(null);
-            items.add(new RankingItem(rank++, name, count, active != null ? active.getId() : null,
-                    active != null ? active.getImageUrl() : null, active != null ? active.getCategory() : null));
+            List<Offer> live = offers.findByProductIdAndStatusOrderByCreatedAtDesc(p.getId(), OfferStatus.ACTIVE).stream()
+                    .filter(o -> all || o.getCountryCode().equals(c)).toList();
+            LocalDate today = Today.get();
+            Offer active = live.stream().filter(o -> o.isBookable(today)).findFirst()
+                    .orElse(live.isEmpty() ? null : live.get(0));
+            Order latest = active != null ? null
+                    : orders.findFirstByProductIdOrderByCreatedAtDesc(p.getId()).orElse(null);
+            String image = active != null ? active.getImageUrl() : latest != null ? latest.getImageUrl() : null;
+            Long estPrice = active != null ? Long.valueOf(active.getEstPrice())
+                    : latest != null ? Long.valueOf(latest.getBudget() / Math.max(1, latest.getQuantity())) : null;
+            String category = active != null && active.getCategory() != null ? active.getCategory() : p.getCategory();
+            items.add(new RankingItem(rank++, p.getName(), count, active != null ? active.getId() : null,
+                    image, category, p.getId(), p.getNameKo(), estPrice));
         }
         return new RankingDto(c, true, RANKING_DAYS, items);
     }

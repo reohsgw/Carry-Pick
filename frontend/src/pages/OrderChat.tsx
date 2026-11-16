@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, SendHorizontal, X } from 'lucide-react';
+import { Camera, SendHorizontal, X } from '../components/icons';
 import { api, assetUrl, type ChatMessage } from '../api';
 import { Screen } from '../components/Layout';
 import { ErrorBox, Loading, Notice, ProductThumb, StatusBadge, initials } from '../components/ui';
@@ -9,14 +9,12 @@ import { dateTime } from '../format';
 import { firstName } from '../components/cards';
 import { useErrorText, useI18n } from '../i18n';
 
-/** Chat room of one order: the buyer and the traveler talk about options, prices and where to meet. */
 export default function OrderChat() {
   const id = Number(useParams().id);
   const { t, lang } = useI18n();
   const errText = useErrorText();
   const qc = useQueryClient();
   const order = useQuery({ queryKey: ['order', id], queryFn: () => api.order(id) });
-  // Polls while the room is open; reading also marks the room read on the server.
   const messages = useQuery({ queryKey: ['messages', id], queryFn: () => api.messages(id), refetchInterval: 4_000 });
   const [text, setText] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -36,7 +34,6 @@ export default function OrderChat() {
 
   const count = messages.data?.length ?? 0;
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'end' }); }, [count]);
-  // Leaving the room: refresh unread badges elsewhere.
   useEffect(() => () => { qc.invalidateQueries({ queryKey: ['order', id] }); qc.invalidateQueries({ queryKey: ['myOrders'] }); qc.invalidateQueries({ queryKey: ['me'] }); }, [qc, id]);
 
   async function pick(file: File | undefined) {

@@ -8,7 +8,6 @@ import { isoDay } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 
-/** T2: Register a trip. */
 export default function NewTrip() {
   const { config } = useSession();
   const { t, lang } = useI18n();

@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-/** Orders, payments and notifications. */
 @RestController
 @RequestMapping("/api")
 public class OrderController {
@@ -38,74 +37,60 @@ public class OrderController {
         this.chat = chat;
     }
 
-    // ---- orders
-
-    /** B4: book an offer (Flow A). */
     @PostMapping("/orders")
     @ResponseStatus(HttpStatus.CREATED)
     public OrderDto book(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody BookForm form) {
         return orders.book(me.id(), form);
     }
 
-    /** B7 (role=buyer) and T1 (role=traveler). */
     @GetMapping("/orders/me")
     public List<OrderDto> myOrders(@AuthenticationPrincipal AuthUser me,
                                    @RequestParam(defaultValue = "buyer") String role) {
         return orders.myOrders(me.id(), role);
     }
 
-    /** B8 / T7 */
     @GetMapping("/orders/{id}")
     public OrderDto get(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return orders.get(me.id(), id);
     }
 
-    /** T7: actual price + receipt image (multipart form). */
     @PostMapping(value = "/orders/{id}/purchase", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public OrderDto purchase(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
                              @RequestParam long actualPrice, @RequestPart("receipt") MultipartFile receipt) {
         return orders.purchase(me.id(), id, actualPrice, receipt);
     }
 
-    /** T7: shelf price is over budget. Price + price-tag photo (multipart form); the buyer approves before purchase. */
     @PostMapping(value = "/orders/{id}/price-check", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public OrderDto priceCheck(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
                                @RequestParam long price, @RequestPart("photo") MultipartFile photo) {
         return orders.priceCheck(me.id(), id, price, photo);
     }
 
-    /** B8: approve the higher price. Returns the extra payment to open in the payment window. */
     @PostMapping("/orders/{id}/approve")
     public PaymentPrepareDto approve(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return payments.prepare(me.id(), id);
     }
 
-    /** B8 */
     @PostMapping("/orders/{id}/reject")
     public OrderDto reject(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return orders.reject(me.id(), id);
     }
 
-    /** T7 */
     @PostMapping("/orders/{id}/deliver")
     public OrderDto deliver(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return orders.deliver(me.id(), id);
     }
 
-    /** B8 */
     @PostMapping("/orders/{id}/confirm")
     public OrderDto confirm(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return orders.confirm(me.id(), id);
     }
 
-    /** B8 / T7 */
     @PostMapping("/orders/{id}/cancel")
     public OrderDto cancel(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
                            @RequestBody(required = false) CancelForm form) {
         return orders.cancel(me.id(), id, form == null ? null : form.reason());
     }
-
-    // ---- chat room per order (buyer <-> traveler)
 
     @GetMapping("/orders/{id}/messages")
     public List<ChatMessageDto> messages(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
@@ -118,8 +103,6 @@ public class OrderController {
                                @Valid @RequestBody MessageForm form) {
         return chat.send(me.id(), id, form.text(), form.imageUrl());
     }
-
-    // ---- payments (B6)
 
     @PostMapping("/payments/prepare")
     public PaymentPrepareDto prepare(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody PrepareForm form) {
@@ -135,8 +118,6 @@ public class OrderController {
     public OrderDto failPayment(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody FailForm form) {
         return payments.fail(me.id(), form);
     }
-
-    // ---- notifications (C3)
 
     @GetMapping("/notifications")
     public List<NotificationDto> notifications(@AuthenticationPrincipal AuthUser me) {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, MapPinned, Plus } from 'lucide-react';
+import { ArrowRight, MapPinned, Plus } from '../components/icons';
 import { api } from '../api';
 import { firstName, OfferRow, OrderRow, RequestCard, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -12,7 +12,6 @@ import { useSession } from '../session';
 
 type Tab = 'overview' | 'requests' | 'offers';
 
-/** T1: Traveler dashboard (Figma "Welcome back, Yuri."). */
 export default function TravelerHome() {
   const { user } = useSession();
   const { t, lang } = useI18n();

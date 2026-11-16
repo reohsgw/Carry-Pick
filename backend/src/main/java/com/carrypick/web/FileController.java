@@ -10,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
-/** Generic image upload for product photos (B5, T3). Returns { url }. */
 @RestController
 @RequestMapping("/api/files")
 public class FileController {

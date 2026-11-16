@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   AlertCircle, Camera, Cookie, Headphones, Lamp, Package, Shirt, ShoppingBag, Sparkles, UtensilsCrossed,
-  type LucideIcon,
-} from 'lucide-react';
-import { api, type OrderStatus } from '../api';
+  type Icon as LucideIcon,
+} from './icons';
+import { api, assetUrl, type OrderStatus } from '../api';
 import { STATUS_TONE } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { productPhoto } from '../images';
@@ -29,7 +29,6 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
   );
 }
 
-/** Inline message. tone: info (default), warn, bad, good */
 export function Notice({ tone = 'info', icon: Icon, children }: { tone?: 'info' | 'warn' | 'bad' | 'good'; icon?: LucideIcon; children: ReactNode }) {
   return (
     <div className={`notice is-${tone}`} role={tone === 'bad' ? 'alert' : undefined}>
@@ -58,12 +57,10 @@ export function Tag({ children, tone = 'neutral' }: { children: ReactNode; tone?
   return <span className={`badge tone-${tone}`}>{children}</span>;
 }
 
-/** Small dark code badge, like "JP" or "TYO". */
 export function Code({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <span className={`code ${className}`}>{children}</span>;
 }
 
-/** Section title from the Figma design: small uppercase eyebrow + serif heading + optional action. */
 export function SectionHeading({ eyebrow, title, action }: { eyebrow?: string; title: string; action?: ReactNode }) {
   return (
     <div className="section-heading">
@@ -84,14 +81,12 @@ export function categoryIcon(category: string | null | undefined): LucideIcon {
   return CATEGORY_ICON[(category ?? '').toLowerCase()] ?? ShoppingBag;
 }
 
-/** Photo (own upload or category photo), or a line icon when there is none. Fills its parent. */
 export function ProductPhoto({ src, category, iconSize = 36 }: { src?: string | null; category?: string | null; iconSize?: number }) {
   const url = productPhoto(src, category);
   const Icon = categoryIcon(category);
   return url ? <img src={url} alt="" /> : <div className="placeholder"><Icon size={iconSize} strokeWidth={1.4} aria-hidden /></div>;
 }
 
-/** Small square thumbnail for list rows. */
 export function ProductThumb({ src, category, size = 56 }: { src?: string | null; category?: string | null; size?: number }) {
   const url = productPhoto(src, category);
   const Icon = categoryIcon(category);
@@ -116,7 +111,6 @@ export function Field({ label, hint, optional, children }: { label: string; hint
   );
 }
 
-/** KRW amount input with thousand separators. */
 export function MoneyInput({ value, onChange, placeholder, required, id }: {
   value: number | ''; onChange: (v: number | '') => void; placeholder?: string; required?: boolean; id?: string;
 }) {
@@ -138,7 +132,6 @@ export function MoneyInput({ value, onChange, placeholder, required, id }: {
   );
 }
 
-/** Upload a product photo; returns the server URL. */
 export function ImagePicker({ value, onChange }: { value: string | null; onChange: (url: string | null) => void }) {
   const { t } = useI18n();
   const errText = useErrorText();
@@ -182,7 +175,6 @@ export function ImagePicker({ value, onChange }: { value: string | null; onChang
   );
 }
 
-/** Bottom sheet with a serif title and a Close pill, as in the Figma request form. Escape closes it. */
 export function Modal({ open, onClose, title, eyebrow, children }: {
   open: boolean; onClose: () => void; title: string; eyebrow?: string; children: ReactNode;
 }) {
@@ -210,12 +202,10 @@ export function Modal({ open, onClose, title, eyebrow, children }: {
   );
 }
 
-/** Sticky bottom bar for the main action on detail screens. */
 export function ActionBar({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`action-bar ${className}`}>{children}</div>;
 }
 
-/** White rounded card with an optional small heading row. */
 export function Sheet({ title, aside, children, flush }: { title?: string; aside?: ReactNode; children?: ReactNode; flush?: boolean }) {
   return (
     <section className={`card ${flush ? 'is-flush' : ''}`}>
@@ -230,7 +220,6 @@ export function Sheet({ title, aside, children, flush }: { title?: string; aside
   );
 }
 
-/** Label / value line used in detail cards. */
 export function KV({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="kv">
@@ -240,9 +229,20 @@ export function KV({ label, children }: { label: string; children: ReactNode }) 
   );
 }
 
-/** Two-letter initials for the round avatar. */
 export function initials(name: string): string {
   const clean = name.replace(/\s*\(.*\)\s*$/, '').trim();
   const parts = clean.split(/\s+/);
   return (parts.length > 1 ? parts[0][0] + parts[1][0] : clean.slice(0, 2)).toUpperCase();
+}
+
+export function Avatar({ name, src, className = '', size }: {
+  name: string; src?: string | null; className?: string; size?: number;
+}) {
+  const url = assetUrl(src);
+  const style = size ? { width: size, height: size, fontSize: Math.round(size * 0.38) } : undefined;
+  return (
+    <span className={`avatar${url ? ' has-photo' : ''} ${className}`.trim()} style={style} aria-hidden>
+      {url ? <img src={url} alt="" /> : initials(name)}
+    </span>
+  );
 }

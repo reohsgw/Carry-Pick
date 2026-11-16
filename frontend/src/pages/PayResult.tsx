@@ -1,19 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, CircleCheck } from 'lucide-react';
+import { CircleAlert, CircleCheck } from '../components/icons';
 import { api, type Order } from '../api';
 import { Screen } from '../components/Layout';
 import { Loading } from '../components/ui';
 import { krw } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 
-/**
- * B6 result. Toss redirects here after the payment window:
- *   /pay/success?order=..&paymentKey=..&orderId=<tossOrderId>&amount=..
- *   /pay/fail?order=..&code=..&message=..&orderId=<tossOrderId>
- * In mock mode the app navigates here itself with mock=1 after confirming.
- */
 export default function PayResult({ success }: { success: boolean }) {
   const [params] = useSearchParams();
   const qc = useQueryClient();

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight, Plane, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Plane, ShoppingBag } from '../components/icons';
 import { api } from '../api';
 import { Wordmark } from '../components/Layout';
 import { Field, Notice } from '../components/ui';
@@ -10,7 +10,6 @@ import { useSession } from '../session';
 
 const DEMO_PASSWORD = 'carrypick123';
 
-/** C1: Log in / Sign up, laid out like the Figma auth screen. */
 export default function Login() {
   const { login, user } = useSession();
   const { t } = useI18n();

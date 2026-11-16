@@ -5,10 +5,6 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/**
- * One purchase between a buyer and a traveler. Created either by booking an Offer (Flow A)
- * or by a traveler accepting a PurchaseRequest (Flow B). All amounts are KRW.
- */
 @Entity(name = "CpOrder")
 @Table(name = "orders")
 public class Order {
@@ -28,6 +24,9 @@ public class Order {
     @ManyToOne(fetch = FetchType.EAGER)
     private PurchaseRequest request;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Product product;
+
     @Column(nullable = false)
     private String productName;
 
@@ -38,26 +37,18 @@ public class Order {
 
     private int quantity;
 
-    /** B: item budget for the whole order (offer: est. price x qty, request: max budget). */
     private long budget;
-    /** R: traveler reward for the whole order. */
     private long reward;
-    /** F: platform fee on (B + R). */
     private long fee;
-    /** T: estimated tax/duty. */
     private long tax;
 
-    /** P: actual item price from the receipt. */
     private Long actualPrice;
     private String receiptUrl;
 
-    /** Price-check step: the higher shelf price the traveler found, and a photo of the price tag. */
     private Long quotedPrice;
     private String priceTagUrl;
 
-    /** Extra item amount the buyer approved before purchase (quoted price - B). */
     private long extraItemAmount;
-    /** Fee charged on the extra amount. */
     private long extraFee;
 
     private LocalDate expectedDelivery;
@@ -68,7 +59,6 @@ public class Order {
 
     private String cancelReason;
 
-    /** When the buyer / traveler last opened this order's chat, for unread counts. */
     private Instant buyerChatReadAt;
     private Instant travelerChatReadAt;
 
@@ -89,6 +79,7 @@ public class Order {
         this.traveler = traveler;
         this.offer = offer;
         this.request = request;
+        this.product = offer != null ? offer.getProduct() : request != null ? request.getProduct() : null;
         this.productName = productName;
         this.countryCode = countryCode;
         this.imageUrl = imageUrl;
@@ -100,17 +91,14 @@ public class Order {
         this.expectedDelivery = expectedDelivery;
     }
 
-    /** Amount charged at the first payment: B + R + F + T. */
     public long initialCharge() {
         return budget + reward + fee + tax;
     }
 
-    /** Amount charged when the buyer approves a higher price. */
     public long extraCharge() {
         return extraItemAmount + extraFee;
     }
 
-    /** Most the traveler may spend on the item: the budget plus any extra the buyer approved. */
     public long itemLimit() {
         return budget + extraItemAmount;
     }
@@ -118,7 +106,6 @@ public class Order {
     public boolean isBuyer(Long userId) { return buyer.getId().equals(userId); }
     public boolean isTraveler(Long userId) { return traveler.getId().equals(userId); }
 
-    // --- getters / setters ---
     public Long getId() { return id; }
     public User getBuyer() { return buyer; }
     public User getTraveler() { return traveler; }
@@ -167,4 +154,7 @@ public class Order {
     public void setSettledAt(Instant settledAt) { this.settledAt = settledAt; }
     public Instant getCancelledAt() { return cancelledAt; }
     public void setCancelledAt(Instant cancelledAt) { this.cancelledAt = cancelledAt; }
+
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
 }

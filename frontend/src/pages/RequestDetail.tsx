@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink } from '../components/icons';
 import { api } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
@@ -10,10 +10,6 @@ import { countryName, daysUntil, krw, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
-/**
- * T6: Request detail with Accept (traveler).
- * The same screen shows a buyer their own request with a Withdraw button.
- */
 export default function RequestDetail() {
   const id = Number(useParams().id);
   const { config, user } = useSession();

@@ -1,32 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Lock, Plane } from 'lucide-react';
+import { ArrowRight, Lock, Plane } from '../components/icons';
 import { api, type Offer } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
-import { Empty, ErrorBox, Loading, ProductThumb, initials } from '../components/ui';
-import { daysUntil, krw, shortDate } from '../format';
+import CountryPicker from '../components/CountryPicker';
+import { useCountry } from '../country';
+import { Avatar, Empty, ErrorBox, Loading, ProductThumb } from '../components/ui';
+import { ALL_COUNTRIES, daysUntil, krw, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
 type Sort = 'best' | 'reward' | 'arrival';
 type Window = 'any' | '7' | '14';
 
-/**
- * Traveler Offers: browse every traveler offer for one country, with the search bar, filter
- * sidebar, boarding-pass cards and side-by-side comparison from the website design.
- * Everything here is read from the existing offers API; nothing new is stored.
- */
 export default function TravelerOffers() {
   const { config } = useSession();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const country = params.get('country') ?? 'JP';
+  const { country, setCountry } = useCountry();
+  const linked = params.get('country');
+  useEffect(() => { if (linked && linked !== country) setCountry(linked); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const arriveBy = params.get('by') ?? '';
 
-  // The search bar edits a draft; "Update search" applies it (and keeps it in the URL).
   const [draftCountry, setDraftCountry] = useState(country);
   const [draftBy, setDraftBy] = useState(arriveBy);
 
@@ -53,7 +51,6 @@ export default function TravelerOffers() {
     return [...items].sort((a, b) => {
       if (sort === 'reward') return a.reward - b.reward;
       if (sort === 'arrival') return a.trip.returnDate.localeCompare(b.trip.returnDate);
-      // Best match: bookable first, then lowest total, then soonest arrival.
       return Number(b.bookable) - Number(a.bookable)
         || a.unitQuote.total - b.unitQuote.total
         || a.trip.returnDate.localeCompare(b.trip.returnDate);
@@ -63,12 +60,18 @@ export default function TravelerOffers() {
   const compared = all.filter((o) => compare.includes(o.id));
   const cheapest = compared.length ? Math.min(...compared.map((o) => o.unitQuote.total)) : 0;
 
+  const prevCountry = useRef(country);
+  useEffect(() => {
+    if (prevCountry.current === country) return;
+    prevCountry.current = country;
+    setDraftCountry(country);
+    setCats([]); setCompare([]); setMaxReward(null);
+  }, [country]);
+
   function apply(e: React.FormEvent) {
     e.preventDefault();
-    const next: Record<string, string> = { country: draftCountry };
-    if (draftBy) next.by = draftBy;
-    setParams(next, { replace: true });
-    if (draftCountry !== country) { setCats([]); setCompare([]); setMaxReward(null); }
+    setParams(draftBy ? { by: draftBy } : {}, { replace: true });
+    if (draftCountry !== country) setCountry(draftCountry);
   }
 
   function toggleCompare(id: number) {
@@ -76,7 +79,7 @@ export default function TravelerOffers() {
   }
 
   return (
-    <Screen wide>
+    <Screen wide headerExtra={<CountryPicker />}>
       <section className="home-section offers-page">
         <div className="section-heading">
           <div>
@@ -90,6 +93,7 @@ export default function TravelerOffers() {
           <label>
             <span>{t('to.shoppingIn')}</span>
             <select value={draftCountry} onChange={(e) => setDraftCountry(e.target.value)}>
+              <option value={ALL_COUNTRIES}>{lang === 'ko' ? '전체 국가' : 'All countries'}</option>
               {(config?.countries ?? []).map((c) => (
                 <option key={c.code} value={c.code}>{lang === 'ko' ? c.nameKo : c.name}</option>
               ))}
@@ -215,7 +219,6 @@ export default function TravelerOffers() {
   );
 }
 
-/** One offer as a boarding-pass stub: traveler, product, route, dates, money, Compare and View. */
 function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
   offer: Offer; best: boolean; comparing: boolean; compareFull: boolean; onCompare: () => void;
 }) {
@@ -226,7 +229,7 @@ function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
     <article className="ticket-card">
       {best && <span className="best-tag">{t('to.best')}</span>}
       <div className="offer-head">
-        <span className="avatar is-big">{initials(offer.traveler.name)}</span>
+        <Avatar className="is-big" name={offer.traveler.name} src={offer.traveler.avatarUrl} />
         <div>
           <h3>{firstName(offer.traveler.name)}</h3>
           <p className="fine">{t('card.backFrom', { city: offer.trip.city ?? offer.countryCode })}</p>
@@ -248,7 +251,6 @@ function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
           <span>{t('to.left')}</span>
           <b>{offer.bookable ? t('common.left', { n: offer.quantity }) : offer.quantity === 0 ? t('offer.soldOut') : t('offer.closed')}</b>
         </div>
-        <span className="boarding-label">BOARDING PASS</span>
       </div>
       <div className="offer-actions">
         <button

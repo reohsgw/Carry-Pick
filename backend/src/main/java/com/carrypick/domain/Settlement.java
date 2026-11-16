@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
-/** Simulated settlement after the buyer confirms receipt. No real money moves. */
 @Entity
 @Table(name = "settlements")
 public class Settlement {
@@ -15,11 +14,8 @@ public class Settlement {
     @OneToOne(fetch = FetchType.EAGER, optional = false)
     private Order order;
 
-    /** P + R paid out to the traveler. */
     private long travelerPayout;
-    /** B - P refunded to the buyer when the receipt is under budget. */
     private long buyerRefund;
-    /** F (+ extra fee) kept by the platform. */
     private long platformFee;
 
     private boolean mock = true;

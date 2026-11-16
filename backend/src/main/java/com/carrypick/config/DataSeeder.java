@@ -17,12 +17,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/**
- * Creates demo accounts, trips, offers, requests and some finished orders (for the ranking).
- * Runs only when app.seed-demo-data=true and the database has no users yet.
- * Every account here is marked test=true, and the ranking is labelled "Demo data" in the app.
- */
 @Component
+@org.springframework.core.annotation.Order(1)
 public class DataSeeder implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
     public static final String DEMO_PASSWORD = "carrypick123";
@@ -106,7 +102,6 @@ public class DataSeeder implements ApplicationRunner {
         requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, null,
                 "Blue tones", null, 70000, 10000, today.plusDays(20)));
 
-        // Finished demo orders so the country ranking has something to show (labelled "Demo data" in the app).
         demoOrder(jun, tokyoBanana, 5);
         demoOrder(minji, tokyoBanana, 3);
         demoOrder(jun, royce, 2);

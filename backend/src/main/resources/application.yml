@@ -1,21 +1,17 @@
 server:
   port: ${PORT:8080}
-  # Behind a host that terminates HTTPS (Railway, Render, Fly), trust its X-Forwarded-* headers
-  # so generated links (e.g. the Swagger server URL) use https.
   forward-headers-strategy: framework
 
 spring:
   application:
     name: carrypick-api
-  # Default profile: in-memory H2 so the API runs with zero setup.
-  # Use the "postgres" profile (below) for the real database.
   datasource:
     url: jdbc:h2:mem:carrypick;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
     password:
   h2:
     console:
-      enabled: true          # look at the tables at http://localhost:8080/h2-console (JDBC URL above, user sa)
+      enabled: true
       path: /h2-console
   jpa:
     hibernate:
@@ -30,29 +26,22 @@ spring:
       max-request-size: 12MB
 
 app:
-  # Allowed front-end origins (comma separated)
   cors-origins: http://localhost:5173,http://127.0.0.1:5173
   jwt:
-    # Change for any shared deployment. Must be at least 32 characters.
     secret: ${JWT_SECRET:carrypick-dev-secret-change-me-0123456789abcdef}
     ttl-hours: 72
   upload-dir: ${UPLOAD_DIR:uploads}
   seed-demo-data: true
   pricing:
-    fee-rate: 0.10              # platform fee r, applied to (budget + reward)
-    tax-threshold-krw: 150000   # estimated tax/duty shown only above this item price
-    tax-rate: 0.10              # placeholder estimate, not an official customs rate
+    fee-rate: 0.10
+    tax-threshold-krw: 150000
+    tax-rate: 0.10
   payment:
-    # mock  = built-in fake payment page (works offline, no keys needed)
-    # toss  = Toss Payments test mode (set TOSS_CLIENT_KEY / TOSS_SECRET_KEY test keys)
     mode: ${PAYMENT_MODE:mock}
     toss-client-key: ${TOSS_CLIENT_KEY:}
     toss-secret-key: ${TOSS_SECRET_KEY:}
     toss-confirm-url: https://api.tosspayments.com/v1/payments/confirm
   ai:
-    # mock      = returns a clearly-labelled sample receipt (no key needed, works offline)
-    # anthropic = reads the real photo with Claude vision (set ANTHROPIC_API_KEY)
-    # gemini    = reads the real photo with Google Gemini (set GEMINI_API_KEY; free tier available)
     provider: ${AI_PROVIDER:mock}
     api-key: ${ANTHROPIC_API_KEY:}
     model: ${AI_MODEL:claude-haiku-5-5}
@@ -60,8 +49,6 @@ app:
     gemini-api-key: ${GEMINI_API_KEY:}
     gemini-model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
     gemini-api-url: https://generativelanguage.googleapis.com/v1beta/models
-  # KRW per 1 unit of each currency, used to estimate the receipt total in won.
-  # These are fixed demo values, not live rates — update them before a demo.
   fx:
     KRW: 1
     JPY: 9.2

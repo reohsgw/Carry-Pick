@@ -13,7 +13,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** The receipt reader without a network: mock mode, file checks, and parsing of a model reply. */
 class ReceiptScanServiceTest {
 
     private final ReceiptScanService mockService = service("mock");

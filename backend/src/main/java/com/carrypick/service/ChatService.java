@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
-/** The chat room of one order, shared by its buyer and traveler. */
 @Service
 public class ChatService {
     private final ChatMessageRepository messages;
@@ -31,7 +30,6 @@ public class ChatService {
         this.notificationRepo = notificationRepo;
     }
 
-    /** All messages, oldest first. Opening the chat marks it read for the caller. */
     @Transactional
     public List<ChatMessageDto> list(Long userId, Long orderId) {
         Order o = orders.findForParticipant(userId, orderId);
@@ -52,7 +50,6 @@ public class ChatService {
                 imageUrl == null || imageUrl.isBlank() ? null : imageUrl));
         markRead(o, userId);
 
-        // One unread "new message" notification per order is enough; don't stack one per message.
         User other = o.isBuyer(userId) ? o.getTraveler() : o.getBuyer();
         boolean alreadyNotified = notificationRepo.existsByUserIdAndOrderIdAndKindAndReadFalse(
                 other.getId(), o.getId(), NotificationService.Kind.MESSAGE.name());

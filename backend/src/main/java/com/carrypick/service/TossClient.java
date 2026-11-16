@@ -12,11 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
-/**
- * Calls the Toss Payments confirm API with the SECRET key. Only the server may do this,
- * which is why the browser never sees the secret key.
- * In mock mode no network call is made.
- */
 @Component
 public class TossClient {
     private static final Logger log = LoggerFactory.getLogger(TossClient.class);
@@ -32,7 +27,6 @@ public class TossClient {
 
     public Result confirm(String paymentKey, String tossOrderId, long amount) {
         if (cfg.isMock()) {
-            // Mock page sends keys starting with "mock_fail" to simulate a declined card.
             if (paymentKey.startsWith("mock_fail")) return new Result(false, "Card declined (mock)");
             return new Result(true, "OK (mock)");
         }

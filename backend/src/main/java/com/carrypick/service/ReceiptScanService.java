@@ -18,13 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * AI receipt reader (Claude or Gemini vision): a photo of a receipt in any language -> store, items, total, currency,
- * a KRW estimate, and customs flags (alcohol, supplements, medicine, meat, tobacco).
- *
- * The traveler always sees the result as an editable form before saving, because a model can misread.
- * The API key stays on this server; the browser never sees it.
- */
 @Service
 public class ReceiptScanService {
     private static final Logger log = LoggerFactory.getLogger(ReceiptScanService.class);
@@ -81,8 +74,6 @@ public class ReceiptScanService {
         }
     }
 
-    // ------------------------------------------------------------------ Claude call
-
     private String callClaude(MultipartFile image) {
         String base64 = base64(image);
         Map<String, Object> body = Map.of(
@@ -122,8 +113,6 @@ public class ReceiptScanService {
         }
     }
 
-    // ------------------------------------------------------------------ Gemini call
-
     private String callGemini(MultipartFile image) {
         Map<String, Object> body = Map.of(
                 "contents", List.of(Map.of("parts", List.of(
@@ -156,8 +145,6 @@ public class ReceiptScanService {
             throw new ApiException(HttpStatus.BAD_GATEWAY, "AI_FAILED", "Could not read the receipt right now. Enter the price manually.");
         }
     }
-
-    // ------------------------------------------------------------------ parsing + enrichment
 
     ReceiptScan parse(String text, boolean mock, String model) {
         String cleaned = text == null ? "" : text.trim();
@@ -210,7 +197,6 @@ public class ReceiptScanService {
         return v.isMissingNode() || v.isNull() ? null : v.asText();
     }
 
-    /** Mock mode: a fixed Japanese receipt so the flow can be demonstrated without an API key. */
     private ReceiptScan sample() {
         String sample = """
                 {"store":"羽田空港 東京ばな奈 ショップ","date":null,"currency":"JPY","total":2592,

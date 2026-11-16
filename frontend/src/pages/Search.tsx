@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search as SearchIcon, SearchX } from 'lucide-react';
+import { Search as SearchIcon, SearchX } from '../components/icons';
 import { api } from '../api';
-import { OfferRow, RequestRow } from '../components/cards';
+import { OfferCard, OfferRow, RequestRow } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Empty, ErrorBox, Loading, Sheet } from '../components/ui';
 import { useI18n } from '../i18n';
 import { useSession } from '../session';
 
-/** B3: Search across offers (and open requests from other buyers). */
 export default function Search() {
   const { config } = useSession();
   const { t, lang } = useI18n();
@@ -25,6 +24,12 @@ export default function Search() {
   });
 
   const requestLink = `/requests/new?${new URLSearchParams({ q, country: country || 'JP' })}`;
+
+  const noMatch = !!results.data && results.data.offers.length === 0;
+  const others = useQuery({ queryKey: ['offers', 'ALL'], queryFn: () => api.offers('ALL'), enabled: noMatch });
+  const bookable = (others.data ?? []).filter((o) => o.bookable);
+  const sameCountry = country ? bookable.filter((o) => o.countryCode === country) : [];
+  const suggestions = (sameCountry.length ? sameCountry : bookable).slice(0, 8);
 
   return (
     <Screen title={t('search.title')}>
@@ -54,12 +59,24 @@ export default function Search() {
 
       {results.data && (
         <>
-          {results.data.offers.length === 0 ? (
+          {results.data.offers.length === 0 && (
             <Empty icon={SearchX} title={t('search.noOffers', { q })}>
               <p className="fine">{t('search.noOffersHint')}</p>
               <Link to={requestLink} className="btn btn-primary">{t('home.requestCta')}</Link>
             </Empty>
-          ) : (
+          )}
+
+          {noMatch && suggestions.length > 0 && (
+            <section className="search-suggest" aria-labelledby="suggest-title">
+              <p className="eyebrow">{t('search.suggestEyebrow')}</p>
+              <h2 id="suggest-title" className="search-suggest-title">{t('search.suggestTitle')}</h2>
+              <div className="card-grid live-grid suggest-grid">
+                {suggestions.map((o) => <OfferCard key={o.id} offer={o} />)}
+              </div>
+            </section>
+          )}
+
+          {results.data.offers.length > 0 && (
             <Sheet title={t('search.offers')} aside={<span className="count">{results.data.offers.length}</span>} flush>
               <div className="rows">{results.data.offers.map((o) => <OfferRow key={o.id} offer={o} />)}</div>
             </Sheet>

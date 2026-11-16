@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Instant;
 import java.util.Map;
 
-/** GET /api/health - the frontend calls this to check that the backend is running (GUIDE step 0). */
 @RestController
 public class HealthController {
     @GetMapping("/api/health")

@@ -5,10 +5,6 @@ import com.carrypick.domain.User;
 import com.carrypick.repo.NotificationRepository;
 import org.springframework.stereotype.Service;
 
-/**
- * Stores notifications as a kind + parameters so the React app can show them in Korean or English.
- * The English message is kept as a fallback (e.g. for Swagger / debugging).
- */
 @Service
 public class NotificationService {
 

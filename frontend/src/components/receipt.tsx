@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, ScanLine, ShieldAlert } from 'lucide-react';
+import { Camera, ScanLine, ShieldAlert } from './icons';
 import { api, type ReceiptCategory, type ReceiptScan } from '../api';
 import { krw } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
@@ -23,10 +23,6 @@ function money(amount: number | null, currency: string | null): string {
   }
 }
 
-/**
- * T7 receipt step: pick a photo, optionally let the AI read it, then the traveler confirms the won amount.
- * The AI never saves anything by itself; it only fills in the price field, which stays editable.
- */
 export function ReceiptCapture({ file, onFile, onAmount }: {
   file: File | null;
   onFile: (f: File | null) => void;

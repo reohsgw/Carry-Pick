@@ -15,13 +15,8 @@ import narayaBag from './assets/naraya-bag.jpg';
 import diptyqueBaies from './assets/diptyque-baies.jpg';
 import { assetUrl } from './api';
 
-/* Photos taken from the team's Figma design. */
 export const IMAGES = { hero, keychain, skincare, snacks };
 
-/**
- * Photos bundled with the web app for the demo data. The backend seeds an offer's imageUrl as
- * "demo:<key>" and the matching file here is shown, so no upload is needed.
- */
 const DEMO_PHOTOS: Record<string, string> = {
   'tokyo-banana': tokyoBanana,
   royce,
@@ -35,7 +30,6 @@ const DEMO_PHOTOS: Record<string, string> = {
   'naraya-bag': narayaBag,
   'diptyque-baies': diptyqueBaies,
 };
-
 
 export function productPhoto(imageUrl: string | null | undefined, category: string | null | undefined): string | null {
   if (imageUrl?.startsWith('demo:')) {
@@ -70,7 +64,6 @@ import landmarkHk from './assets/landmark-hk.jpg';
 import landmarkMo from './assets/landmark-mo.jpg';
 import landmarkTw from './assets/landmark-tw.jpg';
 import landmarkGb from './assets/landmark-gb.jpg';
-
 
 export const HERO_LANDMARKS: { code: string; name: string; nameKo: string; photo: string }[] = [
   { code: 'JP', name: 'Japan', nameKo: '일본', photo: landmarkJp },

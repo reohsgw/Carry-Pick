@@ -7,25 +7,23 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
-/** Response bodies. Entities are never returned directly. */
 public final class Dtos {
     private Dtos() {}
 
-    public record UserDto(Long id, String email, String name, Mode mode, boolean test) {
+    public record UserDto(Long id, String email, String name, Mode mode, boolean test, String avatarUrl) {
         public static UserDto of(User u) {
-            return new UserDto(u.getId(), u.getEmail(), u.getName(), u.getMode(), u.isTest());
+            return new UserDto(u.getId(), u.getEmail(), u.getName(), u.getMode(), u.isTest(), u.getAvatarUrl());
         }
     }
 
-    public record PersonDto(Long id, String name) {
+    public record PersonDto(Long id, String name, String avatarUrl) {
         public static PersonDto of(User u) {
-            return u == null ? null : new PersonDto(u.getId(), u.getName());
+            return u == null ? null : new PersonDto(u.getId(), u.getName(), u.getAvatarUrl());
         }
     }
 
     public record AuthResponse(String token, UserDto user) {}
 
-    /** A trip, with who is traveling. */
     public record TripDto(Long id, Long travelerId, String travelerName, String countryCode, String city,
                           LocalDate departDate, LocalDate returnDate, String luggageNote) {
         public static TripDto of(Trip t) {
@@ -37,12 +35,20 @@ public final class Dtos {
     public record OfferDto(Long id, PersonDto traveler, TripDto trip, String countryCode, String productName,
                            String store, String category, String description, String imageUrl, long estPrice,
                            long reward, int quantity, OfferStatus status, boolean bookable, Quote unitQuote,
-                           String receiptUrl) {}
+                           String receiptUrl, ProductDto product) {}
 
     public record RequestDto(Long id, PersonDto buyer, PersonDto traveler, String countryCode, String productName,
                              String productLink, String imageUrl, String options, String note, long maxBudget,
                              long reward, LocalDate deadline, RequestStatus status, Quote quote,
-                             Instant createdAt, Long orderId) {}
+                             Instant createdAt, Long orderId, ProductDto product) {}
+
+    public record ProductDto(Long id, String name, String nameKo, String nameLocal, String aliases,
+                             String category, String countryCode) {
+        public static ProductDto of(com.carrypick.domain.Product p) {
+            return p == null ? null : new ProductDto(p.getId(), p.getName(), p.getNameKo(), p.getNameLocal(),
+                    p.getAliases(), p.getCategory(), p.getCountryCode());
+        }
+    }
 
     public record PaymentDto(Long id, PaymentType type, long amount, PaymentStatus status,
                              String failReason, boolean simulated, Instant createdAt) {
@@ -88,19 +94,18 @@ public final class Dtos {
         }
     }
 
-    /** One upcoming trip on the buyer home "departures board". */
     public record BoardRow(Long tripId, String countryCode, String city, LocalDate departDate, LocalDate returnDate,
                            String travelerName, int offerCount) {}
 
     public record ReceiptItem(String name, Double price, Integer quantity, String category) {}
 
-    /** Result of the AI receipt reader. Amounts in the receipt's own currency plus a KRW estimate. */
     public record ReceiptScan(boolean mock, String model, String store, String date, String currency, Double total,
                               Long totalKrw, Double krwPerUnit, List<ReceiptItem> items, List<String> customsFlags,
                               String note) {}
 
     public record RankingItem(int rank, String productName, long orderCount, Long offerId, String imageUrl,
-                              String category) {}
+                              String category, Long productId, String nameKo,
+                              Long estPrice) {}
 
     public record RankingDto(String countryCode, boolean demoData, int days, List<RankingItem> items) {}
 

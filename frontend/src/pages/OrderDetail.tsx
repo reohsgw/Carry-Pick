@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, ChevronRight, ExternalLink, FileText, MessageCircle } from 'lucide-react';
+import { Camera, ChevronRight, ExternalLink, FileText, MessageCircle } from '../components/icons';
 import { api, assetUrl, type Order } from '../api';
 import { OrderHero, ReceiptLine, ReceiptStrip, StatusTimeline, firstName } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -11,7 +11,6 @@ import { ActionBar, ErrorBox, Field, KV, Loading, Modal, MoneyInput, Notice, Pro
 import { krw } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 
-/** B8 (buyer view) and T7 (traveler view) of one order. */
 export default function OrderDetail() {
   const id = Number(useParams().id);
   const { t } = useI18n();
@@ -116,8 +115,6 @@ export default function OrderDetail() {
   );
 }
 
-/* ------------------------------------------------------------------ buyer (B8) */
-
 function BuyerActions({ order: o }: { order: Order }) {
   const { t } = useI18n();
   const errText = useErrorText();
@@ -132,7 +129,6 @@ function BuyerActions({ order: o }: { order: Order }) {
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
   const err = confirm.error ?? reject.error ?? cancel.error;
 
-  // Cancel is possible until the traveler uploads the receipt (same rule as OrderService.CANCELLABLE).
   const canCancel = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL'].includes(o.status);
   const paid = o.status === 'PAID' || o.status === 'AWAITING_APPROVAL';
 
@@ -188,8 +184,6 @@ function BuyerActions({ order: o }: { order: Order }) {
     </>
   );
 }
-
-/* ------------------------------------------------------------------ traveler (T7) */
 
 function TravelerActions({ order: o }: { order: Order }) {
   const { t } = useI18n();
@@ -284,7 +278,6 @@ function TravelerActions({ order: o }: { order: Order }) {
   );
 }
 
-/** Photo picker with a thumbnail, for the price-tag photo. */
 function PhotoPick({ file, onFile, label, hint }: { file: File | null; onFile: (f: File | null) => void; label: string; hint: string }) {
   const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);

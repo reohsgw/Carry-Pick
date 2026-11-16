@@ -50,7 +50,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleOther(Exception e) {
-        // Spring MVC errors (404 no handler, 405 wrong method, 415 ...) carry their own status.
         if (e instanceof org.springframework.web.ErrorResponse springError) {
             return ResponseEntity.status(springError.getStatusCode())
                     .body(new ErrorResponse("HTTP_" + springError.getStatusCode().value(), e.getMessage()));

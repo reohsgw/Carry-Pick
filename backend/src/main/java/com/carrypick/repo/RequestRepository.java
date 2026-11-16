@@ -17,7 +17,6 @@ public interface RequestRepository extends JpaRepository<PurchaseRequest, Long> 
 
     List<PurchaseRequest> findByStatusAndCountryCodeInOrderByDeadlineAsc(RequestStatus status, Collection<String> countries);
 
-    /** Keyword search on open requests. Country filtering is done in the service. */
     @Query("""
             select r from PurchaseRequest r
             where r.status = :status
@@ -26,7 +25,10 @@ public interface RequestRepository extends JpaRepository<PurchaseRequest, Long> 
             """)
     List<PurchaseRequest> search(@Param("q") String q, @Param("status") RequestStatus status);
 
-    /** Expire open requests whose deadline has passed. */
+    List<PurchaseRequest> findByProductIdInAndStatus(Collection<Long> productIds, RequestStatus status);
+
+    List<PurchaseRequest> findByProductIsNull();
+
     @Modifying
     @Query("""
             update PurchaseRequest r set r.status = :expired

@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ArrowRight, Check, Minus, Plus, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, Minus, Plus, ShieldCheck } from '../components/icons';
 import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
-import { ErrorBox, KV, Loading, Notice, ProductPhoto, Tag, initials } from '../components/ui';
+import { Avatar, ErrorBox, KV, Loading, Notice, ProductPhoto, Tag } from '../components/ui';
 import { countryName, daysUntil, krw, quote, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
-/** B4: Offer detail, laid out like the Figma product page with a payment summary card. */
 export default function OfferDetail() {
   const id = Number(useParams().id);
   const { config, user } = useSession();
@@ -96,7 +95,7 @@ export default function OfferDetail() {
 
         <section className="card">
           <div className="person" style={{ marginBottom: 14 }}>
-            <span className="avatar">{initials(o.traveler.name)}</span>
+            <Avatar name={o.traveler.name} src={o.traveler.avatarUrl} />
             <div>
               <p>{firstName(o.traveler.name)}</p>
               <small>{route(o.trip.city, o.countryCode)}</small>

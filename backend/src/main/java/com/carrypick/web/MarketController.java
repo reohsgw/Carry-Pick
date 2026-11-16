@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/** Countries, search, trips, offers and requests. */
 @RestController
 @RequestMapping("/api")
 public class MarketController {
@@ -25,52 +24,42 @@ public class MarketController {
         this.orders = orders;
     }
 
-    // ---- browse (public)
-
-    /** B1 */
     @GetMapping("/countries/{code}/ranking")
     public RankingDto ranking(@PathVariable String code) {
         return market.ranking(code);
     }
 
-    /** B1: departures board of upcoming traveler trips. */
     @GetMapping("/board")
     public List<BoardRow> board() {
         return market.board();
     }
 
-    /** B3 */
     @GetMapping("/search")
     public SearchDto search(@RequestParam(defaultValue = "") String q, @RequestParam(required = false) String country) {
         return market.search(q, country);
     }
 
-    /** B2 */
     @GetMapping("/offers")
-    public List<OfferDto> offers(@RequestParam String country) {
+    public List<OfferDto> offers(@RequestParam(required = false) String country) {
         return market.offersByCountry(country);
     }
 
-    /** T4 / T1: the traveler's own offers. */
     @GetMapping("/offers/mine")
     public List<OfferDto> myOffers(@AuthenticationPrincipal AuthUser me) {
         return market.myOffers(requireLogin(me));
     }
 
-    /** B4 */
     @GetMapping("/offers/{id}")
     public OfferDto offer(@PathVariable Long id) {
         return market.offer(id);
     }
 
-    /** T3 */
     @PostMapping("/offers")
     @ResponseStatus(HttpStatus.CREATED)
     public OfferDto createOffer(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody OfferForm form) {
         return market.createOffer(me.id(), form);
     }
 
-    /** T3 (edit) */
     @PatchMapping("/offers/{id}")
     public OfferDto updateOffer(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
                                 @Valid @RequestBody OfferForm form) {
@@ -82,34 +71,27 @@ public class MarketController {
         return market.closeOffer(me.id(), id);
     }
 
-    // ---- requests
-
-    /** B5 */
     @PostMapping("/requests")
     @ResponseStatus(HttpStatus.CREATED)
     public RequestDto createRequest(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody RequestForm form) {
         return market.createRequest(me.id(), form);
     }
 
-    /** B7 */
     @GetMapping("/requests/me")
     public List<RequestDto> myRequests(@AuthenticationPrincipal AuthUser me) {
         return market.myRequests(me.id());
     }
 
-    /** T5: open requests that match my trips. */
     @GetMapping("/requests/open")
     public List<RequestDto> openRequests(@AuthenticationPrincipal AuthUser me) {
         return market.openRequestsForTraveler(me.id());
     }
 
-    /** T6 */
     @GetMapping("/requests/{id}")
     public RequestDto request(@PathVariable Long id) {
         return market.request(id);
     }
 
-    /** T6: accept -> creates the order. */
     @PostMapping("/requests/{id}/accept")
     @ResponseStatus(HttpStatus.CREATED)
     public OrderDto accept(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
@@ -117,7 +99,6 @@ public class MarketController {
         return orders.acceptRequest(me.id(), id, form == null ? null : form.tripId());
     }
 
-    /** B7: buyer withdraws an open request. */
     @DeleteMapping("/requests/{id}")
     public RequestDto cancelRequest(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
         return market.cancelRequest(me.id(), id);

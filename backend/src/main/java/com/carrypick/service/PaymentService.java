@@ -18,13 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Payment flow (same for mock and Toss test mode):
- *   1. prepare  - server decides the amount and creates a READY payment with a unique tossOrderId
- *   2. browser  - opens the payment window (Toss SDK or the mock page) with that amount
- *   3. confirm  - server checks the amount matches what it stored, then confirms with Toss
- *      fail     - browser reports a cancelled/declined payment
- */
 @Service
 public class PaymentService {
     private final PaymentRepository payments;
@@ -58,7 +51,6 @@ public class PaymentService {
         } else {
             throw ApiException.conflict("NOTHING_TO_PAY", "There is nothing to pay for this order right now");
         }
-        // Toss orderId: 6-64 chars, letters, numbers, - and _ only, unique per attempt.
         String tossOrderId = "CP-" + o.getId() + "-" + type.name().charAt(0) + "-"
                 + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
         payments.save(new Payment(o, type, amount, tossOrderId, cfg.isMock()));
@@ -77,17 +69,15 @@ public class PaymentService {
         OrderService.requireBuyer(o, userId);
 
         if (p.getStatus() == PaymentStatus.SUCCESS) {
-            return mapper.order(o, userId); // already confirmed (e.g. page refreshed)
+            return mapper.order(o, userId);
         }
         if (p.getStatus() != PaymentStatus.READY) {
             throw ApiException.conflict("PAYMENT_CLOSED", "This payment attempt is already closed");
         }
-        // Never trust the amount from the browser: it must equal what the server stored.
         if (f.amount() != p.getAmount()) {
             markFailed(p, o, "Amount mismatch");
             throw ApiException.badRequest("AMOUNT_MISMATCH", "Payment amount does not match the order");
         }
-        // The order must still be waiting for this kind of payment.
         boolean statusOk = p.getType() == PaymentType.INITIAL
                 ? (o.getStatus() == OrderStatus.PENDING_PAYMENT || o.getStatus() == OrderStatus.PAYMENT_FAILED)
                 : o.getStatus() == OrderStatus.AWAITING_APPROVAL;
@@ -126,7 +116,6 @@ public class PaymentService {
         return mapper.order(o, userId);
     }
 
-    /** Toss asks for a non-guessable customer key (2-50 chars), so derive a stable UUID per user. */
     private String customerKey(Long userId) {
         return UUID.nameUUIDFromBytes(("carrypick-customer-" + userId + "-" + cfg.tossClientKey())
                 .getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
@@ -139,6 +128,5 @@ public class PaymentService {
         if (p.getType() == PaymentType.INITIAL && o.getStatus() == OrderStatus.PENDING_PAYMENT) {
             orderService.onInitialPaymentFailed(o, reason);
         }
-        // A failed EXTRA payment leaves the order in AWAITING_APPROVAL so the buyer can retry or reject.
     }
 }

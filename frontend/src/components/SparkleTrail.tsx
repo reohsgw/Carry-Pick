@@ -2,10 +2,6 @@ import { useEffect, useRef } from 'react';
 
 type Particle = { x: number; y: number; vx: number; vy: number; size: number; life: number };
 
-/**
- * Lime sparkles that follow the mouse, from the Figma design ("Mouse Cursor Sparkle Trail").
- * Mouse and pen only (not touch), and switched off when the user prefers reduced motion.
- */
 export default function SparkleTrail() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -53,7 +49,6 @@ export default function SparkleTrail() {
         ctx.fill();
         ctx.restore();
       }
-      // Stop the loop when nothing is left to draw, so an idle page uses no CPU.
       if (particles.length) frame = requestAnimationFrame(draw);
       else running = false;
     };

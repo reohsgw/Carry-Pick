@@ -12,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
-/** Reads "Authorization: Bearer <jwt>" and sets the logged-in user. */
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 

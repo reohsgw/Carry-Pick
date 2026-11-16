@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/** A product a traveler offers to buy and bring back on a specific trip. Prices are KRW. */
 @Entity
 @Table(name = "offers")
 public class Offer {
@@ -25,6 +24,9 @@ public class Offer {
     @Column(nullable = false)
     private String productName;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Product product;
+
     private String store;
     private String category;
 
@@ -33,15 +35,12 @@ public class Offer {
 
     private String imageUrl;
 
-    /** Estimated item price per unit (KRW). */
     private long estPrice;
 
-    /** Traveler reward per unit (KRW). */
     private long reward;
 
     private int quantity;
 
-    /** Set when the traveler already bought the item: estPrice is then the real receipt price, not an estimate. */
     private String receiptUrl;
 
     @Enumerated(EnumType.STRING)
@@ -67,7 +66,6 @@ public class Offer {
         this.quantity = quantity;
     }
 
-    /** Can a buyer book this right now? Active, stock left, and the trip has not started. */
     public boolean isBookable(LocalDate today) {
         return status == OfferStatus.ACTIVE && quantity > 0 && trip.getDepartDate().isAfter(today);
     }
@@ -115,9 +113,11 @@ public class Offer {
     public int getQuantity() { return quantity; }
     public String getReceiptUrl() { return receiptUrl; }
     public void setReceiptUrl(String receiptUrl) { this.receiptUrl = receiptUrl; }
-    /** Already bought: orders on this offer skip the "traveler buys" step. */
     public boolean isPurchased() { return receiptUrl != null; }
     public OfferStatus getStatus() { return status; }
     public void setStatus(OfferStatus status) { this.status = status; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public Product getProduct() { return product; }
+    public void setProduct(Product product) { this.product = product; }
 }

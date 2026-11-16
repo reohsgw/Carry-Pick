@@ -14,13 +14,11 @@ public class Notification {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private User user;
 
-    /** Order this notification is about (nullable). */
     private Long orderId;
 
     @Column(nullable = false, length = 500)
     private String message;
 
-    /** Message type so the app can show it in the user's language (see NotificationService.Kind). */
     @Column(length = 40)
     private String kind;
 
