@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Check as CheckmarkIcon, Plane as PlaneIcon, Search as SearchIcon } from '../components/icons';
+import { ArrowRight, Plane as PlaneIcon, Search as SearchIcon } from '../components/icons';
 import HeroLogo from '../components/HeroLogo';
 import { api } from '../api';
 import { OfferCard, ProductCard } from '../components/cards';
@@ -111,10 +111,6 @@ export default function BuyerHome() {
             <Link to={`/requests/new?country=${country}`} className="cta-btn">
               {t('home.ctaBtn')} <ArrowRight size={20} />
             </Link>
-            <ul className="cta-perks">
-              <li><CheckmarkIcon size={16} aria-hidden /> {t('home.ctaPerk1')}</li>
-              <li><CheckmarkIcon size={16} aria-hidden /> {t('home.ctaPerk2')}</li>
-            </ul>
           </div>
         </div>
         <ol className="steps comic-steps">

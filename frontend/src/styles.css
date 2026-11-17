@@ -1,4 +1,12 @@
 @font-face {
+  font-family: 'Wanted Sans Variable';
+  font-weight: 400 1000;
+  font-style: normal;
+  font-display: swap;
+  src: url('./assets/fonts/WantedSansVariable.woff2') format('woff2-variations'), url('./assets/fonts/WantedSansVariable.woff2') format('woff2');
+}
+
+@font-face {
   font-family: 'SUIT Variable';
   font-weight: 100 900;
   font-style: normal;
@@ -35,9 +43,9 @@
   --info: #3E4C5A;
   --info-wash: #D7E1DD;
 
-  --font: 'SUIT Variable', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
-  --font-ko: 'SUIT Variable', 'Apple SD Gothic Neo', sans-serif;
-  --display: var(--font);
+  --font: 'Wanted Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  --font-ko: 'Wanted Sans Variable', 'Apple SD Gothic Neo', sans-serif;
+  --display: 'SUIT Variable', ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
   --space-half: 4px;
   --space-1: 8px;
   --space-2: 16px;
@@ -7539,7 +7547,7 @@ select:not([multiple]) {
 
 .destination-postmark {
   color: rgb(160 126 87 / 0.55);
-  font-family: Georgia, serif;
+  font-family: var(--display);
   font-size: 36px;
   letter-spacing: -0.13em;
   transform: rotate(8deg);
@@ -7581,7 +7589,7 @@ select:not([multiple]) {
   border-radius: 50%;
   background: #E9D9C4;
   color: #2E3A46;
-  font-family: Georgia, serif;
+  font-family: var(--display);
   font-size: 41px;
   line-height: 1;
   box-shadow: 0 10px 20px rgb(122 106 88 / 0.15);
@@ -7904,9 +7912,8 @@ select:not([multiple]) {
   margin: -4px 0 8px;
   text-align: center;
   color: #A07E57;
-  font-family: var(--serif, Georgia, serif);
+  font-family: var(--display);
   font-size: 13px;
-  font-style: italic;
   letter-spacing: .015em;
 }
 
@@ -8080,13 +8087,6 @@ select:not([multiple]) {
   height: auto;
   overflow: visible;
 }
-.hero-logo-letters {
-  font-family: Anton, Impact, 'Arial Narrow', sans-serif;
-  font-size: 429.4px;
-  font-weight: 400;
-  letter-spacing: 0;
-  font-synthesis: none;
-}
 .hero-logo-trail {
   stroke-dasharray: 1640 1640;
   stroke-dashoffset: 1640;
@@ -8116,7 +8116,6 @@ select:not([multiple]) {
   height: auto;
   overflow: visible;
 }
-.brand-logo .hero-logo-letters { font-family: Anton, Impact, 'Arial Narrow', sans-serif; }
 .auth-top .brand.brand--logo {
   background: #E9D9C4 !important;
   padding: 8px 16px !important;
@@ -8685,9 +8684,9 @@ select:not([multiple]) {
   z-index: 0;
   margin-right: -12px;
   margin-bottom: 77px;
-  font-family: Anton, Impact, 'Arial Narrow', sans-serif;
+  font-family: var(--display);
   font-size: 210px;
-  font-weight: 400;
+  font-weight: 900;
   line-height: 0.78;
   letter-spacing: -0.06em;
   color: #E9D9C4;
@@ -9377,3 +9376,12 @@ html:lang(ko) .cta-panel h2.cta-title { font-size: clamp(30px, 3.4vw, 46px); lin
 }
 html:lang(ko) .corner-ribbon > span { letter-spacing: 0; font-size: 12px; }
 .request-card:has(.corner-ribbon) .request-head .grow { padding-right: 40px; }
+
+/* Illustrated step panels (photos replace the old SVG comics) */
+img.step-comic { aspect-ratio: 1 / 1; object-fit: cover; }
+
+/* CTA body on one line on wide screens; wraps normally on phones */
+.cta-panel p.cta-body { max-width: none; }
+@media (min-width: 1024px) {
+  .cta-panel p.cta-body { white-space: nowrap; }
+}
