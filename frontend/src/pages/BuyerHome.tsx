@@ -14,6 +14,7 @@ import { useSession } from '../session';
 import { useCountry } from '../country';
 import CountryPicker from '../components/CountryPicker';
 import { STEP_COMICS } from '../components/StepComics';
+import whaleCourier from '../assets/whale-courier.webp';
 
 const HOME_CATEGORIES = CATEGORIES.filter((c) => c !== 'Other');
 
@@ -108,8 +109,9 @@ export default function BuyerHome() {
           </h2>
           <p className="cta-body">{t('home.requestBody')}</p>
           <div className="cta-actions">
-            <Link to={`/requests/new?country=${country}`} className="cta-btn">
-              {t('home.ctaBtn')} <ArrowRight size={20} />
+            <Link to={`/requests/new?country=${country}`} className="whale-btn">
+              <img src={whaleCourier} alt="" className="whale-btn-art" />
+              <span className="whale-btn-label">{t('home.ctaBtn')} <ArrowRight size={22} aria-hidden /></span>
             </Link>
           </div>
         </div>

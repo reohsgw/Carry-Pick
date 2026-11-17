@@ -82,7 +82,7 @@ const en = {
   'home.order': '1 order',
   'home.browse': 'All offers from {country}',
   'home.requestTitle': "Can't find it?",
-  'home.requestBody': 'Post what you want with a budget. A traveler going there can take it on.',
+  'home.requestBody': 'Post what you want with a budget, a traveler going there can take it on!',
   'home.requestCta': 'Post a request',
 
   'country.all': 'All',

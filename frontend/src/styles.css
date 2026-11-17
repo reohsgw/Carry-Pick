@@ -8889,45 +8889,41 @@ select:not([multiple]) {
 .cta-panel p.cta-bubble {
   position: relative;
   display: inline-block;
-  margin: 0 0 24px 4px;
-  padding: 8px 20px;
+  margin: 0 0 20px;
+  padding: 6px 14px;
   background: #FFFCF6;
-  border: 3px solid #2E3A46;
-  border-radius: 999px;
-  box-shadow: 4px 4px 0 #2E3A46;
-  transform: rotate(-3deg);
-  font-size: 22px;
-  line-height: 28px;
-  font-weight: 800;
-  color: var(--c-primary);
+  border: 1.5px solid #2E3A46;
+  border-radius: 10px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: #9E4B37;
 }
 .cta-panel p.cta-bubble::after {
   content: '';
   position: absolute;
-  left: 28px;
-  bottom: -14px;
-  width: 18px;
-  height: 18px;
+  left: 18px;
+  bottom: -6.5px;
+  width: 10px;
+  height: 10px;
   background: #FFFCF6;
-  border-right: 3px solid #2E3A46;
-  border-bottom: 3px solid #2E3A46;
-  transform: skewX(25deg) rotate(45deg);
+  border-right: 1.5px solid #2E3A46;
+  border-bottom: 1.5px solid #2E3A46;
+  transform: rotate(45deg);
 }
 .cta-panel h2.cta-title {
   margin: 0;
   font-size: clamp(36px, 4.2vw, 56px);
   line-height: 1.12;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
   color: #2E3A46;
 }
 html:lang(ko) .cta-panel h2.cta-title { font-size: clamp(30px, 3.4vw, 46px); line-height: 1.25; }
 .cta-title mark {
-  padding: 0 4px;
-  color: inherit;
-  background: linear-gradient(transparent 58%, #E3B94F 58%, #E3B94F 92%, transparent 92%);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
+  padding: 0;
+  color: #9E4B37;
+  background: none;
 }
 .cta-panel p.cta-body {
   margin: 16px 0 0;
@@ -9316,7 +9312,7 @@ html:lang(ko) .cta-panel h2.cta-title { font-size: clamp(30px, 3.4vw, 46px); lin
 
 /* Phone: "Can't find it?" panel — steps as compact rows so all three fit on one screen */
 @media (max-width: 599.98px) {
-  .cta-panel p.cta-bubble { margin-bottom: 18px; padding: 6px 16px; font-size: 18px; line-height: 24px; }
+  .cta-panel p.cta-bubble { margin-bottom: 16px; font-size: 15px; }
   .cta-panel h2.cta-title { font-size: 30px; }
   html:lang(ko) .cta-panel h2.cta-title { font-size: 26px; }
   .cta-panel p.cta-body { font-size: 16px; line-height: 24px; }
@@ -9385,3 +9381,117 @@ img.step-comic { aspect-ratio: 1 / 1; object-fit: cover; }
 @media (min-width: 1024px) {
   .cta-panel p.cta-body { white-space: nowrap; }
 }
+
+/* "Create a request" button with the whale courier.
+   The whale art carries the pill's left end; the rest of the pill is drawn here,
+   with its top, bottom and border matched to the art at any --h. */
+.whale-btn {
+  --h: 70px;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  height: var(--h);
+  padding: calc(var(--h) * 0.1) calc(var(--h) * 0.42) 0 calc(var(--h) * 1.42);
+  color: #1f2430;
+  text-decoration: none;
+  transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.whale-btn::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: calc(var(--h) * 0.6);
+  right: 0;
+  top: calc(var(--h) * 0.145);
+  bottom: calc(var(--h) * 0.045);
+  background: #f7e4c4;
+  border: calc(var(--h) * 0.036) solid #2e3a4f;
+  border-radius: 999px;
+  box-shadow: 0 calc(var(--h) * 0.019) 0 #2e3a4f;
+}
+.whale-btn-art {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: auto;
+  pointer-events: none;
+}
+.whale-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-size: calc(var(--h) * 0.29);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.whale-btn-label svg { transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.whale-btn:hover { transform: translateY(-2px); }
+.whale-btn:hover .whale-btn-label svg { transform: translateX(3px); }
+.whale-btn:active { transform: translateY(1px); }
+.whale-btn:focus-visible { outline: none; }
+.whale-btn:focus-visible::before { outline: 2px solid var(--c-focus, #2E3A46); outline-offset: 3px; }
+@media (max-width: 599.98px) {
+  .whale-btn { --h: 60px; }
+}
+
+/* Plain blue ground for the request block: no paper texture, and it sits above
+   the page-wide line overlay (.app::before) so the lines stop where the blue starts */
+.cta-panel {
+  position: relative;
+  z-index: 1;
+  background-color: #D7E1DD !important;
+  background-image: none !important;
+}
+
+/* Notification box as one torn sheet of paper (the same paper as the cards),
+   with a strip of tape at the top in place of the arrow. The paper is drawn on
+   ::after so its torn edge can be clipped while the shadow and tape stay whole. */
+.notif-pop {
+  isolation: isolate;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 14px 22px rgb(46 58 70 / 0.2)) drop-shadow(0 2px 3px rgb(46 58 70 / 0.1));
+}
+.notif-pop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: #E9D9C4;
+  background-image:
+    linear-gradient(112deg, transparent 0 22%, rgb(122 106 88 / 0.05) 22.6%, transparent 23.2% 52%, rgb(255 255 255 / 0.22) 52.5%, transparent 53.4%), linear-gradient(rgb(255 255 255 / 0.19), rgb(255 255 255 / 0.19)), var(--paper-fiber-light), linear-gradient(#E9D9C4, #E9D9C4);
+  background-blend-mode: soft-light, screen, multiply, multiply, normal;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -10px 24px rgb(160 126 87 / 0.07);
+  clip-path: var(--torn);
+}
+.notif-pop::before {
+  left: 50% !important;
+  right: auto !important;
+  top: -11px !important;
+  width: 92px !important;
+  height: 24px !important;
+  margin-left: -46px;
+  transform: rotate(-2.5deg) !important;
+  background: rgb(227 185 79 / 0.6) !important;
+  border: 0 !important;
+  z-index: 2;
+}
+.notif-pop-head { padding-top: 18px !important; }
+
+/* Inside the box everything is plain: no second paper card */
+.notif-pop .empty {
+  margin: 0 !important;
+  padding: 32px 16px 40px !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+}
+.notif-pop .notif { background: none !important; }
+.notif-pop a.notif:hover { background: rgb(255 255 255 / 0.28) !important; }
