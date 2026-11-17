@@ -81,6 +81,9 @@ export function RequestCard({ request, to }: { request: PurchaseRequest; to: str
   const left = daysUntil(request.deadline);
   return (
     <article className="request-card">
+      {request.status === 'MATCHED' && (
+        <span className="corner-ribbon"><span>{t('req.ribbon.inProgress')}</span></span>
+      )}
       <div className="request-head">
         <ProductThumb src={request.imageUrl} size={72} />
         <div className="grow">

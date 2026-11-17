@@ -206,6 +206,7 @@ const en = {
   'req.status.MATCHED': 'Matched',
   'req.status.EXPIRED': 'Expired',
   'req.status.CANCELLED': 'Withdrawn',
+  'req.ribbon.inProgress': 'In progress',
 
   'order.title': 'Order',
   'order.no': 'Order no.',
@@ -821,6 +822,7 @@ const ko: Record<Key, string> = {
   'req.status.MATCHED': '매칭됨',
   'req.status.EXPIRED': '기한 만료',
   'req.status.CANCELLED': '철회됨',
+  'req.ribbon.inProgress': '진행 중',
 
   'order.title': '주문',
   'order.no': '주문 번호',

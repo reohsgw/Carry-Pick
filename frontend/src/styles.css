@@ -9345,3 +9345,35 @@ html:lang(ko) .cta-panel h2.cta-title { font-size: clamp(30px, 3.4vw, 46px); lin
     line-height: 22px;
   }
 }
+
+/* "In progress" corner ribbon on matched request cards */
+.request-card { position: relative; }
+.corner-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 112px;
+  height: 112px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.corner-ribbon > span {
+  position: absolute;
+  top: 26px;
+  right: -34px;
+  width: 150px;
+  padding: 5px 0;
+  transform: rotate(45deg);
+  background: #9E4B37;
+  color: #F4ECDD;
+  box-shadow: 0 2px 4px rgb(46 58 70 / 0.25);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+html:lang(ko) .corner-ribbon > span { letter-spacing: 0; font-size: 12px; }
+.request-card:has(.corner-ribbon) .request-head .grow { padding-right: 40px; }
