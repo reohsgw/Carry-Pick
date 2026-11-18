@@ -84,7 +84,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
               {orders.isLoading && <Loading />}
               {orders.error && <ErrorBox error={orders.error} onRetry={() => orders.refetch()} />}
               {orders.data && groups[tab].length === 0 && (
-                <Empty icon={Package} title={tab === 'active' ? t('orders.emptyActive') : t('orders.empty')}>
+                <Empty icon={Package} title={t(({ all: 'orders.empty', active: 'orders.emptyActive', done: 'orders.emptyDone', cancelled: 'orders.emptyCancelled' } as const)[tab])}>
                   {buyer && <Link to="/" className="btn btn-primary">{t('orders.find')}</Link>}
                   {!buyer && <Link to="/t/requests" className="btn btn-primary">{t('orders.seeRequests')}</Link>}
                 </Empty>

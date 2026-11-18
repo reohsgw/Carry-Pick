@@ -33,7 +33,7 @@ function moodFor(icon?: LucideIcon): Mood {
   if (icon === SearchX) return 'question';
   if (icon === Package) return 'sleep';
   if (icon === ClipboardList) return 'shop';
-  if (icon === Bell) return 'happy';
+  if (icon === Bell) return 'sleep';
   if (icon === Plane || icon === MapPinned) return 'fly';
   return 'question';
 }
