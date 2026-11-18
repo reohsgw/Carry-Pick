@@ -69,7 +69,7 @@ export default function OfferForm() {
   });
   const close = useMutation({
     mutationFn: () => api.closeOffer(editId!),
-    onSuccess: () => { qc.invalidateQueries(); navigate('/t', { replace: true }); },
+    onSuccess: () => { qc.invalidateQueries(); navigate('/me', { replace: true }); },
   });
 
   function submit(e: FormEvent) {

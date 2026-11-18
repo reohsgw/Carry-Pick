@@ -19,7 +19,7 @@ export default function RequestBoard() {
         <p className="eyebrow">{t('rb.eyebrow')}</p>
         <h1 className="page-title font-display">{t('rb.title')}</h1>
         <p className="page-copy">{t('rb.copy')}</p>
-        <Link to="/t" className="btn btn-quiet btn-small" style={{ marginTop: 16 }}>{t('td.pill')} <ArrowRight size={15} /></Link>
+        <Link to="/me" className="btn btn-quiet btn-small" style={{ marginTop: 16 }}>{t('t.trips')} <ArrowRight size={15} /></Link>
       </div>
 
       {trips.data && trips.data.length > 0 && (

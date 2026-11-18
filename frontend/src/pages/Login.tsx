@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowRight, Plane, ShoppingBag } from '../components/icons';
 import { api } from '../api';
 import { Wordmark } from '../components/Layout';
-import { Field, Notice } from '../components/ui';
+import { Field, Mascot, Notice } from '../components/ui';
 import { LangToggle, useErrorText, useI18n } from '../i18n';
 import { IMAGES } from '../images';
 import { useSession } from '../session';
@@ -55,6 +55,7 @@ export default function Login() {
       </div>
 
       <div className="auth-body">
+        <Mascot mood="happy" className="auth-whale" />
         <p className="eyebrow">{signup ? t('login.eyebrowUp') : t('login.eyebrowIn')}</p>
         <h2 className="font-display">{signup ? t('login.titleUp') : t('login.titleIn')}</h2>
         <p className="auth-copy">{signup ? t('login.copyUp') : t('login.copyIn')}</p>

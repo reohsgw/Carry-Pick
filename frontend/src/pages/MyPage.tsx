@@ -1,23 +1,46 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Camera, ChevronRight, ClipboardList, LogOut, MapPinned, Package } from '../components/icons';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Bell, Camera, ChevronRight, ClipboardList, LogOut, MapPinned, Package, Plane, Plus, ShoppingBag, Ticket,
+} from '../components/icons';
 import { api } from '../api';
+import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
-import { Avatar, Notice, Sheet, Tag } from '../components/ui';
-import { LangToggle, useErrorText, useI18n } from '../i18n';
+import { Avatar, Loading, Mascot, Notice, ProductThumb, Tag } from '../components/ui';
+import { ACTIVE_STATUSES, countryName, daysUntil, krw, shortDate } from '../format';
+import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
+/** "My" tab, modelled on 당근's 나의 당근: profile, rewards, trade shortcuts, my trips & offers, account menu. */
 export default function MyPage() {
   const { user, logout, unread, config, refreshMe } = useSession();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const errText = useErrorText();
   const navigate = useNavigate();
+  const route = useRoute();
   const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const trips = useQuery({ queryKey: ['myTrips'], queryFn: api.myTrips });
+  const offers = useQuery({ queryKey: ['myOffers'], queryFn: api.myOffers });
+  const carrying = useQuery({ queryKey: ['myOrders', 'traveler'], queryFn: () => api.myOrders('traveler') });
+  const buying = useQuery({ queryKey: ['myOrders', 'buyer'], queryFn: () => api.myOrders('buyer') });
+  const requests = useQuery({ queryKey: ['myRequests'], queryFn: api.myRequests });
   if (!user) return null;
+
+  const carryActive = (carrying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status));
+  const pending = carryActive
+    .filter((o) => ['PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED'].includes(o.status))
+    .reduce((sum, o) => sum + o.reward, 0);
+  const earned = (carrying.data ?? []).filter((o) => o.status === 'SETTLED').reduce((sum, o) => sum + o.reward, 0);
+  const buyActive = (buying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status)).length;
+  const openRequests = (requests.data ?? []).filter((r) => r.status === 'OPEN').length;
+  const next = trips.data?.[0];
+  const dates = (a: string, b: string) => `${shortDate(a, lang)} – ${shortDate(b, lang)}`;
 
   async function changePhoto(file: File | undefined) {
     if (!file) return;
@@ -50,80 +73,162 @@ export default function MyPage() {
     }
   }
 
+  const shortcuts: { to: string; icon: typeof Package; label: string; count?: number }[] = [
+    { to: '/orders', icon: ShoppingBag, label: t('kt.buyHistory'), count: buyActive },
+    { to: '/t/orders', icon: Package, label: t('kt.history'), count: carryActive.length },
+    { to: '/orders?tab=requests', icon: ClipboardList, label: t('me.requests'), count: openRequests },
+    { to: '#kt-trips', icon: Plane, label: t('t.trips'), count: trips.data?.length },
+  ];
+
   return (
-    <Screen title={t('me.title')}>
-      <div className="profile">
-        <div className="profile-photo">
-          <Avatar name={user.name} src={user.avatarUrl} className="is-profile" />
-          <button
-            type="button"
-            className="profile-photo-btn"
-            aria-label={user.avatarUrl ? t('me.photoChange') : t('me.photoAdd')}
-            disabled={busy}
-            onClick={() => fileInput.current?.click()}
-          >
-            <Camera size={16} aria-hidden />
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            hidden
-            onChange={(e) => changePhoto(e.target.files?.[0])}
-          />
-        </div>
-        <div className="grow">
-          <div className="profile-name">{user.name}</div>
-          <div className="profile-email">{user.email}</div>
-          <div className="profile-photo-actions">
-            <button type="button" className="text-btn" disabled={busy} onClick={() => fileInput.current?.click()}>
-              {busy ? t('me.photoSaving') : user.avatarUrl ? t('me.photoChange') : t('me.photoAdd')}
+    <Screen>
+      <div className="kt">
+        <div className="kt-aside">
+          {/* Profile */}
+          <section className="kt-sheet kt-profile">
+            <div className="kt-photo">
+              <Avatar size={64} name={user.name} src={user.avatarUrl} />
+              <button
+                type="button"
+                className="kt-photo-btn"
+                aria-label={user.avatarUrl ? t('me.photoChange') : t('me.photoAdd')}
+                disabled={busy}
+                onClick={() => fileInput.current?.click()}
+              >
+                <Camera size={14} aria-hidden />
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                hidden
+                onChange={(e) => changePhoto(e.target.files?.[0])}
+              />
+            </div>
+            <div className="kt-profile-text">
+              <h1>{firstName(user.name)} {user.test && <Tag tone="action">{t('me.test')}</Tag>}</h1>
+              <p>{next ? t('kt.nextTrip', { route: route(next.city, next.countryCode), dates: dates(next.departDate, next.returnDate) }) : user.email}</p>
+              {user.avatarUrl && !busy && (
+                <button type="button" className="kt-text-btn" onClick={removePhoto}>{t('me.photoRemove')}</button>
+              )}
+            </div>
+          </section>
+
+          {error && <Notice tone="bad">{error}</Notice>}
+
+          {/* Rewards wallet, like 당근페이 */}
+          <section className="kt-sheet kt-wallet">
+            <Mascot className="kt-whale" />
+            <span className="kt-wallet-title"><Ticket size={18} aria-hidden /> {t('kt.wallet')}</span>
+            <div className="kt-wallet-sums">
+              <div><span>{t('kt.pending')}</span><strong>{krw(pending)}</strong></div>
+              <div><span>{t('kt.earned')}</span><strong>{krw(earned)}</strong></div>
+            </div>
+            <div className="kt-wallet-actions">
+              <Link to="/t/trips/new" className="kt-btn"><Plus size={16} aria-hidden /> {t('t.addTrip')}</Link>
+              <Link to={next ? `/t/offers/new?trip=${next.id}` : '/t/offers/new'} className="kt-btn is-solid">{t('t.offerItem')}</Link>
+            </div>
+          </section>
+
+          {/* Trade shortcuts, like 나의 거래 */}
+          <section className="kt-sheet kt-shortcuts">
+            <h2 className="kt-label">{t('kt.myCarry')}</h2>
+            <div className="kt-shortcut-row">
+              {shortcuts.map(({ to, icon: Icon, label, count }) => {
+                const inner = (
+                  <>
+                    <span className="kt-shortcut-icon"><Icon size={24} aria-hidden />{!!count && <em>{count}</em>}</span>
+                    <span>{label}</span>
+                  </>
+                );
+                return to.startsWith('#')
+                  ? <a key={to} href={to} className="kt-shortcut">{inner}</a>
+                  : <Link key={to} to={to} className="kt-shortcut">{inner}</Link>;
+              })}
+            </div>
+          </section>
+
+          {/* Account menu */}
+          <section className="kt-sheet kt-menu">
+            <h2 className="kt-label">{t('kt.account')}</h2>
+            <div className="kt-menu-row">
+              <span>{t('lang.label')}</span>
+              <LangToggle />
+            </div>
+            <Link to="/notifications">
+              <Bell size={20} aria-hidden /> <span>{t('me.notifications')}</span>
+              {unread > 0 && <span className="dot is-inline">{unread}</span>}
+              <ChevronRight size={18} aria-hidden />
+            </Link>
+            <button type="button" className="is-danger" onClick={() => { logout(); navigate('/login', { replace: true }); }}>
+              <LogOut size={20} aria-hidden /> <span>{t('me.logout')}</span>
             </button>
-            {user.avatarUrl && !busy && (
-              <button type="button" className="text-btn is-muted" onClick={removePhoto}>{t('me.photoRemove')}</button>
-            )}
-          </div>
+          </section>
         </div>
-        {user.test && <Tag tone="action">{t('me.test')}</Tag>}
+
+        <div className="kt-main">
+          {/* Trips */}
+          <KtSection id="kt-trips" title={t('t.trips')} aside={<Link to="/t/trips/new" className="kt-more"><Plus size={15} aria-hidden /> {t('t.addTrip')}</Link>}>
+            {trips.isLoading && <Loading />}
+            {trips.data?.length === 0 && (
+              <div className="kt-empty">
+                <p>{t('t.noTrips')}</p>
+                <Link to="/t/trips/new" className="kt-btn is-solid">{t('t.registerTrip')}</Link>
+              </div>
+            )}
+            {trips.data?.map((tr) => {
+              const d = daysUntil(tr.departDate);
+              return (
+                <div key={tr.id} className="kt-item kt-trip">
+                  <span className="kt-trip-icon"><MapPinned size={22} aria-hidden /></span>
+                  <div className="kt-item-body">
+                    <h3>{route(tr.city, tr.countryCode)}</h3>
+                    <p className="kt-meta">{dates(tr.departDate, tr.returnDate)}{tr.luggageNote ? ` · ${tr.luggageNote}` : ''}</p>
+                    <div className="kt-item-line">
+                      <Tag tone={d > 0 ? 'progress' : 'neutral'}>{d > 0 ? t('t.inDays', { n: d }) : t('t.onTrip')}</Tag>
+                      {d > 0 && <Link to={`/t/offers/new?trip=${tr.id}`} className="kt-inline-link">{t('t.offerItem')} <ChevronRight size={14} aria-hidden /></Link>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </KtSection>
+
+          {/* Offers */}
+          <KtSection id="kt-offers" title={t('t.offers')} aside={<Link to="/t/offers/new" className="kt-more"><Plus size={15} aria-hidden /> {t('t.newOffer')}</Link>}>
+            {offers.data?.length === 0 && <p className="kt-empty">{t('t.noOffers')}</p>}
+            {offers.data?.map((o) => (
+              <Link key={o.id} to={`/offers/${o.id}`} className="kt-item">
+                <ProductThumb src={o.imageUrl} category={o.category} size={96} />
+                <div className="kt-item-body">
+                  <h3>{o.productName}</h3>
+                  <p className="kt-meta">{countryName(config, o.countryCode, lang)} · {t('country.backOn', { date: shortDate(o.trip.returnDate, lang) })}</p>
+                  <div className="kt-item-line">
+                    {o.status !== 'ACTIVE' && <Tag>{t(`offer.status.${o.status}` as Key)}</Tag>}
+                    <strong>{krw(o.unitQuote.total)}</strong>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </KtSection>
+        </div>
       </div>
 
-      {error && <Notice tone="bad">{error}</Notice>}
-
-      <Sheet title={t('lang.label')} aside={<LangToggle />} />
-
-      <Sheet flush>
-        <div className="rows">
-          <Link to="/notifications" className="row menu-row">
-            <Bell size={20} strokeWidth={1.75} aria-hidden />
-            <span className="row-body">{t('me.notifications')}</span>
-            {unread > 0 && <span className="dot is-inline">{unread}</span>}
-            <ChevronRight size={18} className="row-chevron" aria-hidden />
-          </Link>
-          <Link to="/orders" className="row menu-row">
-            <Package size={20} strokeWidth={1.75} aria-hidden />
-            <span className="row-body">{t('me.orders')}</span>
-            <ChevronRight size={18} className="row-chevron" aria-hidden />
-          </Link>
-          <Link to="/orders?tab=requests" className="row menu-row">
-            <ClipboardList size={20} strokeWidth={1.75} aria-hidden />
-            <span className="row-body">{t('me.requests')}</span>
-            <ChevronRight size={18} className="row-chevron" aria-hidden />
-          </Link>
-          <Link to="/t/trips/new" className="row menu-row">
-            <MapPinned size={20} strokeWidth={1.75} aria-hidden />
-            <span className="row-body">{t('me.addTrip')}</span>
-            <ChevronRight size={18} className="row-chevron" aria-hidden />
-          </Link>
-          <button className="row menu-row danger" onClick={() => { logout(); navigate('/login', { replace: true }); }}>
-            <LogOut size={20} strokeWidth={1.75} aria-hidden />
-            <span className="row-body">{t('me.logout')}</span>
-          </button>
-        </div>
-      </Sheet>
-
-      <p className="fine center">
+      <p className="fine center kt-footer">
         {t('me.footer', { mode: config?.paymentMode === 'toss' ? t('me.modeToss') : t('me.modeMock') })}
       </p>
     </Screen>
+  );
+}
+
+function KtSection({ id, title, aside, children }: { id: string; title: string; aside?: ReactNode; children: ReactNode }) {
+  return (
+    <section id={id} className="kt-sheet kt-section">
+      <header className="kt-section-head">
+        <h2>{title}</h2>
+        {aside}
+      </header>
+      <div className="kt-items">{children}</div>
+    </section>
   );
 }

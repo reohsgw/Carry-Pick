@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, CircleCheck } from '../components/icons';
 import { api, type Order } from '../api';
 import { Screen } from '../components/Layout';
-import { Loading } from '../components/ui';
+import { Loading, Mascot } from '../components/ui';
 import { krw } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 
@@ -68,7 +67,7 @@ export default function PayResult({ success }: { success: boolean }) {
       {state === 'working' && <Loading label={t('pay.confirming')} />}
       {state === 'ok' && (
         <div className="result">
-          <CircleCheck size={48} strokeWidth={1.5} className="result-icon is-good" aria-hidden />
+          <Mascot mood="love" className="result-whale mascot-float" size={150} />
           <h2 className="font-display">{t('pay.done')}</h2>
           {order && <p className="result-amount">{krw(lastPaid ?? order.initialCharge)}</p>}
           <p className="result-body">{paidExtra ? t('pay.doneExtra') : t('pay.doneBody')}</p>
@@ -76,7 +75,7 @@ export default function PayResult({ success }: { success: boolean }) {
       )}
       {state === 'failed' && (
         <div className="result">
-          <CircleAlert size={48} strokeWidth={1.5} className="result-icon is-bad" aria-hidden />
+          <Mascot mood="alert" className="result-whale" size={130} />
           <h2 className="font-display">{t('pay.failed')}</h2>
           <p className="result-body">{message ?? t('pay.failedBody')}</p>
         </div>

@@ -25,7 +25,7 @@ export default function NewTrip() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myTrips'] });
       qc.invalidateQueries({ queryKey: ['board'] });
-      navigate('/t', { replace: true });
+      navigate('/me', { replace: true });
     },
   });
 

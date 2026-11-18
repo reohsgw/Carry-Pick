@@ -6,7 +6,7 @@ import HeroLogo from '../components/HeroLogo';
 import { api } from '../api';
 import { OfferCard, ProductCard } from '../components/cards';
 import { Screen } from '../components/Layout';
-import { ErrorBox, Loading, SectionHeading, categoryIcon } from '../components/ui';
+import { ErrorBox, Loading, Mascot, SectionHeading, categoryIcon } from '../components/ui';
 import { ALL_COUNTRIES, CATEGORIES, countryName, displayCode } from '../format';
 import { HERO_LANDMARKS } from '../images';
 import { useI18n } from '../i18n';
@@ -35,6 +35,7 @@ export default function BuyerHome() {
       <section className="hero-section">
         <div className="hero-inner">
           <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
+          <Mascot className="hero-whale" />
           <p className="hero-body">{t('home.heroBody')}</p>
           <form
             className="hero-search"

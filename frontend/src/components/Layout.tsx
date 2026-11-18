@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, Home, Menu, Plane, Search, ShoppingBag, Ticket, User, X } from './icons';
+import { Bell, ChevronLeft, Home, Menu, ClipboardList, Search, ShoppingBag, Ticket, User, X } from './icons';
 import { useI18n } from '../i18n';
 import { assetUrl } from '../api';
 import { useSession } from '../session';
@@ -86,14 +86,16 @@ function useNav() {
   const { t } = useI18n();
   const { pathname } = useLocation();
   if (!user) return null;
-  const carrying = pathname.startsWith('/t/orders');
+  const orders = pathname.startsWith('/orders') || pathname.startsWith('/t/orders') || pathname.startsWith('/my-requests');
   const offers = pathname === '/offers' || pathname.startsWith('/country/');
+  const requests = pathname.startsWith('/t/requests');
+  const me = pathname === '/me' || pathname.startsWith('/t/trips') || pathname.startsWith('/t/offers');
   return [
     { to: '/', label: t('nav.discover'), icon: Home, end: true },
     { to: '/offers', label: t('nav.offers'), icon: Ticket, end: true, active: offers || undefined },
-    { to: '/t', label: t('nav.travel'), icon: Plane, active: carrying ? false : undefined },
-    { to: '/orders', label: t('nav.orders'), icon: ShoppingBag, active: carrying || undefined },
-    { to: '/me', label: t('nav.me'), icon: User, mobileOnly: true },
+    { to: '/t/requests', label: t('nav.requests'), icon: ClipboardList, active: requests || undefined },
+    { to: '/orders', label: t('nav.orders'), icon: ShoppingBag, active: orders || undefined },
+    { to: '/me', label: t('nav.me'), icon: User, active: me || undefined },
   ];
 }
 

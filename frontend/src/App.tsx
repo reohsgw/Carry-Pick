@@ -20,7 +20,6 @@ import PayResult from './pages/PayResult';
 import RequestBoard from './pages/RequestBoard';
 import RequestDetail from './pages/RequestDetail';
 import Search from './pages/Search';
-import TravelerHome from './pages/TravelerHome';
 import TravelerOffers from './pages/TravelerOffers';
 
 export default function App() {
@@ -43,7 +42,7 @@ export default function App() {
         <Route path="/pay/success" element={<RequireAuth><PayResult success /></RequireAuth>} />
         <Route path="/pay/fail" element={<RequireAuth><PayResult success={false} /></RequireAuth>} />
 
-        <Route path="/t" element={<RequireAuth><TravelerHome /></RequireAuth>} />
+        <Route path="/t" element={<Navigate to="/me" replace />} />
         <Route path="/t/trips/new" element={<RequireAuth><NewTrip /></RequireAuth>} />
         <Route path="/t/offers/new" element={<RequireAuth><OfferForm /></RequireAuth>} />
         <Route path="/t/offers/:id/edit" element={<RequireAuth><OfferForm /></RequireAuth>} />

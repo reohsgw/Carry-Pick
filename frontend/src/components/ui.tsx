@@ -1,18 +1,48 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
-  AlertCircle, Camera, Cookie, Headphones, Lamp, Package, Shirt, ShoppingBag, Sparkles, UtensilsCrossed,
-  type Icon as LucideIcon,
+  Bell, Camera, ClipboardList, Cookie, Headphones, Lamp, MapPinned, Package, Plane, SearchX, Shirt, ShoppingBag,
+  Sparkles, UtensilsCrossed, type Icon as LucideIcon,
 } from './icons';
 import { api, assetUrl, type OrderStatus } from '../api';
 import { STATUS_TONE } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { productPhoto } from '../images';
+import whaleFly from '../assets/whale-mascot.webp';
+import whaleHappy from '../assets/whale-happy.webp';
+import whaleQuestion from '../assets/whale-question.webp';
+import whaleLove from '../assets/whale-love.webp';
+import whaleAlert from '../assets/whale-alert.webp';
+import whaleShop from '../assets/whale-shop.webp';
+import whaleUnbox from '../assets/whale-unbox.webp';
+import whaleSleep from '../assets/whale-sleep.webp';
+
+/** The courier whale's moods. */
+export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep';
+const MOODS: Record<Mood, string> = {
+  fly: whaleFly, happy: whaleHappy, question: whaleQuestion, love: whaleLove,
+  alert: whaleAlert, shop: whaleShop, unbox: whaleUnbox, sleep: whaleSleep,
+};
+
+/** CarryPick's courier whale. Decorative, so hidden from screen readers. */
+export function Mascot({ mood = 'fly', className = '', size }: { mood?: Mood; className?: string; size?: number }) {
+  return <img src={MOODS[mood]} alt="" aria-hidden className={`mascot is-${mood} ${className}`.trim()} style={size ? { width: size } : undefined} />;
+}
+
+/** Picks a fitting mood from the icon an empty state was given. */
+function moodFor(icon?: LucideIcon): Mood {
+  if (icon === SearchX) return 'question';
+  if (icon === Package) return 'sleep';
+  if (icon === ClipboardList) return 'shop';
+  if (icon === Bell) return 'happy';
+  if (icon === Plane || icon === MapPinned) return 'fly';
+  return 'question';
+}
 
 export function Loading({ label }: { label?: string }) {
   const { t } = useI18n();
   return (
-    <div className="state" role="status">
-      <span className="spinner" aria-hidden /> {label ?? t('common.loading')}
+    <div className="state is-whale" role="status">
+      <Mascot className="mascot-swim" size={64} /> {label ?? t('common.loading')}
     </div>
   );
 }
@@ -21,8 +51,8 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
   const { t } = useI18n();
   const text = useErrorText();
   return (
-    <div className="notice is-bad" role="alert">
-      <AlertCircle size={18} aria-hidden />
+    <div className="notice is-bad has-whale" role="alert">
+      <Mascot mood="alert" size={44} />
       <span className="grow">{text(error)}</span>
       {onRetry && <button className="link" onClick={onRetry}>{t('common.retry')}</button>}
     </div>
@@ -38,10 +68,11 @@ export function Notice({ tone = 'info', icon: Icon, children }: { tone?: 'info' 
   );
 }
 
-export function Empty({ icon: Icon = Package, title, children }: { icon?: LucideIcon; title: string; children?: ReactNode }) {
+// `icon` is kept so existing call sites still type-check; the whale replaces it visually.
+export function Empty({ icon, mood, title, children }: { icon?: LucideIcon; mood?: Mood; title: string; children?: ReactNode }) {
   return (
-    <div className="empty">
-      <Icon size={26} strokeWidth={1.6} aria-hidden />
+    <div className="empty has-mascot">
+      <Mascot mood={mood ?? moodFor(icon)} className="mascot-float" size={130} />
       <p className="empty-title">{title}</p>
       {children}
     </div>
