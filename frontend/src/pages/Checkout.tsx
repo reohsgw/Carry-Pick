@@ -1,18 +1,23 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../api';
-import { OrderHero, ReceiptStrip } from '../components/cards';
-import { Screen } from '../components/Layout';
+import { firstName, ReceiptStrip, useRoute } from '../components/cards';
+import { DetailLayout, Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
-import { ActionBar, ErrorBox, Loading, Notice } from '../components/ui';
-import { krw } from '../format';
-import { useI18n } from '../i18n';
-import { useSession } from '../session';
+import { Avatar, ErrorBox, Loading, Mascot, Notice, ProductThumb, Sheet, StatusBadge, type Mood } from '../components/ui';
+import { krw, shortDate } from '../format';
+import { useI18n, type Key } from '../i18n';
+
+const STEPS: { mood: Mood; key: Key }[] = [
+  { mood: 'happy', key: 'pay.s1' },
+  { mood: 'shop', key: 'pay.s2' },
+  { mood: 'unbox', key: 'pay.s3' },
+];
 
 export default function Checkout() {
   const id = Number(useParams().id);
-  const { config } = useSession();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const route = useRoute();
   const navigate = useNavigate();
   const order = useQuery({ queryKey: ['order', id], queryFn: () => api.order(id) });
   const payment = usePayment(id);
@@ -22,36 +27,74 @@ export default function Checkout() {
 
   const o = order.data;
   const payable = o.myRole === 'BUYER' && (o.status === 'PENDING_PAYMENT' || o.status === 'PAYMENT_FAILED');
+  const traveler = firstName(o.traveler.name);
+
+  const payButton = payable ? (
+    <button className="btn btn-primary btn-block btn-tall" disabled={payment.busy}
+      onClick={() => payment.start(() => api.preparePayment(o.id))}>
+      {payment.busy ? t('pay.opening') : t('pay.pay', { amount: krw(o.initialCharge) })}
+    </button>
+  ) : (
+    <button className="btn btn-quiet btn-block" onClick={() => navigate(`/orders/${o.id}`)}>{t('pay.viewOrder')}</button>
+  );
 
   return (
-    <Screen back={`/orders/${o.id}`} title={t('pay.title')} hideNav>
-      <OrderHero order={o} />
+    <Screen back={`/orders/${o.id}`} title={t('pay.title')} hideNav wide>
+      <div className="whale-say of-hello">
+        <Mascot mood="love" className="whale-say-whale" size={100} />
+        <div className="whale-say-bubble">
+          <p>{payable ? t('pay.hello', { name: traveler }) : t('pay.notPayable')}</p>
+        </div>
+      </div>
 
-      <aside className="summary-card pull-up">
-        <div className="summary-head"><h2>{t('pay.heading')}</h2></div>
-        <ReceiptStrip
-          quote={{ budget: o.budget, reward: o.reward, fee: o.fee, tax: o.tax, total: o.initialCharge }}
-          budgetLabel={o.source === 'REQUEST' ? t('price.itemBudget') : t('price.itemEstimate')}
-          note={t('pay.note')}
-        />
-      </aside>
-
-      {o.status === 'PAYMENT_FAILED' && <Notice tone="bad">{t('pay.failedBefore')}</Notice>}
-      {!payable && <Notice>{t('pay.notPayable')}</Notice>}
-      {payment.error && <Notice tone="bad">{payment.error}</Notice>}
-
-      <p className="fine center">{config?.paymentMode === 'toss' ? t('pay.modeToss') : t('pay.modeMock')}</p>
-
-      <ActionBar>
-        {payable ? (
-          <button className="btn btn-primary btn-block btn-tall" disabled={payment.busy}
-            onClick={() => payment.start(() => api.preparePayment(o.id))}>
-            {payment.busy ? t('pay.opening') : t('pay.pay', { amount: krw(o.initialCharge) })}
-          </button>
-        ) : (
-          <button className="btn btn-quiet btn-block" onClick={() => navigate(`/orders/${o.id}`)}>{t('pay.viewOrder')}</button>
+      <DetailLayout
+        actions={payButton}
+        aside={(
+          <>
+            <aside className="summary-card">
+              <div className="summary-head"><h2>{t('pay.heading')}</h2></div>
+              <ReceiptStrip
+                quote={{ budget: o.budget, reward: o.reward, fee: o.fee, tax: o.tax, total: o.initialCharge }}
+                budgetLabel={o.source === 'REQUEST' ? t('price.itemBudget') : t('price.itemEstimate')}
+                note={t('pay.note')}
+              />
+            </aside>
+            {o.status === 'PAYMENT_FAILED' && <Notice tone="bad">{t('pay.failedBefore')}</Notice>}
+            {payment.error && <Notice tone="bad">{payment.error}</Notice>}
+          </>
         )}
-      </ActionBar>
+      >
+        <section className="od-head">
+          <ProductThumb src={o.imageUrl} category={o.category} size={104} />
+          <div className="od-head-body">
+            <div className="od-head-top">
+              <StatusBadge status={o.status} />
+              <span className="od-code">CP-{String(o.id).padStart(5, '0')}</span>
+            </div>
+            <h1>{o.productName}{o.quantity > 1 && <span className="qty"> × {o.quantity}</span>}</h1>
+            <p className="od-meta">
+              <span>{route(null, o.countryCode)}</span>
+              {o.expectedDelivery && <span>{t('pay.arrives', { date: shortDate(o.expectedDelivery, lang) })}</span>}
+              <span className="od-person">
+                <Avatar size={20} name={o.traveler.name} src={o.traveler.avatarUrl} />
+                {t('order.traveler')} {traveler}
+              </span>
+            </p>
+          </div>
+        </section>
+
+        <Sheet title={t('pay.steps')}>
+          <ol className="pay-steps">
+            {STEPS.map((s, i) => (
+              <li key={s.key}>
+                <Mascot mood={s.mood} size={64} />
+                <span className="pay-step-n">{i + 1}</span>
+                <p>{t(s.key, { name: traveler })}</p>
+              </li>
+            ))}
+          </ol>
+        </Sheet>
+      </DetailLayout>
       {payment.sheet}
     </Screen>
   );

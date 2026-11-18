@@ -9,7 +9,7 @@ import { Screen } from '../components/Layout';
 import { ErrorBox, Loading, Mascot, SectionHeading, categoryIcon } from '../components/ui';
 import { ALL_COUNTRIES, CATEGORIES, countryName, displayCode } from '../format';
 import { HERO_LANDMARKS } from '../images';
-import { useI18n } from '../i18n';
+import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { useCountry } from '../country';
 import CountryPicker from '../components/CountryPicker';
@@ -28,7 +28,16 @@ export default function BuyerHome() {
   const offers = useQuery({ queryKey: ['offers', country], queryFn: () => api.offers(country) });
   const name = countryName(config, country, lang);
 
-  const live = (offers.data ?? []).filter((o) => o.bookable).slice(0, 8);
+  const [liveCat, setLiveCat] = useState('');
+  const [liveSort, setLiveSort] = useState<'soonest' | 'cheapest' | 'newest'>('soonest');
+  const bookable = (offers.data ?? []).filter((o) => o.bookable);
+  const liveCats = CATEGORIES.filter((c) => bookable.some((o) => (o.category ?? 'Other') === c));
+  const live = bookable
+    .filter((o) => !liveCat || (o.category ?? 'Other') === liveCat)
+    .sort((a, b) => liveSort === 'cheapest' ? a.unitQuote.total - b.unitQuote.total
+      : liveSort === 'newest' ? b.id - a.id
+        : a.trip.returnDate.localeCompare(b.trip.returnDate))
+    .slice(0, 8);
 
   return (
     <Screen flush headerExtra={<CountryPicker />}>
@@ -36,6 +45,7 @@ export default function BuyerHome() {
         <div className="hero-inner">
           <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
           <Mascot className="hero-whale" />
+          <Mascot mood="shop" className="hero-whale-2" />
           <p className="hero-body">{t('home.heroBody')}</p>
           <form
             className="hero-search"
@@ -93,7 +103,24 @@ export default function BuyerHome() {
           </div>
         </header>
         {offers.isLoading && <Loading />}
-        {offers.data && live.length === 0 && <p className="fine center">{t('home.liveEmpty', { country: name })}</p>}
+        {bookable.length > 0 && (
+          <div className="live-filters">
+            <div className="lf-chips" role="group" aria-label={t('to.category')}>
+              <button type="button" aria-pressed={!liveCat} onClick={() => setLiveCat('')}>{t('search.f.all')}</button>
+              {liveCats.map((c) => (
+                <button key={c} type="button" aria-pressed={liveCat === c} onClick={() => setLiveCat(c)}>{t(`cat.${c}` as Key)}</button>
+              ))}
+            </div>
+            <select className="search-select" aria-label={t('to.sortBy')} value={liveSort}
+              onChange={(e) => setLiveSort(e.target.value as typeof liveSort)}>
+              <option value="soonest">{t('country.sort.soonest')}</option>
+              <option value="cheapest">{t('country.sort.cheapest')}</option>
+              <option value="newest">{t('country.sort.newest')}</option>
+            </select>
+          </div>
+        )}
+        {offers.data && bookable.length === 0 && <p className="fine center">{t('home.liveEmpty', { country: name })}</p>}
+        {bookable.length > 0 && live.length === 0 && <p className="fine center">{t('search.f.none')}</p>}
         {live.length > 0 && <div className="card-grid live-grid">{live.map((o) => <OfferCard key={o.id} offer={o} />)}</div>}
         {live.length > 0 && (
           <Link to={`/country/${country}`} className="link-button center-block">

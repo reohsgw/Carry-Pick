@@ -32,7 +32,7 @@ export default function OfferForm() {
   const [productName, setName] = useState('');
   const [productId, setProductId] = useState<number | null>(null);
   const [store, setStore] = useState('');
-  const [category, setCategory] = useState('Snacks');
+  const [category, setCategory] = useState('Food');
   const [description, setDescription] = useState('');
   const [imageUrl, setImage] = useState<string | null>(null);
   const [estPrice, setPrice] = useState<number | ''>('');

@@ -61,6 +61,21 @@ export const Shirt = carbon(Carbon.Tag, 'Shirt');
 export const ShoppingBag = carbon(Carbon.ShoppingBag, 'ShoppingBag');
 export const Receipt = carbon(Carbon.Receipt, 'Receipt');
 export const Sparkles = carbon(Carbon.Gem, 'Sparkles');
+
+/** Beauty: a pump bottle with a leaf (Carbon has no cosmetics icon). Drawn on Carbon's 32px grid. */
+export function Beauty({ size = 24, className, style, strokeWidth: _s, ...rest }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={2}
+      strokeLinecap="round" strokeLinejoin="round" className={className} style={style} focusable="false" {...rest}>
+      <path d="M12 4h7l3 2" />
+      <path d="M16 4v3" />
+      <rect x="13" y="7" width="6" height="4" rx="1" />
+      <rect x="9" y="11" width="14" height="18" rx="3" />
+      <path d="M16 25c-2.6-1-2.6-5 0-7.5c2.6 2.5 2.6 6.5 0 7.5z" />
+      <path d="M16 25v-4.5" />
+    </svg>
+  );
+}
 export const Ticket = carbon(Carbon.Ticket, 'Ticket');
 export const User = carbon(Carbon.User, 'User');
 export const UtensilsCrossed = carbon(Carbon.Restaurant, 'UtensilsCrossed');

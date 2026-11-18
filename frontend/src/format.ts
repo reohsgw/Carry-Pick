@@ -79,7 +79,8 @@ export function quote(config: AppConfig | undefined, budget: number, reward: num
   return { budget, reward, fee, tax, total: budget + reward + fee + tax };
 }
 
-export const CATEGORIES = ['Snacks', 'Food', 'Beauty', 'Fashion', 'Home', 'Electronics', 'Other'] as const;
+// Snacks were merged into Food; the server turns any old "Snacks" into "Food".
+export const CATEGORIES = ['Food', 'Beauty', 'Fashion', 'Home', 'Electronics', 'Other'] as const;
 
 export type Tone = 'neutral' | 'action' | 'progress' | 'good' | 'bad';
 

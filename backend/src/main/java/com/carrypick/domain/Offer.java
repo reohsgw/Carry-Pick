@@ -61,7 +61,7 @@ public class Offer {
         this.countryCode = trip.getCountryCode();
         this.productName = productName;
         this.store = store;
-        this.category = category;
+        this.category = Categories.normalize(category);
         this.description = description;
         this.imageUrl = imageUrl;
         this.estPrice = estPrice;
@@ -92,7 +92,7 @@ public class Offer {
                        long estPrice, long reward, int quantity) {
         this.productName = productName;
         this.store = store;
-        this.category = category;
+        this.category = Categories.normalize(category);
         this.description = description;
         this.imageUrl = imageUrl;
         this.estPrice = estPrice;
@@ -109,6 +109,7 @@ public class Offer {
     public String getProductName() { return productName; }
     public String getStore() { return store; }
     public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = Categories.normalize(category); }
     public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

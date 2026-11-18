@@ -48,7 +48,7 @@ public class Product {
         this.nameKo = nameKo;
         this.nameLocal = nameLocal;
         this.aliases = aliases;
-        this.category = category;
+        this.category = Categories.normalize(category);
         this.countryCode = countryCode;
         refreshSearchKey();
     }
@@ -89,7 +89,7 @@ public class Product {
     public void setNameLocal(String nameLocal) { this.nameLocal = nameLocal; refreshSearchKey(); }
     public String getAliases() { return aliases; }
     public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public void setCategory(String category) { this.category = Categories.normalize(category); }
     public String getCountryCode() { return countryCode; }
     public Integer getWeightGrams() { return weightGrams; }
     public void setWeightGrams(Integer weightGrams) { this.weightGrams = weightGrams; }

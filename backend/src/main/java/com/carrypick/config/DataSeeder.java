@@ -74,17 +74,17 @@ public class DataSeeder implements ApplicationRunner {
         Trip nyc = trips.save(new Trip(kenji, "US", "New York", today.plusDays(25), today.plusDays(33),
                 "One empty suitcase"));
 
-        Offer tokyoBanana = offers.save(new Offer(kenji, tokyo, "Tokyo Banana (8 pcs)", "Haneda Airport shop", "Snacks",
+        Offer tokyoBanana = offers.save(new Offer(kenji, tokyo, "Tokyo Banana (8 pcs)", "Haneda Airport shop", "Food",
                 "Classic banana custard sponge cakes. Best before about 7 days after purchase.", "demo:tokyo-banana", 12000, 4000, 6));
-        Offer royce = offers.save(new Offer(kenji, tokyo, "Royce' Nama Chocolate", "Royce' Ginza", "Snacks",
+        Offer royce = offers.save(new Offer(kenji, tokyo, "Royce' Nama Chocolate", "Royce' Ginza", "Food",
                 "Needs to stay cool; I will carry it in an insulated bag.", "demo:royce", 18000, 5000, 4));
         Offer anessa = offers.save(new Offer(kenji, tokyo, "Anessa Perfect UV Sunscreen 60ml", "Matsumoto Kiyoshi", "Beauty",
                 "Japanese drugstore price.", "demo:anessa", 22000, 5000, 5));
         offers.save(new Offer(kenji, tokyo, "Uniqlo Japan-limited graphic T-shirt", "Uniqlo Ginza", "Fashion",
                 "Tell me the size in the order note after booking.", "demo:uniqlo-tshirt", 20000, 6000, 3));
-        offers.save(new Offer(kenji, osaka, "Kit Kat regional flavors set", "Shin-Osaka station", "Snacks",
+        offers.save(new Offer(kenji, osaka, "Kit Kat regional flavors set", "Shin-Osaka station", "Food",
                 "Assorted regional flavors, about 6 boxes.", "demo:kitkat", 25000, 7000, 3));
-        Offer laduree = offers.save(new Offer(linh, paris, "Ladurée macarons (box of 12)", "Ladurée Champs-Élysées", "Snacks",
+        Offer laduree = offers.save(new Offer(linh, paris, "Ladurée macarons (box of 12)", "Ladurée Champs-Élysées", "Food",
                 "Fragile; will hand-carry.", "demo:laduree", 52000, 12000, 2));
         offers.save(new Offer(linh, paris, "Diptyque Baies candle 190g", "Diptyque Saint-Germain", "Home",
                 "Paris boutique price.", "demo:diptyque-baies", 98000, 15000, 2));

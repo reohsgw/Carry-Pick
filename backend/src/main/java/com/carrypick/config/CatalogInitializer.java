@@ -23,13 +23,13 @@ public class CatalogInitializer implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(CatalogInitializer.class);
 
     private static final String[][] STARTER_CATALOG = {
-            {"Tokyo Banana (8 pcs)", "도쿄 바나나 (8개입)", "東京ばな奈", "도쿄바나나, 동경바나나, 도쿄 바나나빵, tokyo banana, 東京バナナ, 일본 과자, 일본 기념품", "Snacks", "JP"},
-            {"Royce' Nama Chocolate", "로이스 생초콜릿", "ロイズ 生チョコレート", "로이스, 로이스 초콜릿, 생초콜렛, royce, nama chocolate, 일본 초콜릿", "Snacks", "JP"},
+            {"Tokyo Banana (8 pcs)", "도쿄 바나나 (8개입)", "東京ばな奈", "도쿄바나나, 동경바나나, 도쿄 바나나빵, tokyo banana, 東京バナナ, 일본 과자, 일본 기념품", "Food", "JP"},
+            {"Royce' Nama Chocolate", "로이스 생초콜릿", "ロイズ 生チョコレート", "로이스, 로이스 초콜릿, 생초콜렛, royce, nama chocolate, 일본 초콜릿", "Food", "JP"},
             {"Anessa Perfect UV Sunscreen 60ml", "아넷사 퍼펙트 UV 선크림 60ml", "アネッサ パーフェクトUV スキンケアミルク", "아넷사, 선크림, 썬크림, 자외선 차단제, sunscreen, sunblock, 日焼け止め", "Beauty", "JP"},
             {"Uniqlo Japan-limited graphic T-shirt", "유니클로 일본 한정 그래픽 티셔츠", "ユニクロ 限定 グラフィックTシャツ", "유니클로, 티셔츠, 반팔티, uniqlo, t-shirt, tshirt", "Fashion", "JP"},
-            {"Kit Kat regional flavors set", "킷캣 지역 한정 맛 세트", "キットカット ご当地", "킷캣, 킷켓, 일본 킷캣, kitkat, kit kat", "Snacks", "JP"},
+            {"Kit Kat regional flavors set", "킷캣 지역 한정 맛 세트", "キットカット ご当地", "킷캣, 킷켓, 일본 킷캣, kitkat, kit kat", "Food", "JP"},
             {"Sanrio Hello Kitty Tokyo Limited Edition", "산리오 헬로키티 도쿄 한정판", "サンリオ ハローキティ 東京限定", "헬로키티, 헬로 키티, 산리오, 키티 인형, 도쿄 한정, 인형, 캐릭터 인형, 봉제인형, hello kitty, sanrio, plush, doll", "Other", "JP"},
-            {"Ladurée macarons (box of 12)", "라뒤레 마카롱 (12개입)", "Ladurée macarons", "라뒤레, 라듀레, 마카롱, laduree, macaron, 프랑스 디저트", "Snacks", "FR"},
+            {"Ladurée macarons (box of 12)", "라뒤레 마카롱 (12개입)", "Ladurée macarons", "라뒤레, 라듀레, 마카롱, laduree, macaron, 프랑스 디저트", "Food", "FR"},
             {"Diptyque Baies candle 190g", "딥티크 베이 캔들 190g", "Diptyque bougie Baies", "딥티크, 딥디크, 캔들, 향초, diptyque, candle", "Home", "FR"},
             {"Bioderma Sensibio H2O 500ml", "바이오더마 센시비오 H2O 500ml", "Bioderma Sensibio H2O", "바이오더마, 클렌징워터, 클렌징 워터, 미셀라 워터, bioderma, micellar water", "Beauty", "FR"},
             {"Le Labo Santal 33 50ml", "르라보 상탈 33 50ml", "Le Labo Santal 33", "르라보, 상탈33, 상탈 33, 향수, le labo, perfume", "Beauty", "FR"},
@@ -98,6 +98,7 @@ public class CatalogInitializer implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         renameDemoProducts();
+        mergeSnacksIntoFood();
         for (String[] e : STARTER_CATALOG) upsert(e);
 
         backfillDemoPhotos();
@@ -117,6 +118,12 @@ public class CatalogInitializer implements ApplicationRunner {
             log.info("Catalog: linked {} offers, {} requests and {} orders to products",
                     looseOffers.size(), looseRequests.size(), looseOrders.size());
         }
+    }
+
+    /** Snacks became part of Food; move any old rows over. */
+    private void mergeSnacksIntoFood() {
+        for (Product p : products.findAll()) if ("Snacks".equalsIgnoreCase(p.getCategory())) p.setCategory("Food");
+        for (Offer o : offers.findAll()) if ("Snacks".equalsIgnoreCase(o.getCategory())) o.setCategory("Food");
     }
 
     private void renameDemoProducts() {

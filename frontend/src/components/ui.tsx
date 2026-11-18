@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Bell, Camera, ClipboardList, Cookie, Headphones, Lamp, MapPinned, Package, Plane, SearchX, Shirt, ShoppingBag,
-  Sparkles, UtensilsCrossed, type Icon as LucideIcon,
+  Beauty, UtensilsCrossed, type Icon as LucideIcon,
 } from './icons';
 import { api, assetUrl, type OrderStatus } from '../api';
 import { STATUS_TONE } from '../format';
@@ -107,7 +107,7 @@ export function SectionHeading({ eyebrow, title, action }: { eyebrow?: string; t
 }
 
 const CATEGORY_ICON: Record<string, LucideIcon> = {
-  snacks: Cookie, food: UtensilsCrossed, beauty: Sparkles, fashion: Shirt, home: Lamp, electronics: Headphones,
+  snacks: Cookie, food: UtensilsCrossed, beauty: Beauty, fashion: Shirt, home: Lamp, electronics: Headphones,
 };
 
 export function categoryIcon(category: string | null | undefined): LucideIcon {

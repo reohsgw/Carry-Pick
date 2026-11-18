@@ -5,7 +5,7 @@ import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { Field, ImagePicker, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
 import { isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -59,6 +59,13 @@ export default function NewRequest() {
 
   return (
     <Screen back title={t('req.title')} hideNav wide>
+      <div className="whale-say of-hello">
+        <Mascot mood="question" className="whale-say-whale" size={96} />
+        <div className="whale-say-bubble">
+          <p>{t('req.hello')}</p>
+        </div>
+      </div>
+
       <DetailLayout
         actions={(
           <>
@@ -69,12 +76,18 @@ export default function NewRequest() {
         )}
         as="form" id="request-form" onSubmit={submit}
         aside={(
+          <>
             <Sheet title={t('req.youPay')}>
               <ReceiptStrip quote={q} budgetLabel={t('price.itemBudget')} note={t('req.youPayNote')} />
             </Sheet>
+            <div className="of-tip">
+              <Mascot mood="shop" size={56} />
+              <p>{t('req.tip')}</p>
+            </div>
+          </>
         )}
       >
-        <Sheet>
+        <Sheet title={t('req.secItem')}>
           <div className="stack">
             <Field label={t('req.country')}>
               <select value={countryCode} onChange={(e) => setCountry(e.target.value)}>
@@ -110,7 +123,7 @@ export default function NewRequest() {
           </div>
         </Sheet>
 
-        <Sheet>
+        <Sheet title={t('req.secPrice')}>
           <div className="stack">
             <Field label={t('req.budget')} hint={t('req.budgetHint')}>
               <MoneyInput value={maxBudget} onChange={setBudget} required placeholder="50,000" />
