@@ -63,7 +63,7 @@ export default function PayResult({ success }: { success: boolean }) {
   const lastPaid = order?.payments.filter((p) => p.status === 'SUCCESS' && p.type !== 'REFUND').at(-1)?.amount;
 
   return (
-    <Screen title={t('pay.heading')} hideNav>
+    <Screen hideNav wide={false}>
       {state === 'working' && <Loading label={t('pay.confirming')} />}
       {state === 'ok' && (
         <div className="result">

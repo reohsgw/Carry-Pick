@@ -10378,3 +10378,7 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
   .city-tag { left: 16px; bottom: 16px; }
   .city-dots { right: 16px; bottom: 22px; }
 }
+
+/* Payment result: keep the message on one line on wider screens */
+.result .result-body { max-width: none !important; }
+.result .result-body { white-space: nowrap !important; font-size: clamp(11px, 3.4vw, 15px) !important; }
