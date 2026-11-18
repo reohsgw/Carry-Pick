@@ -56,14 +56,21 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
   );
 }
 
+/** Country-to-country route for card labels, e.g. "태국 → 한국" / "Thailand → Korea". */
+export function useCountryRoute() {
+  const { lang } = useI18n();
+  const { config } = useSession();
+  return (countryCode: string) => `${countryName(config, countryCode, lang)} → ${lang === 'ko' ? '한국' : 'Korea'}`;
+}
+
 export function OfferCard({ offer }: { offer: Offer }) {
   const { t, lang } = useI18n();
-  const route = useRoute();
+  const countryRoute = useCountryRoute();
   return (
     <article className="offer-card">
       <Link to={`/offers/${offer.id}`} className="offer-media">
         <ProductPhoto src={offer.imageUrl} category={offer.category} iconSize={40} />
-        <span className="route-chip">{route(offer.trip.city, offer.countryCode)}</span>
+        <span className="route-chip">{countryRoute(offer.countryCode)}</span>
       </Link>
       <div className="offer-body">
         <p className="meta-label">{offer.category ? t(`cat.${offer.category}` as Key) : ' '}</p>
