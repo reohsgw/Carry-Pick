@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import SparkleTrail from './components/SparkleTrail';
 import { Loading } from './components/ui';
 import { useSession } from './session';
 import BuyerHome from './pages/BuyerHome';
 import Checkout from './pages/Checkout';
-import CountryOffers from './pages/CountryOffers';
 import Login from './pages/Login';
 import MyOrders from './pages/MyOrders';
 import MyPage from './pages/MyPage';
@@ -29,7 +28,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
 
         <Route path="/" element={<RequireAuth><BuyerHome /></RequireAuth>} />
-        <Route path="/country/:code" element={<RequireAuth><CountryOffers /></RequireAuth>} />
+        <Route path="/country/:code" element={<CountryRedirect />} />
         <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
         <Route path="/offers" element={<RequireAuth><TravelerOffers /></RequireAuth>} />
         <Route path="/offers/:id" element={<RequireAuth><OfferDetail /></RequireAuth>} />
@@ -65,4 +64,13 @@ function RequireAuth({ children }: { children: ReactNode }) {
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   return <>{children}</>;
+}
+
+/** The old per-country list was merged into /offers; keep its links working. */
+function CountryRedirect() {
+  const { code = 'ALL' } = useParams();
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  params.set('country', code);
+  return <Navigate to={`/offers?${params}`} replace />;
 }

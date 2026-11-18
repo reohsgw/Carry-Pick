@@ -5,7 +5,7 @@ import { ArrowRight, Check, Minus, Plus, ShieldCheck } from '../components/icons
 import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
-import { Avatar, ErrorBox, KV, Loading, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
+import { Avatar, ErrorBox, KV, Loading, Mascot, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
 import { countryName, daysUntil, krw, quote, shortDate, weight } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -69,6 +69,10 @@ export default function OfferDetail() {
                 )}
               </div>
               <ReceiptStrip quote={q} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: krw(o.estPrice) })} />
+              <div className="od-tip">
+                <Mascot mood="love" size={52} />
+                <p>{o.bookable ? t('offer.tipBook', { date: shortDate(o.trip.returnDate, lang) }) : t('offer.tipClosed')}</p>
+              </div>
               {o.receiptUrl && (
                 <a className="link small" href={assetUrl(o.receiptUrl) ?? '#'} target="_blank" rel="noreferrer" style={{ marginTop: 12 }}>
                   {t('offer.seeReceipt')}
@@ -77,18 +81,23 @@ export default function OfferDetail() {
             </section>
         )}
       >
-        <div className="detail-media"><ProductPhoto src={o.imageUrl} category={o.category} iconSize={56} /></div>
-
-        <div>
-          <p className="eyebrow">{t('offer.from', { category: cat, country })}</p>
-          <h1 className="detail-title font-display">{o.productName}</h1>
-          {o.description && <p className="body-text" style={{ marginTop: 14 }}>{o.description}</p>}
+        <div className="od-top">
+          <div className="detail-media od-photo">
+            <ProductPhoto src={o.imageUrl} category={o.category} iconSize={56} />
+            <Mascot mood="fly" className="od-photo-whale" size={120} />
+          </div>
+          <div className="od-top-text">
+            <p className="eyebrow">{t('offer.from', { category: cat, country })}</p>
+            <h1 className="detail-title font-display">{o.productName}</h1>
+            {o.description && <p className="body-text" style={{ marginTop: 10 }}>{o.description}</p>}
+          </div>
         </div>
 
-        <div className="meta-grid" style={{ margin: 0 }}>
-          <div><span className="meta-label">{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{krw(o.estPrice)}</strong></div>
-          <div><span className="meta-label">{t('card.reward')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{krw(o.reward)}</strong></div>
-          <div><span className="meta-label">{t('offer.leftLabel')}</span><strong className="meta-value" style={{ fontSize: 18 }}>{o.quantity}</strong></div>
+        <div className="od-facts">
+          <div><span>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</span><strong>{krw(o.estPrice)}</strong></div>
+          <div><span>{t('card.reward')}</span><strong>{krw(o.reward)}</strong></div>
+          <div><span>{t('offer.leftLabel')}</span><strong>{o.quantity}</strong></div>
+          {o.weightGrams != null && <div><span>{t('w.label')}</span><strong>{weight(o.weightGrams)}</strong></div>}
         </div>
 
         <div className="trust-row">
@@ -99,18 +108,21 @@ export default function OfferDetail() {
           {o.bookable && departsIn <= 7 && <Tag tone="action">{t('offer.departsIn', { n: departsIn })}</Tag>}
         </div>
 
-        <section className="card">
+        <section className="card od-traveler">
           <div className="person" style={{ marginBottom: 14 }}>
             <Avatar name={o.traveler.name} src={o.traveler.avatarUrl} />
             <div>
               <p>{firstName(o.traveler.name)}</p>
               <small>{route(o.trip.city, o.countryCode)}</small>
             </div>
+            <div className="od-traveler-say">
+              <Mascot mood="shop" size={64} />
+              <p>{t('offer.whaleSay', { name: firstName(o.traveler.name), city: o.trip.city ?? country })}</p>
+            </div>
           </div>
           <KV label={t('offer.trip')}>{o.trip.city ?? country}, {shortDate(o.trip.departDate, lang)} – {shortDate(o.trip.returnDate, lang)}</KV>
           <KV label={t('offer.delivery')}>{t('offer.deliveryValue', { date: shortDate(o.trip.returnDate, lang) })}</KV>
           {o.trip.luggageNote && <KV label={t('offer.luggage')}>{o.trip.luggageNote}</KV>}
-          {o.weightGrams != null && <KV label={t('w.label')}>{t('w.approx', { w: weight(o.weightGrams) })}</KV>}
         </section>
 
         {book.error && <Notice tone="bad">{errText(book.error)}</Notice>}

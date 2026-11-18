@@ -7,8 +7,8 @@ import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import CountryPicker from '../components/CountryPicker';
 import { useCountry } from '../country';
-import { Avatar, Empty, ErrorBox, Loading, ProductPhoto } from '../components/ui';
-import { ALL_COUNTRIES, daysUntil, krw, shortDate, boardDate } from '../format';
+import { Avatar, Empty, ErrorBox, Loading, Mascot, ProductPhoto } from '../components/ui';
+import { ALL_COUNTRIES, CATEGORIES, daysUntil, krw, shortDate, boardDate, weight } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -16,6 +16,9 @@ const MAX_COMPARE = 5;
 
 type Sort = 'best' | 'reward' | 'arrival';
 type Window = 'any' | '7' | '14';
+
+/** Snacks were merged into Food; old rows may still say Snacks until the server migrates them. */
+const catOf = (c: string | null | undefined) => (c === 'Snacks' ? 'Food' : c ?? 'Other');
 
 export default function TravelerOffers() {
   const { config } = useSession();
@@ -27,13 +30,19 @@ export default function TravelerOffers() {
   useEffect(() => { if (linked && linked !== country) setCountry(linked); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const arriveBy = params.get('by') ?? '';
 
-  const [draftCountry, setDraftCountry] = useState(country);
+  const [draftCountry, setDraftCountry] = useState(linked ?? country);
   const [draftBy, setDraftBy] = useState(arriveBy);
 
   const offers = useQuery({ queryKey: ['offers', country], queryFn: () => api.offers(country) });
   const [sort, setSort] = useState<Sort>('best');
   const [win, setWin] = useState<Window>('any');
-  const [cats, setCats] = useState<string[]>([]);
+  const [cats, setCats] = useState<string[]>(() => {
+    const c = params.get('category');
+    return c && c !== 'All' ? [catOf(c)] : [];
+  });
+  const tripId = params.get('trip') ? Number(params.get('trip')) : null;
+  const [maxWeight, setMaxWeight] = useState<number | null>(null);
+  const weightLimit = maxWeight != null && maxWeight < 5000 ? maxWeight : null;
   const [bookableOnly, setBookableOnly] = useState(true);
   const [compare, setCompare] = useState<number[]>([]);
 
@@ -41,13 +50,18 @@ export default function TravelerOffers() {
   const rewardCap = useMemo(() => Math.max(5000, ...all.map((o) => o.reward)), [all]);
   const [maxReward, setMaxReward] = useState<number | null>(null);
   const rewardLimit = maxReward ?? rewardCap;
-  const categories = useMemo(() => Array.from(new Set(all.map((o) => o.category ?? 'Other'))), [all]);
+  const categories = useMemo(() => {
+    const present = new Set(all.map((o) => catOf(o.category)));
+    return (CATEGORIES as readonly string[]).filter((c) => present.has(c));
+  }, [all]);
 
   const list = useMemo(() => {
     const items = all.filter((o) =>
       (!bookableOnly || o.bookable)
       && o.reward <= rewardLimit
-      && (!cats.length || cats.includes(o.category ?? 'Other'))
+      && (!cats.length || cats.includes(catOf(o.category)))
+      && (!tripId || o.trip.id === tripId)
+      && (weightLimit == null || (o.weightGrams != null && o.weightGrams <= weightLimit))
       && (win === 'any' || daysUntil(o.trip.returnDate) <= Number(win))
       && (!arriveBy || o.trip.returnDate <= arriveBy));
     return [...items].sort((a, b) => {
@@ -57,7 +71,7 @@ export default function TravelerOffers() {
         || a.unitQuote.total - b.unitQuote.total
         || a.trip.returnDate.localeCompare(b.trip.returnDate);
     });
-  }, [all, bookableOnly, rewardLimit, cats, win, arriveBy, sort]);
+  }, [all, bookableOnly, rewardLimit, cats, win, arriveBy, sort, tripId, weightLimit]);
 
   const compared = all.filter((o) => compare.includes(o.id));
   const cheapest = compared.length ? Math.min(...compared.map((o) => o.unitQuote.total)) : 0;
@@ -67,7 +81,7 @@ export default function TravelerOffers() {
     if (prevCountry.current === country) return;
     prevCountry.current = country;
     setDraftCountry(country);
-    setCats([]); setCompare([]); setMaxReward(null);
+    setCats([]); setCompare([]); setMaxReward(null); setMaxWeight(null);
   }, [country]);
 
   function apply(e: React.FormEvent) {
@@ -85,10 +99,10 @@ export default function TravelerOffers() {
       <section className="home-section offers-page">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">{t('to.script')}</p>
             <h2 className="font-display">{t('to.title')}</h2>
             <p className="section-copy">{t('to.copy')}</p>
           </div>
+          <Mascot mood="fly" className="offers-whale" size={170} />
         </div>
 
         <form className="offer-searchbar" onSubmit={apply}>
@@ -132,6 +146,12 @@ export default function TravelerOffers() {
             <input
               type="range" min={0} max={rewardCap} step={1000} value={rewardLimit}
               onChange={(e) => setMaxReward(Number(e.target.value))} aria-label={t('to.maxReward')}
+            />
+            <hr />
+            <div className="range-label"><span>{t('rb.f.maxWeight')}</span><strong>{weightLimit != null ? weight(weightLimit) : t('rb.f.any')}</strong></div>
+            <input
+              type="range" min={100} max={5000} step={100} value={weightLimit ?? 5000}
+              onChange={(e) => setMaxWeight(Number(e.target.value))} aria-label={t('rb.f.maxWeight')}
             />
             <hr />
             <p className="filter-label">{t('to.window')}</p>
@@ -180,6 +200,17 @@ export default function TravelerOffers() {
                     onCompare={() => toggleCompare(o.id)}
                   />
                 ))}
+              </div>
+            )}
+            {list.length > 0 && (
+              <div className="whale-say">
+                <Mascot mood="question" className="whale-say-whale" size={110} />
+                <div className="whale-say-bubble">
+                  <p>{t('country.footer')}</p>
+                  <Link className="btn btn-primary btn-small" to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`}>
+                    {t('home.requestCta')} <ArrowRight size={15} aria-hidden />
+                  </Link>
+                </div>
               </div>
             )}
           </div>

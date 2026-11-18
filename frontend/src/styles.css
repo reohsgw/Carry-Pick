@@ -11024,3 +11024,99 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 .ask-title { font-size: clamp(1.6rem, 2.6vw, 2.5rem); }
 @media (min-width: 900px) { .ask-panel { grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.5fr); } }
 @media (max-width: 380px) { .ask-title span, .ask-title em { white-space: normal; } }
+/* "Can't find it?" band: full width, sits on the bottom edge */
+.ask-panel {
+  margin: 40px 0 0 !important;
+  border-radius: 0 !important;
+  padding: 40px max(var(--gutter, 16px), calc((100% - 1240px) / 2)) 48px !important;
+  border-top: 1px dashed rgb(46 58 70 / 0.2);
+}
+@media (min-width: 900px) {
+  .ask-panel { grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.7fr) !important; gap: clamp(32px, 4vw, 64px) !important; }
+  .content.is-flush:has(> .ask-panel:last-child), main:has(> .ask-panel:last-child) { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+  .ask-stamp { padding: 30px 24px 24px; }
+}
+.ask-panel { margin-left: calc(-1 * var(--gutter, 16px)) !important; margin-right: calc(-1 * var(--gutter, 16px)) !important; }
+@media (min-width: 900px) { .ask-panel { margin-left: -40px !important; margin-right: -40px !important; } }
+/* Desktop: the band spans the whole envelope (app = viewport minus 16px margin and 9px stripe each side, max 1500px). */
+@media (min-width: 900px) {
+  .ask-panel {
+    align-self: center;
+    box-sizing: border-box;
+    width: min(100vw - 20px, 1560px);
+    max-width: none;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}
+.ask-body { max-width: none; white-space: nowrap; }
+@media (max-width: 420px) { .ask-body { white-space: normal; } }
+/* "Tell travelers what you need." on a single line */
+.ask-title { white-space: nowrap; font-size: clamp(1.25rem, 1.75vw, 2rem) !important; }
+.ask-title span, .ask-title em { display: inline !important; }
+@media (max-width: 600px) { .ask-title { white-space: normal; font-size: 1.6rem !important; } }
+
+.rb-bar .search-select { min-width: 150px; }
+.ask-cta { margin-top: 6px; }
+/* Bottom band: slightly larger text and button */
+.ask-title { font-size: clamp(1.4rem, 2.05vw, 2.3rem) !important; }
+.ask-body { font-size: 17px; }
+.ask-bubble { font-size: 18px; }
+.ask-cta { min-height: 54px; padding: 0 30px !important; font-size: 17px !important; }
+@media (max-width: 600px) { .ask-title { font-size: 1.7rem !important; } .ask-body { font-size: 15px; } }
+
+/* Traveler offers heading: the flying whale instead of the postmark stamp */
+.offers-page .section-heading { align-items: center; }
+.offers-whale { flex: none; animation: whale-float 4.5s ease-in-out infinite; filter: drop-shadow(0 8px 10px rgb(46 58 70 / 0.15)); }
+@media (max-width: 700px) { .offers-whale { width: 96px !important; } }
+@media (prefers-reduced-motion: reduce) { .offers-whale { animation: none; } }
+.home-section.offers-page { padding-top: 0 !important; margin-top: 0 !important; }
+.offers-page .section-heading { margin-top: 0 !important; padding-top: 0 !important; }
+
+/* Offer detail: whale on the photo, fact chips, traveler speech, tip in the summary */
+.od-photo { position: relative; overflow: visible !important; }
+.od-photo-whale {
+  position: absolute; right: -18px; bottom: -34px; z-index: 2;
+  animation: whale-float 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 8px 10px rgb(46 58 70 / 0.2));
+  pointer-events: none;
+}
+.od-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.od-facts > div {
+  display: grid; gap: 4px; padding: 12px 14px;
+  background: #FFFBF3; border: 1.5px dashed rgb(46 58 70 / 0.22); border-radius: 14px;
+}
+.od-facts span { font: 700 12px/1.2 var(--font); color: rgb(46 58 70 / 0.6); }
+.od-facts strong { font: 800 19px/1.2 var(--font); color: #2E3A46; }
+.od-facts > div:nth-child(2) strong { color: #A9533D; }
+.od-traveler .person { flex-wrap: wrap; }
+.od-traveler-say { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.od-traveler-say p {
+  position: relative; margin: 0; padding: 8px 12px; border-radius: 12px;
+  background: #FFFBF3; border: 1.5px solid #2E3A46; color: #2E3A46; font: 600 13px/1.4 var(--font);
+}
+.od-tip { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: #FFF6E6; }
+.od-tip p { margin: 0; font-size: 13px; line-height: 1.5; color: #5B4A2E; }
+@media (max-width: 700px) {
+  .od-photo-whale { width: 84px !important; right: 4px; bottom: -22px; }
+  .od-traveler-say { margin-left: 0; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .od-photo-whale { animation: none; } }
+.detail-media.od-photo img.od-photo-whale, .od-photo .od-photo-whale {
+  position: absolute !important; inset: auto -18px -34px auto !important;
+  width: 120px !important; height: auto !important; max-width: none !important;
+  object-fit: contain !important; border: 0 !important; background: none !important; box-shadow: none !important;
+}
+@media (max-width: 700px) { .detail-media.od-photo img.od-photo-whale, .od-photo .od-photo-whale { width: 84px !important; inset: auto 4px -22px auto !important; } }
+
+/* Offer detail: smaller photo beside the title so the key info fits without scrolling */
+.od-top { display: grid; gap: 18px; }
+.od-photo { aspect-ratio: auto !important; height: clamp(200px, 32vh, 320px) !important; }
+.od-photo > img:not(.od-photo-whale), .od-photo > .placeholder { width: 100% !important; height: 100% !important; object-fit: contain !important; }
+.od-top-text .detail-title { font-size: clamp(1.6rem, 2.4vw, 2.3rem) !important; line-height: 1.15; margin: 4px 0 0; }
+@media (min-width: 900px) {
+  .od-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+  .od-photo { height: clamp(220px, 34vh, 300px) !important; }
+  .detail-media.od-photo img.od-photo-whale, .od-photo .od-photo-whale { width: 92px !important; inset: auto -14px -22px auto !important; }
+}
+.od-tip p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

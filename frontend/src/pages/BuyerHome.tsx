@@ -59,7 +59,7 @@ export default function BuyerHome() {
             {HOME_CATEGORIES.map((c) => {
               const Icon = categoryIcon(c);
               return (
-                <Link key={c} to={`/country/${country}?category=${c}`} className="home-cat">
+                <Link key={c} to={`/offers?country=${country}&category=${c}`} className="home-cat">
                   <span className="home-cat-icon"><Icon size={24} strokeWidth={1.75} aria-hidden /></span>
                   <span className="home-cat-label">{t(`cat.${c}`)}</span>
                 </Link>
@@ -121,7 +121,7 @@ export default function BuyerHome() {
         {bookable.length > 0 && live.length === 0 && <p className="fine center">{t('search.f.none')}</p>}
         {live.length > 0 && <div className="card-grid live-grid">{live.map((o) => <OfferCard key={o.id} offer={o} />)}</div>}
         {live.length > 0 && (
-          <Link to={`/country/${country}`} className="link-button center-block">
+          <Link to={`/offers?country=${country}`} className="link-button center-block">
             {t('home.browse', { country: name })} <ArrowRight size={15} />
           </Link>
         )}
@@ -133,9 +133,9 @@ export default function BuyerHome() {
           <h2 className="ask-title">
             <span>{t('home.ctaTitleA')}</span> <em>{t('home.ctaTitleB')}</em>
           </h2>
-          <p className="ask-body">{t('home.requestBody')}</p>
-          <Link to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`} className="ask-btn">
-            {t('home.ctaBtn')} <ArrowRight size={20} aria-hidden />
+          <p className="ask-body">{t('home.askBody')}</p>
+          <Link to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`} className="btn btn-primary ask-cta">
+            {t('home.requestCta')} <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
         <div className="ask-stamp-wrap">
