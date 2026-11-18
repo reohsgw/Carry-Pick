@@ -85,19 +85,19 @@ public class DataSeeder implements ApplicationRunner {
         offers.save(new Offer(linh, paris, "Diptyque Baies candle 190g", "Diptyque Saint-Germain", "Home",
                 "Paris boutique price.", "demo:diptyque-baies", 98000, 15000, 2));
         offers.save(new Offer(linh, paris, "Bioderma Sensibio H2O 500ml", "Pharmacie Monge", "Beauty",
-                "French pharmacy price, much cheaper than Korea.", null, 16000, 5000, 4));
+                "French pharmacy price, much cheaper than Korea.", "demo:bioderma-sensibio", 16000, 5000, 4));
         Offer mama = offers.save(new Offer(linh, bangkok, "Mama Tom Yum instant noodles (10 pack)", "Big C", "Food",
                 "Family pack.", "demo:mama-tom-yum", 7000, 3000, 8));
         offers.save(new Offer(linh, bangkok, "Naraya cotton bag", "Naraya Siam", "Fashion",
                 "Choose color in the order note.", "demo:naraya-bag", 9000, 3000, 5));
         offers.save(new Offer(kenji, nyc, "Trader Joe's tote bag", "Trader Joe's Manhattan", "Fashion",
-                "Mini or regular size.", "demo:trader-joes-tote", 6000, 4000, 6));
+                "Mini or regular size.", "demo:trader-joes-tote", 6000, 3000, 6));
         offers.save(new Offer(kenji, nyc, "Levi's 501 Original jeans", "Levi's Times Square", "Fashion",
                 "US pricing; tell me waist and length.", "demo:levis-501", 95000, 15000, 2));
 
-        requests.save(new PurchaseRequest(minji, "JP", "Tokyo-limited character plush (medium)", null, null,
+        requests.save(new PurchaseRequest(minji, "JP", "Sanrio Hello Kitty Tokyo Limited Edition", null, "demo:hello-kitty-tokyo",
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));
-        requests.save(new PurchaseRequest(minji, "FR", "Le Labo Santal 33 50ml", null, null,
+        requests.save(new PurchaseRequest(minji, "FR", "Le Labo Santal 33 50ml", null, "demo:le-labo-santal33",
                 "50ml", "Paris boutique only please", 260000, 20000, today.plusDays(35)));
         requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, null,
                 "Blue tones", null, 70000, 10000, today.plusDays(20)));

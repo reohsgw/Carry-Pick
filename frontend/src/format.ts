@@ -96,3 +96,16 @@ export const STATUS_TONE: Record<OrderStatus, Tone> = {
 };
 
 export const ACTIVE_STATUSES: OrderStatus[] = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED'];
+
+/** 350 → "350g", 1200 → "1.2kg", 2000 → "2kg". */
+export function weight(grams: number | null | undefined): string {
+  if (grams == null) return '';
+  if (grams < 1000) return `${grams}g`;
+  const kg = grams / 1000;
+  return `${Number.isInteger(kg) ? kg : kg.toFixed(1)}kg`;
+}
+
+/** Highest reward allowed for an item at this price (server rule: a share of the item price). */
+export function maxReward(config: AppConfig | undefined, itemPrice: number): number {
+  return Math.floor(itemPrice * (config?.maxRewardRate ?? 0.5));
+}

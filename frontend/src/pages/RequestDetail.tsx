@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink } from '../components/icons';
@@ -6,9 +6,10 @@ import { api } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { ErrorBox, Field, KV, Loading, Notice, ProductThumb, Sheet, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, shortDate } from '../format';
+import { countryName, daysUntil, krw, shortDate, weight } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
+import { markRequestSeen } from '../seen';
 
 export default function RequestDetail() {
   const id = Number(useParams().id);
@@ -20,6 +21,10 @@ export default function RequestDetail() {
   const req = useQuery({ queryKey: ['request', id], queryFn: () => api.request(id) });
   const trips = useQuery({ queryKey: ['myTrips'], queryFn: api.myTrips });
   const [tripId, setTripId] = useState<number | ''>('');
+  const seenData = req.data;
+  useEffect(() => {
+    if (seenData && user?.id === seenData.buyer.id) markRequestSeen(seenData);
+  }, [seenData, user?.id]);
 
   const accept = useMutation({
     mutationFn: () => api.acceptRequest(id, tripId === '' ? undefined : tripId),
@@ -27,7 +32,11 @@ export default function RequestDetail() {
   });
   const cancel = useMutation({
     mutationFn: () => api.cancelRequest(id),
-    onSuccess: () => { qc.invalidateQueries(); navigate('/orders?tab=requests', { replace: true }); },
+    onSuccess: () => {
+      markRequestSeen({ id, status: 'CANCELLED' });
+      qc.invalidateQueries();
+      navigate('/orders?tab=requests', { replace: true });
+    },
   });
 
   if (req.isLoading) return <Screen back title={t('rd.title')}><Loading /></Screen>;
@@ -103,6 +112,7 @@ export default function RequestDetail() {
 
         <Sheet>
           <KV label={t('rd.country')}>{country}</KV>
+          {r.weightGrams != null && <KV label={t('w.label')}>{t('w.approx', { w: weight(r.weightGrams) })}</KV>}
           {r.options && <KV label={t('rd.options')}>{r.options}</KV>}
           {r.productLink && (
             <KV label={t('rd.link')}>

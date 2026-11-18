@@ -36,6 +36,8 @@ app:
     fee-rate: 0.10
     tax-threshold-krw: 150000
     tax-rate: 0.10
+    # A reward can be at most this share of the item price (0.5 = 50%).
+    max-reward-rate: 0.5
   payment:
     mode: ${PAYMENT_MODE:mock}
     toss-client-key: ${TOSS_CLIENT_KEY:}

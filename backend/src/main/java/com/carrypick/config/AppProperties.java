@@ -30,7 +30,7 @@ public record AppProperties(
 
     public record Jwt(String secret, int ttlHours) {}
 
-    public record Pricing(double feeRate, long taxThresholdKrw, double taxRate) {}
+    public record Pricing(double feeRate, long taxThresholdKrw, double taxRate, double maxRewardRate) {}
 
     public record Payment(String mode, String tossClientKey, String tossSecretKey, String tossConfirmUrl) {
         public boolean isMock() {

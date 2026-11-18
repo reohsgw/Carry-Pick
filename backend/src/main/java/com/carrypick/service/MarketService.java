@@ -38,9 +38,11 @@ public class MarketService {
     private final AuthService auth;
     private final Mapper mapper;
     private final ProductService catalog;
+    private final PricingService pricing;
 
     public MarketService(TripRepository trips, OfferRepository offers, RequestRepository requests,
-                         OrderRepository orders, AuthService auth, Mapper mapper, ProductService catalog) {
+                         OrderRepository orders, AuthService auth, Mapper mapper, ProductService catalog,
+                         PricingService pricing) {
         this.trips = trips;
         this.offers = offers;
         this.requests = requests;
@@ -48,6 +50,7 @@ public class MarketService {
         this.auth = auth;
         this.mapper = mapper;
         this.catalog = catalog;
+        this.pricing = pricing;
     }
 
     @Scheduled(initialDelay = 5_000, fixedDelay = 3_600_000)
@@ -90,11 +93,14 @@ public class MarketService {
         if (!trip.getDepartDate().isAfter(Today.get())) {
             throw ApiException.badRequest("TRIP_STARTED", "You can only add offers to trips that have not started");
         }
+        pricing.checkReward(f.estPrice(), f.reward());
         Offer o = offers.save(new Offer(me, trip, f.productName().trim(), blankToNull(f.store()),
                 blankToNull(f.category()), blankToNull(f.description()), blankToNull(f.imageUrl()),
                 f.estPrice(), f.reward(), f.quantity()));
         o.setReceiptUrl(blankToNull(f.receiptUrl()));
         o.setProduct(catalog.resolve(f.productId(), o.getProductName(), o.getCategory(), o.getCountryCode()));
+        o.setWeightGrams(weightOr(f.weightGrams(), o.getProduct()));
+        learnWeight(o.getProduct(), f.weightGrams());
         return mapper.offer(o);
     }
 
@@ -103,10 +109,13 @@ public class MarketService {
         Offer o = findOffer(offerId);
         if (!o.getTraveler().getId().equals(userId)) throw ApiException.forbidden("This is not your offer");
         if (o.getStatus() == OfferStatus.CLOSED) throw ApiException.conflict("OFFER_CLOSED", "Offer is closed");
+        pricing.checkReward(f.estPrice(), f.reward());
         o.update(f.productName().trim(), blankToNull(f.store()), blankToNull(f.category()),
                 blankToNull(f.description()), blankToNull(f.imageUrl()), f.estPrice(), f.reward(), f.quantity());
         o.setReceiptUrl(blankToNull(f.receiptUrl()));
         o.setProduct(catalog.resolve(f.productId(), o.getProductName(), o.getCategory(), o.getCountryCode()));
+        o.setWeightGrams(weightOr(f.weightGrams(), o.getProduct()));
+        learnWeight(o.getProduct(), f.weightGrams());
         return mapper.offer(o);
     }
 
@@ -129,10 +138,13 @@ public class MarketService {
         if (f.deadline().isBefore(Today.get().plusDays(1))) {
             throw ApiException.badRequest("DEADLINE", "Deadline must be at least tomorrow");
         }
+        pricing.checkReward(f.maxBudget(), f.reward());
         PurchaseRequest r = requests.save(new PurchaseRequest(me, f.countryCode().toUpperCase(),
                 f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
                 blankToNull(f.options()), blankToNull(f.note()), f.maxBudget(), f.reward(), f.deadline()));
         r.setProduct(catalog.resolve(f.productId(), r.getProductName(), null, r.getCountryCode()));
+        r.setWeightGrams(weightOr(f.weightGrams(), r.getProduct()));
+        learnWeight(r.getProduct(), f.weightGrams());
         return mapper.request(r);
     }
 
@@ -259,5 +271,15 @@ public class MarketService {
 
     private static String blankToNull(String s) {
         return s == null || s.isBlank() ? null : s.trim();
+    }
+
+    /** The weight the user entered, or the catalog's estimate when they left it blank. */
+    private static Integer weightOr(Integer entered, Product p) {
+        return entered != null ? entered : p == null ? null : p.getWeightGrams();
+    }
+
+    /** First weight anyone enters for a catalog product becomes its default estimate. */
+    private static void learnWeight(Product p, Integer entered) {
+        if (p != null && p.getWeightGrams() == null && entered != null) p.setWeightGrams(entered);
     }
 }

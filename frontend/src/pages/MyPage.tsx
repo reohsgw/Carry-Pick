@@ -11,6 +11,7 @@ import { Avatar, Loading, Mascot, Notice, ProductThumb, Tag } from '../component
 import { ACTIVE_STATUSES, countryName, daysUntil, krw, shortDate } from '../format';
 import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
+import { useRequestIsNew } from '../seen';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -30,6 +31,7 @@ export default function MyPage() {
   const carrying = useQuery({ queryKey: ['myOrders', 'traveler'], queryFn: () => api.myOrders('traveler') });
   const buying = useQuery({ queryKey: ['myOrders', 'buyer'], queryFn: () => api.myOrders('buyer') });
   const requests = useQuery({ queryKey: ['myRequests'], queryFn: api.myRequests });
+  const isNew = useRequestIsNew();
   if (!user) return null;
 
   const carryActive = (carrying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status));
@@ -38,7 +40,7 @@ export default function MyPage() {
     .reduce((sum, o) => sum + o.reward, 0);
   const earned = (carrying.data ?? []).filter((o) => o.status === 'SETTLED').reduce((sum, o) => sum + o.reward, 0);
   const buyActive = (buying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status)).length;
-  const openRequests = (requests.data ?? []).filter((r) => r.status === 'OPEN').length;
+  const newRequests = (requests.data ?? []).filter(isNew).length;
   const next = trips.data?.[0];
   const dates = (a: string, b: string) => `${shortDate(a, lang)} – ${shortDate(b, lang)}`;
 
@@ -76,7 +78,7 @@ export default function MyPage() {
   const shortcuts: { to: string; icon: typeof Package; label: string; count?: number }[] = [
     { to: '/orders', icon: ShoppingBag, label: t('kt.buyHistory'), count: buyActive },
     { to: '/t/orders', icon: Package, label: t('kt.history'), count: carryActive.length },
-    { to: '/orders?tab=requests', icon: ClipboardList, label: t('me.requests'), count: openRequests },
+    { to: '/orders?tab=requests', icon: ClipboardList, label: t('me.requests'), count: newRequests },
     { to: '#kt-trips', icon: Plane, label: t('t.trips'), count: trips.data?.length },
   ];
 

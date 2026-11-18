@@ -41,6 +41,9 @@ public class PurchaseRequest {
 
     private long reward;
 
+    /** Estimated weight in grams, so travelers can judge whether it fits in their luggage. */
+    private Integer weightGrams;
+
     @Column(nullable = false)
     private LocalDate deadline;
 
@@ -75,8 +78,10 @@ public class PurchaseRequest {
     public void setTraveler(User traveler) { this.traveler = traveler; }
     public String getCountryCode() { return countryCode; }
     public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
     public String getProductLink() { return productLink; }
     public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getOptions() { return options; }
     public String getNote() { return note; }
     public long getMaxBudget() { return maxBudget; }
@@ -98,6 +103,8 @@ public class PurchaseRequest {
                 ? String.valueOf(travelerId) : excludedTravelers + "," + travelerId;
     }
 
+    public Integer getWeightGrams() { return weightGrams; }
+    public void setWeightGrams(Integer weightGrams) { this.weightGrams = weightGrams; }
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
 }

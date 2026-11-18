@@ -24,6 +24,7 @@ export interface AppConfig {
   feeRate: number;
   taxThresholdKrw: number;
   taxRate: number;
+  maxRewardRate: number;
   countries: Country[];
 }
 
@@ -39,11 +40,12 @@ export interface Offer {
   bookable: boolean; unitQuote: Quote;
   receiptUrl: string | null;
   product: Product | null;
+  weightGrams: number | null;
 }
 
 export interface Product {
   id: number; name: string; nameKo: string | null; nameLocal: string | null; aliases: string | null;
-  category: string | null; countryCode: string | null;
+  category: string | null; countryCode: string | null; weightGrams: number | null;
 }
 
 export interface ProductInput {
@@ -55,7 +57,7 @@ export interface PurchaseRequest {
   productLink: string | null; imageUrl: string | null; options: string | null; note: string | null;
   maxBudget: number; reward: number; deadline: string;
   status: 'OPEN' | 'MATCHED' | 'EXPIRED' | 'CANCELLED'; quote: Quote; createdAt: string; orderId: number | null;
-  product: Product | null;
+  product: Product | null; weightGrams: number | null;
 }
 
 export interface PaymentRecord {
@@ -260,10 +262,12 @@ export interface OfferInput {
   imageUrl?: string | null; estPrice: number; reward: number; quantity: number;
   receiptUrl?: string | null;
   productId?: number | null;
+  weightGrams?: number | null;
 }
 
 export interface RequestInput {
   countryCode: string; productName: string; productLink?: string; imageUrl?: string | null;
   options?: string; note?: string; maxBudget: number; reward: number; deadline: string;
   productId?: number | null;
+  weightGrams?: number | null;
 }

@@ -39,6 +39,9 @@ public class Offer {
 
     private long reward;
 
+    /** Estimated weight in grams, so travelers can judge whether it fits in their luggage. */
+    private Integer weightGrams;
+
     private int quantity;
 
     private String receiptUrl;
@@ -121,4 +124,7 @@ public class Offer {
 
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
+
+    public Integer getWeightGrams() { return weightGrams; }
+    public void setWeightGrams(Integer weightGrams) { this.weightGrams = weightGrams; }
 }

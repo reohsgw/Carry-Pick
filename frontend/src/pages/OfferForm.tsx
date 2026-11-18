@@ -6,8 +6,8 @@ import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { ActionBar, Empty, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet } from '../components/ui';
-import { CATEGORIES, cityCode, daysUntil, quote, shortDate } from '../format';
+import { ActionBar, Empty, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { CATEGORIES, cityCode, daysUntil, krw, maxReward, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 
@@ -36,6 +36,7 @@ export default function OfferForm() {
   const [quantity, setQuantity] = useState(1);
   const [bought, setBought] = useState(false);
   const [receiptUrl, setReceipt] = useState<string | null>(null);
+  const [weightGrams, setWeight] = useState<number | ''>('');
 
   useEffect(() => {
     const o = existing.data;
@@ -44,6 +45,7 @@ export default function OfferForm() {
     setDescription(o.description ?? ''); setImage(o.imageUrl); setPrice(o.estPrice); setReward(o.reward);
     setQuantity(Math.max(o.quantity, 1));
     setBought(!!o.receiptUrl); setReceipt(o.receiptUrl);
+    setWeight(o.weightGrams ?? '');
   }, [existing.data]);
 
   const futureTrips = (trips.data ?? []).filter((tr) => daysUntil(tr.departDate) > 0);
@@ -57,6 +59,7 @@ export default function OfferForm() {
         tripId: Number(tripId), productName, store, category, description, imageUrl,
         estPrice: Number(estPrice), reward: Number(reward || 0), quantity,
         receiptUrl: bought ? receiptUrl : null, productId,
+        weightGrams: weightGrams === '' ? null : weightGrams,
       };
       return editId ? api.updateOffer(editId, body) : api.createOffer(body);
     },
@@ -89,6 +92,9 @@ export default function OfferForm() {
   }
 
   const q = quote(config, Number(estPrice || 0), Number(reward || 0));
+  const pct = Math.round((config?.maxRewardRate ?? 0.5) * 100);
+  const rewardCap = maxReward(config, Number(estPrice || 0));
+  const rewardOver = !!estPrice && Number(reward || 0) > rewardCap;
 
   return (
     <Screen back title={editId ? t('of.edit') : t('of.new')} hideNav>
@@ -117,9 +123,13 @@ export default function OfferForm() {
                   setName(name);
                   setProductId(p?.id ?? null);
                   if (p?.category) setCategory(p.category);
+                  if (p?.weightGrams) setWeight(p.weightGrams);
                 }}
               />
             </div>
+            <Field label={t('w.label')} hint={t('w.hint')}>
+              <WeightInput value={weightGrams} onChange={setWeight} required />
+            </Field>
             <Field label={t('req.photo')} optional><ImagePicker value={imageUrl} onChange={setImage} /></Field>
             <div className="two-col">
               <Field label={t('of.store')} optional><input value={store} onChange={(e) => setStore(e.target.value)} maxLength={80} /></Field>
@@ -147,7 +157,10 @@ export default function OfferForm() {
               <MoneyInput value={estPrice} onChange={setPrice} required placeholder="20,000" />
             </Field>
             <div className="two-col">
-              <Field label={t('of.reward')}><MoneyInput value={reward} onChange={setReward} /></Field>
+              <Field label={t('of.reward')} error={rewardOver}
+                hint={estPrice ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct }) : t('reward.rule', { pct })}>
+                <MoneyInput value={reward} onChange={setReward} />
+              </Field>
               <Field label={t('of.qty')}>
                 <input type="number" min={1} max={99} value={quantity} onChange={(e) => setQuantity(Math.max(1, Math.min(99, Number(e.target.value))))} />
               </Field>
@@ -170,7 +183,7 @@ export default function OfferForm() {
         )}
       </form>
       <ActionBar>
-        <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || !estPrice || tripId === '' || (bought && !receiptUrl)}>
+        <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || !estPrice || !weightGrams || rewardOver || tripId === '' || (bought && !receiptUrl)}>
           {save.isPending ? t('order.saving') : editId ? t('of.saveChanges') : t('of.publish')}
         </button>
       </ActionBar>

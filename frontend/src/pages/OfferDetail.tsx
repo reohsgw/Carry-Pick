@@ -6,7 +6,7 @@ import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { Avatar, ErrorBox, KV, Loading, Notice, ProductPhoto, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, quote, shortDate } from '../format';
+import { countryName, daysUntil, krw, quote, shortDate, weight } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -104,6 +104,7 @@ export default function OfferDetail() {
           <KV label={t('offer.trip')}>{o.trip.city ?? country}, {shortDate(o.trip.departDate, lang)} – {shortDate(o.trip.returnDate, lang)}</KV>
           <KV label={t('offer.delivery')}>{t('offer.deliveryValue', { date: shortDate(o.trip.returnDate, lang) })}</KV>
           {o.trip.luggageNote && <KV label={t('offer.luggage')}>{o.trip.luggageNote}</KV>}
+          {o.weightGrams != null && <KV label={t('w.label')}>{t('w.approx', { w: weight(o.weightGrams) })}</KV>}
         </section>
 
         {book.error && <Notice tone="bad">{errText(book.error)}</Notice>}

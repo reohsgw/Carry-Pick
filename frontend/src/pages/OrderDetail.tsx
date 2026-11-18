@@ -3,17 +3,18 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, ChevronRight, ExternalLink, FileText, MessageCircle } from '../components/icons';
 import { api, assetUrl, type Order } from '../api';
-import { OrderHero, ReceiptLine, ReceiptStrip, StatusTimeline, firstName } from '../components/cards';
+import { ReceiptLine, ReceiptStrip, StatusTimeline, firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
 import { ReceiptCapture } from '../components/receipt';
-import { ActionBar, ErrorBox, Field, KV, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge } from '../components/ui';
-import { krw } from '../format';
+import { ActionBar, Avatar, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge } from '../components/ui';
+import { krw, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 
 export default function OrderDetail() {
   const id = Number(useParams().id);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const route = useRoute();
   const order = useQuery({ queryKey: ['order', id], queryFn: () => api.order(id), refetchInterval: 15_000 });
 
   if (order.isLoading) return <Screen back title={t('order.title')}><Loading /></Screen>;
@@ -21,6 +22,7 @@ export default function OrderDetail() {
 
   const o = order.data;
   const buyer = o.myRole === 'BUYER';
+  const other = buyer ? o.traveler : o.buyer;
 
   const extraLines = o.extraItemAmount > 0
     ? [
@@ -30,87 +32,100 @@ export default function OrderDetail() {
     : undefined;
 
   return (
-    <Screen back title={t('order.title')} hideNav>
-      <OrderHero order={o} />
+    <Screen back title={t('order.title')} hideNav wide>
+      <div className="od-grid">
+        <div className="od-main">
+          <section className="od-head">
+            <ProductThumb src={o.imageUrl} category={o.category} size={104} />
+            <div className="od-head-body">
+              <div className="od-head-top">
+                <StatusBadge status={o.status} />
+                <span className="od-code">CP-{String(o.id).padStart(5, '0')}</span>
+              </div>
+              <h1>{o.productName}{o.quantity > 1 && <span className="qty"> × {o.quantity}</span>}</h1>
+              <p className="od-meta">
+                <span>{route(null, o.countryCode)}</span>
+                {o.expectedDelivery && <span>{shortDate(o.expectedDelivery, lang)}</span>}
+                <span className="od-person">
+                  <Avatar size={20} name={other.name} src={other.avatarUrl} />
+                  {buyer ? t('order.traveler') : t('order.buyer')} {firstName(other.name)}
+                </span>
+              </p>
+              <p className="od-next">{t(`next.${buyer ? 'b' : 't'}.${o.status}` as Key)}</p>
+              {(o.productLink || o.options) && (
+                <p className="od-extra">
+                  {o.options && <span>{t('order.options')}: {o.options}</span>}
+                  {o.productLink && (
+                    <a className="link small" href={o.productLink} target="_blank" rel="noreferrer">
+                      {t('order.link')} <ExternalLink size={14} aria-hidden />
+                    </a>
+                  )}
+                </p>
+              )}
+            </div>
+          </section>
 
-      <div className="status-strip pull-up">
-        <StatusBadge status={o.status} />
-        <span>{t(`next.${buyer ? 'b' : 't'}.${o.status}` as Key)}</span>
-      </div>
+          <Sheet title={t('order.progress')}>
+            <StatusTimeline order={o} />
+          </Sheet>
 
-      <Link to={`/orders/${o.id}/chat`} className="status-strip chat-link">
-        <MessageCircle size={20} aria-hidden />
-        <span className="grow">
-          <b>{t('chat.open', { name: firstName(buyer ? o.traveler.name : o.buyer.name) })}</b>
-          <small>{t('chat.openHint')}</small>
-        </span>
-        {o.unreadMessages > 0 && <span className="dot is-inline">{o.unreadMessages > 9 ? '9+' : o.unreadMessages}</span>}
-        <ChevronRight size={18} className="row-chevron" aria-hidden />
-      </Link>
-
-      <Sheet>
-        <div className="product-line is-inset">
-          <ProductThumb src={o.imageUrl} category={o.category} size={52} />
-          <div className="row-body">
-            <div className="row-title">{o.productName}{o.quantity > 1 && <span className="qty"> × {o.quantity}</span>}</div>
-            {o.productLink && (
-              <a className="link small" href={o.productLink} target="_blank" rel="noreferrer">
-                {t('order.link')} <ExternalLink size={14} aria-hidden />
+          {o.priceTagUrl && (
+            <Sheet title={t('pc.tag')} aside={<span className="amount">{krw(o.quotedPrice)}</span>}>
+              <a href={assetUrl(o.priceTagUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
+                <img src={assetUrl(o.priceTagUrl) ?? ''} alt={t('pc.tag')} />
               </a>
-            )}
-          </div>
+            </Sheet>
+          )}
+
+          {o.receiptUrl && (
+            <Sheet title={t('order.receipt')} aside={<span className="amount">{krw(o.actualPrice)}</span>}>
+              <a href={assetUrl(o.receiptUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
+                {o.receiptUrl.endsWith('.pdf')
+                  ? <span className="link"><FileText size={18} aria-hidden /> {t('order.receiptPdf')}</span>
+                  : <img src={assetUrl(o.receiptUrl) ?? ''} alt={t('order.receipt')} />}
+              </a>
+            </Sheet>
+          )}
+
         </div>
-        {o.options && <KV label={t('order.options')}>{o.options}</KV>}
-      </Sheet>
+        <div className="od-side">
+          <Link to={`/orders/${o.id}/chat`} className="status-strip chat-link">
+            <MessageCircle size={20} aria-hidden />
+            <span className="grow">
+              <b>{t('chat.open', { name: firstName(buyer ? o.traveler.name : o.buyer.name) })}</b>
+              <small>{t('chat.openHint')}</small>
+            </span>
+            {o.unreadMessages > 0 && <span className="dot is-inline">{o.unreadMessages > 9 ? '9+' : o.unreadMessages}</span>}
+            <ChevronRight size={18} className="row-chevron" aria-hidden />
+          </Link>
 
-      <Sheet title={t('order.progress')}>
-        <StatusTimeline order={o} />
-      </Sheet>
+          <aside className="summary-card">
+            <div className="summary-head"><h2>{buyer ? t('order.amountsBuyer') : t('order.amountsTraveler')}</h2></div>
+            <ReceiptStrip
+              quote={{ budget: o.budget, reward: o.reward, fee: o.fee, tax: o.tax, total: o.initialCharge }}
+              budgetLabel={o.source === 'REQUEST' ? t('price.itemBudget') : t('price.itemEstimate')}
+              extra={extraLines}
+            />
+            {o.extraItemAmount > 0 && (
+              <ReceiptLine label={t('price.extraTotal')} value={o.extraCharge} strong />
+            )}
+            {o.actualPrice != null && !o.settlement && o.actualPrice < o.itemLimit && (
+              <div className="settle">
+                <ReceiptLine label={t('price.refundDue')} value={o.itemLimit - o.actualPrice} />
+                <p className="receipt-note">{t('price.refundDueNote')}</p>
+              </div>
+            )}
+            {o.settlement && (
+              <div className="settle">
+                <ReceiptLine label={t('price.payout')} value={o.settlement.travelerPayout} />
+                <ReceiptLine label={t('price.refund')} value={o.settlement.buyerRefund} />
+              </div>
+            )}
+          </aside>
 
-      {o.priceTagUrl && (
-        <Sheet title={t('pc.tag')} aside={<span className="amount">{krw(o.quotedPrice)}</span>}>
-          <a href={assetUrl(o.priceTagUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
-            <img src={assetUrl(o.priceTagUrl) ?? ''} alt={t('pc.tag')} />
-          </a>
-        </Sheet>
-      )}
-
-      {o.receiptUrl && (
-        <Sheet title={t('order.receipt')} aside={<span className="amount">{krw(o.actualPrice)}</span>}>
-          <a href={assetUrl(o.receiptUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
-            {o.receiptUrl.endsWith('.pdf')
-              ? <span className="link"><FileText size={18} aria-hidden /> {t('order.receiptPdf')}</span>
-              : <img src={assetUrl(o.receiptUrl) ?? ''} alt={t('order.receipt')} />}
-          </a>
-        </Sheet>
-      )}
-
-      <aside className="summary-card">
-        <div className="summary-head"><h2>{buyer ? t('order.amountsBuyer') : t('order.amountsTraveler')}</h2></div>
-        <ReceiptStrip
-          quote={{ budget: o.budget, reward: o.reward, fee: o.fee, tax: o.tax, total: o.initialCharge }}
-          budgetLabel={o.source === 'REQUEST' ? t('price.itemBudget') : t('price.itemEstimate')}
-          extra={extraLines}
-        />
-        {o.extraItemAmount > 0 && (
-          <ReceiptLine label={t('price.extraTotal')} value={o.extraCharge} strong />
-        )}
-        {o.actualPrice != null && !o.settlement && o.actualPrice < o.itemLimit && (
-          <div className="settle">
-            <ReceiptLine label={t('price.refundDue')} value={o.itemLimit - o.actualPrice} />
-            <p className="receipt-note">{t('price.refundDueNote')}</p>
-          </div>
-        )}
-        {o.settlement && (
-          <div className="settle">
-            <ReceiptLine label={t('price.payout')} value={o.settlement.travelerPayout} />
-            <ReceiptLine label={t('price.refund')} value={o.settlement.buyerRefund} />
-            <p className="receipt-note">{t('price.simulated')}</p>
-          </div>
-        )}
-      </aside>
-
-      {buyer ? <BuyerActions order={o} /> : <TravelerActions order={o} />}
+          {buyer ? <BuyerActions order={o} /> : <TravelerActions order={o} />}
+        </div>
+      </div>
     </Screen>
   );
 }

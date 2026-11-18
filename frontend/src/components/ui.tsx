@@ -142,7 +142,7 @@ export function ProductThumb({ src, category, size = 56 }: { src?: string | null
   );
 }
 
-export function Field({ label, hint, optional, children }: { label: string; hint?: string; optional?: boolean; children: ReactNode }) {
+export function Field({ label, hint, optional, error, children }: { label: string; hint?: string; optional?: boolean; error?: boolean; children: ReactNode }) {
   const { t } = useI18n();
   return (
     <label className="field">
@@ -151,7 +151,7 @@ export function Field({ label, hint, optional, children }: { label: string; hint
         {optional && <span className="field-optional">{t('common.optional')}</span>}
       </span>
       {children}
-      {hint && <span className="field-hint">{hint}</span>}
+      {hint && <span className={`field-hint${error ? ' is-error' : ''}`} role={error ? 'alert' : undefined}>{hint}</span>}
     </label>
   );
 }
@@ -173,6 +173,39 @@ export function MoneyInput({ value, onChange, placeholder, required, id }: {
           onChange(digits === '' ? '' : Math.min(Number(digits), 100_000_000));
         }}
       />
+    </div>
+  );
+}
+
+const WEIGHT_PRESETS = [100, 300, 500, 1000, 2000];
+
+/** Estimated weight in grams, with quick presets. */
+export function WeightInput({ value, onChange, required, id }: {
+  value: number | ''; onChange: (v: number | '') => void; required?: boolean; id?: string;
+}) {
+  return (
+    <div className="weight">
+      <div className="money">
+        <input
+          id={id}
+          inputMode="numeric"
+          required={required}
+          placeholder="300"
+          value={value === '' ? '' : value.toLocaleString('ko-KR')}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/[^0-9]/g, '');
+            onChange(digits === '' ? '' : Math.min(Number(digits), 50_000));
+          }}
+        />
+        <span className="money-prefix" aria-hidden>g</span>
+      </div>
+      <div className="weight-presets">
+        {WEIGHT_PRESETS.map((g) => (
+          <button key={g} type="button" aria-pressed={value === g} onClick={() => onChange(g)}>
+            {g < 1000 ? `${g}g` : `${g / 1000}kg`}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

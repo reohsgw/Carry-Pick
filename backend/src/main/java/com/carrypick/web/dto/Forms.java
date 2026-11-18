@@ -36,7 +36,8 @@ public final class Forms {
             @PositiveOrZero long reward,
             @Min(1) @Max(99) int quantity,
             @Size(max = 500) String receiptUrl,
-            Long productId) {}
+            Long productId,
+            @Min(1) @Max(50000) Integer weightGrams) {}
 
     public record RequestForm(
             @NotBlank @Size(min = 2, max = 2) String countryCode,
@@ -48,7 +49,8 @@ public final class Forms {
             @Positive long maxBudget,
             @PositiveOrZero long reward,
             @NotNull LocalDate deadline,
-            Long productId) {}
+            Long productId,
+            @Min(1) @Max(50000) Integer weightGrams) {}
 
     public record ProductForm(
             @NotBlank @Size(max = 120) String name,

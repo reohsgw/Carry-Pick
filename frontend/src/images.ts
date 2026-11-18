@@ -13,6 +13,9 @@ import traderJoesTote from './assets/trader-joes-tote.jpg';
 import mamaTomYum from './assets/mama-tom-yum.jpg';
 import narayaBag from './assets/naraya-bag.jpg';
 import diptyqueBaies from './assets/diptyque-baies.jpg';
+import biodermaSensibio from './assets/bioderma-sensibio.jpg';
+import helloKittyTokyo from './assets/hello-kitty-tokyo.jpg';
+import leLaboSantal33 from './assets/le-labo-santal33.jpg';
 import { assetUrl } from './api';
 
 export const IMAGES = { hero, keychain, skincare, snacks };
@@ -29,6 +32,9 @@ const DEMO_PHOTOS: Record<string, string> = {
   'mama-tom-yum': mamaTomYum,
   'naraya-bag': narayaBag,
   'diptyque-baies': diptyqueBaies,
+  'bioderma-sensibio': biodermaSensibio,
+  'hello-kitty-tokyo': helloKittyTokyo,
+  'le-labo-santal33': leLaboSantal33,
 };
 
 export function productPhoto(imageUrl: string | null | undefined, category: string | null | undefined): string | null {

@@ -55,6 +55,6 @@ public class AuthController {
         var pay = props.payment();
         var pricing = props.pricing();
         return new ConfigDto(pay.isMock() ? "mock" : "toss", pay.isMock() ? null : pay.tossClientKey(),
-                pricing.feeRate(), pricing.taxThresholdKrw(), pricing.taxRate(), Countries.ALL);
+                pricing.feeRate(), pricing.taxThresholdKrw(), pricing.taxRate(), pricing.maxRewardRate(), Countries.ALL);
     }
 }

@@ -35,18 +35,18 @@ public final class Dtos {
     public record OfferDto(Long id, PersonDto traveler, TripDto trip, String countryCode, String productName,
                            String store, String category, String description, String imageUrl, long estPrice,
                            long reward, int quantity, OfferStatus status, boolean bookable, Quote unitQuote,
-                           String receiptUrl, ProductDto product) {}
+                           String receiptUrl, ProductDto product, Integer weightGrams) {}
 
     public record RequestDto(Long id, PersonDto buyer, PersonDto traveler, String countryCode, String productName,
                              String productLink, String imageUrl, String options, String note, long maxBudget,
                              long reward, LocalDate deadline, RequestStatus status, Quote quote,
-                             Instant createdAt, Long orderId, ProductDto product) {}
+                             Instant createdAt, Long orderId, ProductDto product, Integer weightGrams) {}
 
     public record ProductDto(Long id, String name, String nameKo, String nameLocal, String aliases,
-                             String category, String countryCode) {
+                             String category, String countryCode, Integer weightGrams) {
         public static ProductDto of(com.carrypick.domain.Product p) {
             return p == null ? null : new ProductDto(p.getId(), p.getName(), p.getNameKo(), p.getNameLocal(),
-                    p.getAliases(), p.getCategory(), p.getCountryCode());
+                    p.getAliases(), p.getCategory(), p.getCountryCode(), p.getWeightGrams());
         }
     }
 
@@ -115,5 +115,5 @@ public final class Dtos {
                                     long amount, String type, String customerKey) {}
 
     public record ConfigDto(String paymentMode, String tossClientKey, double feeRate, long taxThresholdKrw,
-                            double taxRate, List<Countries.Country> countries) {}
+                            double taxRate, double maxRewardRate, List<Countries.Country> countries) {}
 }

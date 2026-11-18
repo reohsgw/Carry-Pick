@@ -7,6 +7,7 @@ import { Screen } from '../components/Layout';
 import { Avatar, Empty, ErrorBox, Loading, ProductThumb, StatusBadge, Tag } from '../components/ui';
 import { krw, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
+import { markRequestSeen, useRequestIsNew } from '../seen';
 
 const DONE = new Set(['COMPLETED', 'SETTLED']);
 
@@ -20,6 +21,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
   const buyer = role === 'buyer';
   const orders = useQuery({ queryKey: ['myOrders', role], queryFn: () => api.myOrders(role) });
   const requests = useQuery({ queryKey: ['myRequests'], queryFn: api.myRequests, enabled: buyer });
+  const isNew = useRequestIsNew();
 
   const all = orders.data ?? [];
   const groups: Record<Exclude<Tab, 'requests'>, Order[]> = {
@@ -28,13 +30,14 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
     done: all.filter((o) => DONE.has(o.status)),
     cancelled: all.filter((o) => o.status === 'CANCELLED'),
   };
+  const loaded = !!orders.data;
   const tabs: { key: Tab; count?: number }[] = [
-    { key: 'all' },
-    { key: 'active', count: groups.active.length },
-    { key: 'done' },
-    { key: 'cancelled' },
+    { key: 'all', count: loaded ? groups.all.length : undefined },
+    { key: 'active', count: loaded ? groups.active.length : undefined },
+    { key: 'done', count: loaded ? groups.done.length : undefined },
+    { key: 'cancelled', count: loaded ? groups.cancelled.length : undefined },
   ];
-  if (buyer) tabs.push({ key: 'requests', count: requests.data?.filter((r) => r.status === 'OPEN').length });
+  if (buyer) tabs.push({ key: 'requests', count: requests.data?.length });
   const asked = params.get('tab') as Tab | null;
   const tab: Tab = asked && tabs.some((x) => x.key === asked) ? asked : 'all';
   const pick = (key: Tab) => setParams({ tab: key }, { replace: true });
@@ -54,7 +57,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
                     <li key={x.key}>
                       <button type="button" aria-current={tab === x.key} onClick={() => pick(x.key)}>
                         {t(`orders.tab.${x.key}`)}
-                        {!!x.count && <span className="ob-count">{x.count}</span>}
+                        {x.count != null && <span className={`ob-count${x.count === 0 ? ' is-zero' : ''}`}>{x.count}</span>}
                       </button>
                     </li>
                   ))}
@@ -74,7 +77,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
             {tabs.map((x) => (
               <button key={x.key} type="button" role="tab" aria-selected={tab === x.key} onClick={() => pick(x.key)}>
                 {t(`orders.tab.${x.key}`)}
-                {!!x.count && <span className="ob-count">{x.count}</span>}
+                {x.count != null && <span className={`ob-count${x.count === 0 ? ' is-zero' : ''}`}>{x.count}</span>}
               </button>
             ))}
           </div>
@@ -107,7 +110,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
               )}
               {!!requests.data?.length && (
                 <>
-                  <div className="ob-list">{requests.data.map((r) => <RequestTicket key={r.id} request={r} />)}</div>
+                  <div className="ob-list">{requests.data.map((r) => <RequestTicket key={r.id} request={r} isNew={isNew(r)} />)}</div>
                   <p className="ob-end">{t('ob.noMore')}</p>
                 </>
               )}
@@ -172,15 +175,16 @@ function OrderCard({ order }: { order: Order }) {
   );
 }
 
-function RequestTicket({ request }: { request: PurchaseRequest }) {
+function RequestTicket({ request, isNew }: { request: PurchaseRequest; isNew: boolean }) {
   const { t, lang } = useI18n();
   const route = useRoute();
   const to = request.orderId ? `/orders/${request.orderId}` : `/my-requests/${request.id}`;
   return (
-    <article className="ob-card">
+    <article className={`ob-card${isNew ? ' is-new' : ''}`} onClickCapture={(e) => { if ((e.target as Element).closest('a')) markRequestSeen(request); }}>
       <div className="ob-card-top">
         <ClipboardList size={18} aria-hidden />
         <span>{t('ob.requestNo')} <b>R-{String(request.id).padStart(5, '0')}</b></span>
+        {isNew && <span className="ob-new-dot">{t('ob.new')}</span>}
         <span className="ob-sep" aria-hidden />
         <span>{t('ob.posted', { date: shortDate(request.createdAt, lang) })}</span>
         <span className="ob-status">

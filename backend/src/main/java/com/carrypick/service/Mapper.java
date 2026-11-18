@@ -31,7 +31,7 @@ public class Mapper {
         return new OfferDto(o.getId(), PersonDto.of(o.getTraveler()), TripDto.of(o.getTrip()), o.getCountryCode(),
                 o.getProductName(), o.getStore(), o.getCategory(), o.getDescription(), o.getImageUrl(),
                 o.getEstPrice(), o.getReward(), o.getQuantity(), o.getStatus(), o.isBookable(Today.get()),
-                pricing.quote(o.getEstPrice(), o.getReward()), o.getReceiptUrl(), ProductDto.of(o.getProduct()));
+                pricing.quote(o.getEstPrice(), o.getReward()), o.getReceiptUrl(), ProductDto.of(o.getProduct()), o.getWeightGrams());
     }
 
     public RequestDto request(PurchaseRequest r) {
@@ -40,7 +40,7 @@ public class Mapper {
         return new RequestDto(r.getId(), PersonDto.of(r.getBuyer()), PersonDto.of(r.getTraveler()),
                 r.getCountryCode(), r.getProductName(), r.getProductLink(), r.getImageUrl(), r.getOptions(),
                 r.getNote(), r.getMaxBudget(), r.getReward(), r.getDeadline(), r.getStatus(),
-                pricing.quote(r.getMaxBudget(), r.getReward()), r.getCreatedAt(), orderId, ProductDto.of(r.getProduct()));
+                pricing.quote(r.getMaxBudget(), r.getReward()), r.getCreatedAt(), orderId, ProductDto.of(r.getProduct()), r.getWeightGrams());
     }
 
     public OrderDto order(Order o, Long viewerId) {

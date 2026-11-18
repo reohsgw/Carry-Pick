@@ -28,7 +28,7 @@ public class CatalogInitializer implements ApplicationRunner {
             {"Anessa Perfect UV Sunscreen 60ml", "아넷사 퍼펙트 UV 선크림 60ml", "アネッサ パーフェクトUV スキンケアミルク", "아넷사, 선크림, 썬크림, 자외선 차단제, sunscreen, sunblock, 日焼け止め", "Beauty", "JP"},
             {"Uniqlo Japan-limited graphic T-shirt", "유니클로 일본 한정 그래픽 티셔츠", "ユニクロ 限定 グラフィックTシャツ", "유니클로, 티셔츠, 반팔티, uniqlo, t-shirt, tshirt", "Fashion", "JP"},
             {"Kit Kat regional flavors set", "킷캣 지역 한정 맛 세트", "キットカット ご当地", "킷캣, 킷켓, 일본 킷캣, kitkat, kit kat", "Snacks", "JP"},
-            {"Tokyo-limited character plush (medium)", "도쿄 한정 캐릭터 인형 (중)", "東京限定 ぬいぐるみ", "인형, 캐릭터 인형, 봉제인형, plush, doll", "Other", "JP"},
+            {"Sanrio Hello Kitty Tokyo Limited Edition", "산리오 헬로키티 도쿄 한정판", "サンリオ ハローキティ 東京限定", "헬로키티, 헬로 키티, 산리오, 키티 인형, 도쿄 한정, 인형, 캐릭터 인형, 봉제인형, hello kitty, sanrio, plush, doll", "Other", "JP"},
             {"Ladurée macarons (box of 12)", "라뒤레 마카롱 (12개입)", "Ladurée macarons", "라뒤레, 라듀레, 마카롱, laduree, macaron, 프랑스 디저트", "Snacks", "FR"},
             {"Diptyque Baies candle 190g", "딥티크 베이 캔들 190g", "Diptyque bougie Baies", "딥티크, 딥디크, 캔들, 향초, diptyque, candle", "Home", "FR"},
             {"Bioderma Sensibio H2O 500ml", "바이오더마 센시비오 H2O 500ml", "Bioderma Sensibio H2O", "바이오더마, 클렌징워터, 클렌징 워터, 미셀라 워터, bioderma, micellar water", "Beauty", "FR"},
@@ -52,7 +52,32 @@ public class CatalogInitializer implements ApplicationRunner {
             Map.entry("Mama Tom Yum instant noodles (10 pack)", "demo:mama-tom-yum"),
             Map.entry("Naraya cotton bag", "demo:naraya-bag"),
             Map.entry("Trader Joe's tote bag", "demo:trader-joes-tote"),
-            Map.entry("Levi's 501 Original jeans", "demo:levis-501"));
+            Map.entry("Levi's 501 Original jeans", "demo:levis-501"),
+            Map.entry("Bioderma Sensibio H2O 500ml", "demo:bioderma-sensibio"),
+            Map.entry("Sanrio Hello Kitty Tokyo Limited Edition", "demo:hello-kitty-tokyo"),
+            Map.entry("Le Labo Santal 33 50ml", "demo:le-labo-santal33"));
+
+    /** Estimated packed weight (grams) for the starter catalog. */
+    private static final Map<String, Integer> DEMO_WEIGHTS = Map.ofEntries(
+            Map.entry("Tokyo Banana (8 pcs)", 300),
+            Map.entry("Royce' Nama Chocolate", 250),
+            Map.entry("Anessa Perfect UV Sunscreen 60ml", 90),
+            Map.entry("Uniqlo Japan-limited graphic T-shirt", 200),
+            Map.entry("Kit Kat regional flavors set", 800),
+            Map.entry("Sanrio Hello Kitty Tokyo Limited Edition", 150),
+            Map.entry("Ladurée macarons (box of 12)", 300),
+            Map.entry("Diptyque Baies candle 190g", 450),
+            Map.entry("Bioderma Sensibio H2O 500ml", 560),
+            Map.entry("Le Labo Santal 33 50ml", 300),
+            Map.entry("Mama Tom Yum instant noodles (10 pack)", 650),
+            Map.entry("Naraya cotton bag", 150),
+            Map.entry("Jim Thompson silk scarf", 80),
+            Map.entry("Trader Joe's tote bag", 100),
+            Map.entry("Levi's 501 Original jeans", 700));
+
+    /** Demo products renamed after the first seed: old name -> new name. */
+    private static final Map<String, String> RENAMED = Map.of(
+            "Tokyo-limited character plush (medium)", "Sanrio Hello Kitty Tokyo Limited Edition");
 
     private final ProductRepository products;
     private final ProductService catalog;
@@ -72,6 +97,7 @@ public class CatalogInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        renameDemoProducts();
         for (String[] e : STARTER_CATALOG) upsert(e);
 
         backfillDemoPhotos();
@@ -86,14 +112,42 @@ public class CatalogInitializer implements ApplicationRunner {
                     : o.getRequest() != null ? o.getRequest().getProduct() : null;
             o.setProduct(p != null ? p : catalog.resolve(null, o.getProductName(), null, o.getCountryCode()));
         }
+        backfillWeights();
         if (!looseOffers.isEmpty() || !looseRequests.isEmpty() || !looseOrders.isEmpty()) {
             log.info("Catalog: linked {} offers, {} requests and {} orders to products",
                     looseOffers.size(), looseRequests.size(), looseOrders.size());
         }
     }
 
+    private void renameDemoProducts() {
+        RENAMED.forEach((from, to) -> {
+            for (Product p : products.findAll()) if (from.equals(p.getName())) p.setName(to);
+            for (PurchaseRequest r : requests.findAll()) if (from.equals(r.getProductName())) r.setProductName(to);
+            for (Order o : orders.findAll()) if (from.equals(o.getProductName())) o.setProductName(to);
+        });
+    }
+
+    private void backfillWeights() {
+        for (Product p : products.findAll()) {
+            Integer w = DEMO_WEIGHTS.get(p.getName());
+            if (w != null && p.getWeightGrams() == null) p.setWeightGrams(w);
+        }
+        for (Offer o : offers.findAll()) {
+            if (o.getWeightGrams() == null && o.getProduct() != null) o.setWeightGrams(o.getProduct().getWeightGrams());
+        }
+        for (PurchaseRequest r : requests.findAll()) {
+            if (r.getWeightGrams() == null && r.getProduct() != null) r.setWeightGrams(r.getProduct().getWeightGrams());
+        }
+    }
+
     private void backfillDemoPhotos() {
         int fixed = 0;
+        for (PurchaseRequest r : requests.findAll()) {
+            String photo = DEMO_PHOTOS.get(r.getProductName());
+            if (photo == null || r.getImageUrl() != null || !isDemoUser(r.getBuyer())) continue;
+            r.setImageUrl(photo);
+            fixed++;
+        }
         for (Offer o : offers.findAll()) {
             String photo = DEMO_PHOTOS.get(o.getProductName());
             if (photo == null || o.getImageUrl() != null || !isDemoUser(o.getTraveler())) continue;
@@ -105,6 +159,12 @@ public class CatalogInitializer implements ApplicationRunner {
             if (o.getImageUrl() == null && offer != null && offer.getImageUrl() != null
                     && offer.getImageUrl().startsWith("demo:")) {
                 o.setImageUrl(offer.getImageUrl());
+                fixed++;
+            }
+            PurchaseRequest req = o.getRequest();
+            if (o.getImageUrl() == null && req != null && req.getImageUrl() != null
+                    && req.getImageUrl().startsWith("demo:")) {
+                o.setImageUrl(req.getImageUrl());
                 fixed++;
             }
         }

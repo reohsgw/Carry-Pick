@@ -3,15 +3,17 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowRight, Plane, ShoppingBag } from '../components/icons';
 import { api } from '../api';
 import { Wordmark } from '../components/Layout';
-import { Field, Mascot, Notice } from '../components/ui';
+import { Field, Notice } from '../components/ui';
 import { LangToggle, useErrorText, useI18n } from '../i18n';
 import taipei from '../assets/login-taipei.webp';
-import tokyo from '../assets/login-tokyo.webp';
 import newyork from '../assets/login-newyork.webp';
 import bali from '../assets/login-bali.webp';
 import bangkok from '../assets/login-bangkok.webp';
 import hoian from '../assets/login-hoian.webp';
 import paris from '../assets/login-paris.webp';
+import london from '../assets/login-london.webp';
+import tokyo from '../assets/login-tokyo.webp';
+import { HERO_LANDMARKS } from '../images';
 import { useSession } from '../session';
 
 const DEMO_PASSWORD = 'carrypick123';
@@ -54,19 +56,20 @@ export default function Login() {
     <div className="auth">
       <div className="auth-photo">
         <CitySlides />
-        <div className="auth-top">
-          <Wordmark />
-          <LangToggle />
-        </div>
       </div>
 
-      <div className="auth-body">
-        <Mascot mood="happy" className="auth-whale" />
-        <p className="eyebrow">{signup ? t('login.eyebrowUp') : t('login.eyebrowIn')}</p>
-        <h2 className="font-display">{signup ? t('login.titleUp') : t('login.titleIn')}</h2>
-        <p className="auth-copy">{signup ? t('login.copyUp') : t('login.copyIn')}</p>
+      <div className="auth-body lg-form">
+        <div className="lg-lang lg-brand"><Wordmark /><LangToggle /></div>
+        <div className="lg-tabs" role="tablist">
+          {(['login', 'signup'] as const).map((k) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k}
+              onClick={() => { setTab(k); setError(null); }}>
+              {t(`login.tab.${k}`)}
+            </button>
+          ))}
+        </div>
 
-        <form onSubmit={submit} className="stack">
+        <form onSubmit={submit} className="lg-fields">
           {signup && (
             <Field label={t('login.name')}>
               <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} autoComplete="name" />
@@ -89,48 +92,45 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="auth-switch">
-          {signup ? t('login.haveAccount') : t('login.newHere')}{' '}
-          <button type="button" onClick={() => { setTab(signup ? 'login' : 'signup'); setError(null); }}>
-            {signup ? t('login.tab.login') : t('login.createAccount')}
-          </button>
-        </p>
-
         {!signup && (
-          <div className="demo">
-            <div className="demo-head">
-              <span>{t('login.demo')}</span>
-            </div>
-            <div className="demo-buttons">
-              <button className="btn btn-quiet btn-small" disabled={busy}
+          <div className="lg-demo">
+            <p className="lg-or"><span>{t('login.demo')}</span></p>
+            <div className="lg-demo-row">
+              <button type="button" disabled={busy}
                 onClick={() => submit(undefined, { email: 'buyer@carrypick.test', password: DEMO_PASSWORD })}>
-                <ShoppingBag size={16} aria-hidden /> {t('login.demoBuyer')}
+                <span className="lg-demo-icon"><ShoppingBag size={18} aria-hidden /></span>
+                <span><b>{t('login.demoBuyer')}</b><small>{t('login.demoBuyerSub')}</small></span>
               </button>
-              <button className="btn btn-quiet btn-small" disabled={busy}
+              <button type="button" disabled={busy}
                 onClick={() => submit(undefined, { email: 'traveler@carrypick.test', password: DEMO_PASSWORD })}>
-                <Plane size={16} aria-hidden /> {t('login.demoTraveler')}
+                <span className="lg-demo-icon"><Plane size={18} aria-hidden /></span>
+                <span><b>{t('login.demoTraveler')}</b><small>{t('login.demoTravelerSub')}</small></span>
               </button>
             </div>
           </div>
         )}
+
+        <p className="lg-fine">{t('login.trust2')}</p>
       </div>
     </div>
   );
 }
 
 const SLIDES = [
-  { src: tokyo, city: 'Tokyo' },
-  { src: paris, city: 'Paris' },
-  { src: newyork, city: 'New York' },
-  { src: bangkok, city: 'Bangkok' },
-  { src: taipei, city: 'Taipei' },
-  { src: hoian, city: 'Hoi An' },
-  { src: bali, city: 'Bali' },
+  { src: tokyo, city: 'Tokyo', code: 'JP' },
+  { src: paris, city: 'Paris', code: 'FR' },
+  { src: newyork, city: 'New York', code: 'US' },
+  { src: london, city: 'London', code: 'GB' },
+  { src: bangkok, city: 'Bangkok', code: 'TH' },
+  { src: taipei, city: 'Taipei', code: 'TW' },
+  { src: hoian, city: 'Hoi An', code: 'VN' },
+  { src: bali, city: 'Bali', code: 'ID' },
 ];
 const SLIDE_MS = 2000;
 
 /** The same three friends walking through a different city every few seconds, cross-fading. */
 function CitySlides() {
+  const { lang } = useI18n();
   const [i, setI] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setI((n) => (n + 1) % SLIDES.length), SLIDE_MS);
@@ -148,10 +148,13 @@ function CitySlides() {
           decoding="async"
         />
       ))}
-      <span className="city-tag">✈ {SLIDES[i].city}</span>
-      <span className="city-dots">
-        {SLIDES.map((sl, n) => <i key={sl.city} className={n === i ? 'is-on' : ''} />)}
-      </span>
+      <span className="city-tag">✈ {countryLabel(SLIDES[i].code, lang)}</span>
     </div>
   );
+}
+
+function countryLabel(code: string, lang: string): string {
+  const c = HERO_LANDMARKS.find((x) => x.code === code);
+  if (!c) return code;
+  return lang === 'ko' ? c.nameKo : c.name;
 }

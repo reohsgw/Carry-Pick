@@ -5,10 +5,11 @@ import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { Field, ImagePicker, MoneyInput, Notice, Sheet } from '../components/ui';
-import { isoDay, quote } from '../format';
+import { Field, ImagePicker, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
+import { markRequestSeen } from '../seen';
 
 export default function NewRequest() {
   const { config } = useSession();
@@ -31,20 +32,25 @@ export default function NewRequest() {
   const [maxBudget, setBudget] = useState<number | ''>('');
   const [reward, setReward] = useState<number | ''>(5000);
   const [deadline, setDeadline] = useState(isoDay(30));
+  const [weightGrams, setWeight] = useState<number | ''>('');
 
   const create = useMutation({
     mutationFn: () =>
       api.createRequest({
         countryCode, productName, productLink, imageUrl, options, note,
         maxBudget: Number(maxBudget), reward: Number(reward || 0), deadline, productId,
+        weightGrams: weightGrams === '' ? null : weightGrams,
       }),
-    onSuccess: () => {
+    onSuccess: (r) => {
+      markRequestSeen(r);
       qc.invalidateQueries({ queryKey: ['myRequests'] });
       navigate('/orders?tab=requests', { replace: true });
     },
   });
 
   const q = quote(config, Number(maxBudget || 0), Number(reward || 0));
+  const rewardCap = maxReward(config, Number(maxBudget || 0));
+  const rewardOver = !!maxBudget && Number(reward || 0) > rewardCap;
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -56,7 +62,7 @@ export default function NewRequest() {
       <DetailLayout
         actions={(
           <>
-          <button form="request-form" className="btn btn-primary btn-block" disabled={create.isPending || !maxBudget}>
+          <button form="request-form" className="btn btn-primary btn-block" disabled={create.isPending || !maxBudget || !weightGrams || rewardOver}>
             {create.isPending ? t('req.posting') : t('req.submit')}
           </button>
           </>
@@ -84,9 +90,16 @@ export default function NewRequest() {
                 country={countryCode}
                 required
                 placeholder={t('req.productPh')}
-                onChange={(name, p) => { setName(name); setProductId(p?.id ?? null); }}
+                onChange={(name, p) => {
+                  setName(name);
+                  setProductId(p?.id ?? null);
+                  if (p?.weightGrams) setWeight(p.weightGrams);
+                }}
               />
             </div>
+            <Field label={t('w.label')} hint={t('w.hint')}>
+              <WeightInput value={weightGrams} onChange={setWeight} required />
+            </Field>
             <Field label={t('req.photo')} optional><ImagePicker value={imageUrl} onChange={setImage} /></Field>
             <Field label={t('req.link')} optional>
               <input type="url" value={productLink} onChange={(e) => setLink(e.target.value)} placeholder="https://" />
@@ -102,7 +115,8 @@ export default function NewRequest() {
             <Field label={t('req.budget')} hint={t('req.budgetHint')}>
               <MoneyInput value={maxBudget} onChange={setBudget} required placeholder="50,000" />
             </Field>
-            <Field label={t('req.reward')}>
+            <Field label={t('req.reward')} error={rewardOver}
+              hint={maxBudget ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : t('reward.rule', { pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) })}>
               <MoneyInput value={reward} onChange={setReward} placeholder="5,000" />
             </Field>
             <Field label={t('req.deadline')} hint={t('req.deadlineHint')}>

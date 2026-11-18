@@ -112,6 +112,7 @@ public class Order {
     public Offer getOffer() { return offer; }
     public PurchaseRequest getRequest() { return request; }
     public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
     public String getCountryCode() { return countryCode; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

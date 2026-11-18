@@ -33,6 +33,9 @@ public class Product {
     @Column(length = 3)
     private String countryCode;
 
+    /** Estimated weight in grams, so travelers can judge whether it fits in their luggage. */
+    private Integer weightGrams;
+
     @Column(nullable = false, length = 3000)
     private String searchKey = "||";
 
@@ -79,6 +82,7 @@ public class Product {
 
     public Long getId() { return id; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; refreshSearchKey(); }
     public String getNameKo() { return nameKo; }
     public void setNameKo(String nameKo) { this.nameKo = nameKo; refreshSearchKey(); }
     public String getNameLocal() { return nameLocal; }
@@ -87,6 +91,8 @@ public class Product {
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
     public String getCountryCode() { return countryCode; }
+    public Integer getWeightGrams() { return weightGrams; }
+    public void setWeightGrams(Integer weightGrams) { this.weightGrams = weightGrams; }
     public String getSearchKey() { return searchKey; }
     public Instant getCreatedAt() { return createdAt; }
 }
