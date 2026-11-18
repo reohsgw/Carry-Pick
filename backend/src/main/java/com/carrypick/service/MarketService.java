@@ -265,7 +265,7 @@ public class MarketService {
                     : latest != null ? Long.valueOf(latest.getBudget() / Math.max(1, latest.getQuantity())) : null;
             String category = active != null && active.getCategory() != null ? active.getCategory() : p.getCategory();
             items.add(new RankingItem(rank++, p.getName(), count, active != null ? active.getId() : null,
-                    image, category, p.getId(), p.getNameKo(), estPrice));
+                    image, category, p.getId(), p.getNameKo(), estPrice, p.getCountryCode(), p.getWeightGrams()));
         }
         return new RankingDto(c, true, RANKING_DAYS, items);
     }

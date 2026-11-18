@@ -103,7 +103,7 @@ export interface Ranking {
   items: {
     rank: number; productName: string; orderCount: number; offerId: number | null; imageUrl: string | null;
     category: string | null; productId: number | null; nameKo: string | null;
-    estPrice: number | null;
+    estPrice: number | null; countryCode: string | null; weightGrams: number | null;
   }[];
 }
 

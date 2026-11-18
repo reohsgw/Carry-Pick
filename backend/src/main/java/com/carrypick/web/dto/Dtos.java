@@ -122,7 +122,7 @@ public final class Dtos {
 
     public record RankingItem(int rank, String productName, long orderCount, Long offerId, String imageUrl,
                               String category, Long productId, String nameKo,
-                              Long estPrice) {}
+                              Long estPrice, String countryCode, Integer weightGrams) {}
 
     public record RankingDto(String countryCode, boolean demoData, int days, List<RankingItem> items) {}
 

@@ -24,15 +24,16 @@ export default function NewRequest() {
     return c && c !== 'ALL' ? c : 'JP';
   });
   const [productName, setName] = useState(params.get('q') ?? '');
-  const [productId, setProductId] = useState<number | null>(null);
+  const [productId, setProductId] = useState<number | null>(() => Number(params.get('productId')) || null);
   const [productLink, setLink] = useState('');
-  const [imageUrl, setImage] = useState<string | null>(null);
+  const [imageUrl, setImage] = useState<string | null>(() => params.get('img'));
   const [options, setOptions] = useState('');
   const [note, setNote] = useState('');
-  const [maxBudget, setBudget] = useState<number | ''>('');
+  const [maxBudget, setBudget] = useState<number | ''>(() => Number(params.get('budget')) || '');
   const [reward, setReward] = useState<number | ''>(5000);
   const [deadline, setDeadline] = useState(isoDay(30));
-  const [weightGrams, setWeight] = useState<number | ''>('');
+  const [weightGrams, setWeight] = useState<number | ''>(() => Number(params.get('weight')) || '');
+  const fromRanking = params.get('from') === 'ranking';
 
   const create = useMutation({
     mutationFn: () =>
@@ -65,6 +66,8 @@ export default function NewRequest() {
           <p>{t('req.hello')}</p>
         </div>
       </div>
+
+      {fromRanking && <Notice tone="info">{t('req.soldOut', { name: productName })}</Notice>}
 
       <DetailLayout
         actions={(

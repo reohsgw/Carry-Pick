@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom';
+import type { MouseEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronRight } from './icons';
 import type { Offer, Order, PurchaseRequest, Quote, Ranking } from '../api';
 import { countryName, dateTime, daysUntil, krw, shortDate, weight } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { Avatar, Code, ProductPhoto, ProductThumb, StatusBadge, Tag } from './ui';
+import { useConfirm } from './confirm';
 
 export function firstName(name: string): string {
   return name.replace(/\s*\(.*\)\s*$/, '').split(' ')[0];
@@ -20,10 +22,23 @@ export function useRoute() {
 export function ProductCard({ item, country }: { item: Ranking['items'][number]; country: string }) {
   const { t, lang } = useI18n();
   const name = lang === 'ko' && item.nameKo ? item.nameKo : item.productName;
-  const to = item.offerId ? `/offers/${item.offerId}` : `/requests/new?country=${country}&q=${encodeURIComponent(name)}`;
+  // No traveler has it right now: open the request form already filled in with everything we know.
+  const requestParams = new URLSearchParams({ country: item.countryCode ?? country, q: name, from: 'ranking' });
+  if (item.productId) requestParams.set('productId', String(item.productId));
+  if (item.imageUrl) requestParams.set('img', item.imageUrl);
+  if (item.estPrice) requestParams.set('budget', String(item.estPrice));
+  if (item.weightGrams) requestParams.set('weight', String(item.weightGrams));
+  const to = item.offerId ? `/offers/${item.offerId}` : `/requests/new?${requestParams}`;
+  const ask = useConfirm();
+  const navigate = useNavigate();
+  // Sold out: say so first and let them decide whether to post a request.
+  const onClick = item.offerId ? undefined : async (e: MouseEvent) => {
+    e.preventDefault();
+    if (await ask({ message: t('req.soldOutAsk', { name }), mood: 'question', okLabel: t('req.soldOutOk') })) navigate(to);
+  };
   const orders = item.orderCount === 1 ? t('home.order') : t('home.orders', { n: item.orderCount });
   return (
-    <Link to={to} className={`top10-item${item.rank >= 10 ? ' is-two-digit' : ''}`} aria-label={`${item.rank}. ${name}${item.estPrice != null ? `, ${t('home.estPrice')} ${krw(item.estPrice)}` : ''}, ${orders}`}>
+    <Link to={to} onClick={onClick} className={`top10-item${item.rank >= 10 ? ' is-two-digit' : ''}`} aria-label={`${item.rank}. ${name}${item.estPrice != null ? `, ${t('home.estPrice')} ${krw(item.estPrice)}` : ''}, ${orders}`}>
       <span className="top10-rank" aria-hidden>{item.rank}</span>
       <span className="top10-card">
         <span className="top10-poster">
