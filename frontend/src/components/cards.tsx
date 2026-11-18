@@ -34,7 +34,7 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
   // Sold out: say so first and let them decide whether to post a request.
   const onClick = item.offerId ? undefined : async (e: MouseEvent) => {
     e.preventDefault();
-    if (await ask({ message: t('req.soldOutAsk', { name }), mood: 'question', okLabel: t('req.soldOutOk') })) navigate(to);
+    if (await ask({ message: t('req.soldOutAsk', { name: name.replace(/\s*\([^)]*\)\s*$/, '') }), mood: 'question', okLabel: t('req.soldOutOk') })) navigate(to);
   };
   const orders = item.orderCount === 1 ? t('home.order') : t('home.orders', { n: item.orderCount });
   return (

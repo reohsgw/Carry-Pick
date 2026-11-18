@@ -13,8 +13,6 @@ import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { useCountry } from '../country';
 import CountryPicker from '../components/CountryPicker';
-import { STEP_COMICS } from '../components/StepComics';
-import whaleCourier from '../assets/whale-courier.webp';
 
 const HOME_CATEGORIES = CATEGORIES.filter((c) => c !== 'Other');
 
@@ -129,31 +127,28 @@ export default function BuyerHome() {
         )}
       </section>
 
-      <section className="cta-panel">
-        <div className="cta-copy">
-          <p className="cta-bubble">{t('home.ctaEyebrow')}</p>
-          <h2 className="cta-title">
-            {t('home.ctaTitleA')} <mark>{t('home.ctaTitleB')}</mark>
+      <section className="ask-panel">
+        <div className="ask-copy">
+          <p className="ask-bubble">{t('home.ctaEyebrow')}</p>
+          <h2 className="ask-title">
+            <span>{t('home.ctaTitleA')}</span> <em>{t('home.ctaTitleB')}</em>
           </h2>
-          <p className="cta-body">{t('home.requestBody')}</p>
-          <div className="cta-actions">
-            <Link to={`/requests/new?country=${country}`} className="whale-btn">
-              <img src={whaleCourier} alt="" className="whale-btn-art" />
-              <span className="whale-btn-label">{t('home.ctaBtn')} <ArrowRight size={22} aria-hidden /></span>
-            </Link>
-          </div>
+          <p className="ask-body">{t('home.requestBody')}</p>
+          <Link to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`} className="ask-btn">
+            {t('home.ctaBtn')} <ArrowRight size={20} aria-hidden />
+          </Link>
         </div>
-        <ol className="steps comic-steps">
-          {(['home.step1', 'home.step2', 'home.step3'] as const).map((key, i) => {
-            const Comic = STEP_COMICS[i];
-            return (
-              <li key={key} className="comic-step">
-                <Comic />
-                <p className="comic-caption"><span>{String(i + 1).padStart(2, '0')}</span>{t(key)}</p>
+        <div className="ask-stamp-wrap">
+          <ol className="ask-stamp">
+            {(['shop', 'fly', 'unbox'] as const).map((mood, i) => (
+              <li key={mood}>
+                <span className="ask-n">{String(i + 1).padStart(2, '0')}</span>
+                <Mascot mood={mood} className="ask-whale" size={150} />
+                <p>{t(`home.how${i + 1}` as 'home.how1')}</p>
               </li>
-            );
-          })}
-        </ol>
+            ))}
+          </ol>
+        </div>
       </section>
     </Screen>
   );
