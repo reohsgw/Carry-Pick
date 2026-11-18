@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Bell, Camera, ClipboardList, Cookie, Headphones, Lamp, MapPinned, Package, Plane, SearchX, Shirt, ShoppingBag,
@@ -15,12 +16,13 @@ import whaleAlert from '../assets/whale-alert.webp';
 import whaleShop from '../assets/whale-shop.webp';
 import whaleUnbox from '../assets/whale-unbox.webp';
 import whaleSleep from '../assets/whale-sleep.webp';
+import whaleStamp from '../assets/whale-stamp.webp';
 
 /** The courier whale's moods. */
-export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep';
+export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep' | 'stamp';
 const MOODS: Record<Mood, string> = {
   fly: whaleFly, happy: whaleHappy, question: whaleQuestion, love: whaleLove,
-  alert: whaleAlert, shop: whaleShop, unbox: whaleUnbox, sleep: whaleSleep,
+  alert: whaleAlert, shop: whaleShop, unbox: whaleUnbox, sleep: whaleSleep, stamp: whaleStamp,
 };
 
 /** CarryPick's courier whale. Decorative, so hidden from screen readers. */
@@ -253,8 +255,8 @@ export function ImagePicker({ value, onChange }: { value: string | null; onChang
   );
 }
 
-export function Modal({ open, onClose, title, eyebrow, children }: {
-  open: boolean; onClose: () => void; title: string; eyebrow?: string; children: ReactNode;
+export function Modal({ open, onClose, title, eyebrow, mood, hideClose, children }: {
+  open: boolean; onClose: () => void; title: string; eyebrow?: string; mood?: Mood; hideClose?: boolean; children: ReactNode;
 }) {
   const { t } = useI18n();
   useEffect(() => {
@@ -264,19 +266,22 @@ export function Modal({ open, onClose, title, eyebrow, children }: {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  // Render at the top of the page so paper-card filters/transforms on ancestors can't trap the dialog.
+  return createPortal(
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal aria-label={title}>
+      <div className={`modal${mood ? ' is-letter' : ''}`} role="dialog" aria-modal aria-label={title}>
+        {mood && <span className="letter-stamp" aria-hidden><Mascot mood={mood} size={78} /></span>}
         <div className="modal-head">
           <div>
             {eyebrow && <p className="eyebrow">{eyebrow}</p>}
             <h2 className="font-display">{title}</h2>
           </div>
-          <button className="modal-close" onClick={onClose}>{t('common.close')}</button>
+          {!hideClose && <button className="modal-close" onClick={onClose}>{t('common.close')}</button>}
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

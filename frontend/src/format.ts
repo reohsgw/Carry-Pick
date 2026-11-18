@@ -90,12 +90,13 @@ export const STATUS_TONE: Record<OrderStatus, Tone> = {
   AWAITING_APPROVAL: 'action',
   PURCHASED: 'progress',
   DELIVERED: 'action',
+  DISPUTED: 'bad',
   COMPLETED: 'good',
   SETTLED: 'good',
   CANCELLED: 'neutral',
 };
 
-export const ACTIVE_STATUSES: OrderStatus[] = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED'];
+export const ACTIVE_STATUSES: OrderStatus[] = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED', 'DISPUTED'];
 
 /** 350 → "350g", 1200 → "1.2kg", 2000 → "2kg". */
 export function weight(grams: number | null | undefined): string {

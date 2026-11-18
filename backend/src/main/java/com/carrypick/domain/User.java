@@ -28,6 +28,11 @@ public class User {
 
     private String avatarUrl;
 
+    /** Where rewards are paid out (simulated: verified in the app with a fake 1-won check, no bank API). */
+    private String payoutBank;
+    private String payoutAccount;
+    private String payoutHolder;
+
     private Instant createdAt = Instant.now();
 
     protected User() {}
@@ -50,5 +55,14 @@ public class User {
     public boolean isTest() { return test; }
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public String getPayoutBank() { return payoutBank; }
+    public String getPayoutAccount() { return payoutAccount; }
+    public String getPayoutHolder() { return payoutHolder; }
+    public boolean hasPayoutAccount() { return payoutBank != null && payoutAccount != null; }
+    public void setPayoutAccount(String bank, String account, String holder) {
+        this.payoutBank = bank;
+        this.payoutAccount = account;
+        this.payoutHolder = holder;
+    }
     public Instant getCreatedAt() { return createdAt; }
 }

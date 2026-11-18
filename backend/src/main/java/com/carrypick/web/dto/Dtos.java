@@ -10,9 +10,21 @@ import java.util.List;
 public final class Dtos {
     private Dtos() {}
 
-    public record UserDto(Long id, String email, String name, Mode mode, boolean test, String avatarUrl) {
+    public record UserDto(Long id, String email, String name, Mode mode, boolean test, String avatarUrl,
+                          PayoutDto payout) {
         public static UserDto of(User u) {
-            return new UserDto(u.getId(), u.getEmail(), u.getName(), u.getMode(), u.isTest(), u.getAvatarUrl());
+            return new UserDto(u.getId(), u.getEmail(), u.getName(), u.getMode(), u.isTest(), u.getAvatarUrl(),
+                    PayoutDto.of(u));
+        }
+    }
+
+    /** Payout account, with the number masked: only the last 4 digits ever leave the server. */
+    public record PayoutDto(String bank, String accountMasked, String holder) {
+        public static PayoutDto of(User u) {
+            if (!u.hasPayoutAccount()) return null;
+            String digits = u.getPayoutAccount().replaceAll("[^0-9]", "");
+            String last = digits.length() <= 4 ? digits : digits.substring(digits.length() - 4);
+            return new PayoutDto(u.getPayoutBank(), "****" + last, u.getPayoutHolder());
         }
     }
 
@@ -76,7 +88,12 @@ public final class Dtos {
                            LocalDate expectedDelivery, String cancelReason,
                            Instant createdAt, Instant paidAt, Instant purchasedAt, Instant deliveredAt,
                            Instant completedAt, Instant settledAt, Instant cancelledAt,
-                           List<PaymentDto> payments, SettlementDto settlement, long unreadMessages) {}
+                           List<PaymentDto> payments, SettlementDto settlement, long unreadMessages,
+                           String handoverMethod, String handoverPhotoUrl, Instant autoConfirmAt,
+                           DisputeDto dispute) {}
+
+    /** An open problem report. byRole is BUYER or TRAVELER; mine tells the viewer whether they filed it. */
+    public record DisputeDto(String reason, String note, String photoUrl, String byRole, boolean mine, Instant at) {}
 
     public record ChatMessageDto(Long id, Long senderId, String senderName, boolean mine, String text,
                                  String imageUrl, Instant createdAt) {

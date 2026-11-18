@@ -77,9 +77,24 @@ public class OrderController {
         return orders.reject(me.id(), id, form != null && form.reopenRequest());
     }
 
-    @PostMapping("/orders/{id}/deliver")
-    public OrderDto deliver(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
-        return orders.deliver(me.id(), id);
+    @PostMapping(value = "/orders/{id}/deliver", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public OrderDto deliver(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                            @RequestParam(defaultValue = "IN_PERSON") String method,
+                            @RequestPart(value = "proof", required = false) MultipartFile proof) {
+        return orders.deliver(me.id(), id, method, proof);
+    }
+
+    @PostMapping(value = "/orders/{id}/report", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public OrderDto report(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                           @RequestParam String reason, @RequestParam(required = false) String note,
+                           @RequestPart(value = "photo", required = false) MultipartFile photo) {
+        return orders.report(me.id(), id, reason, note, photo);
+    }
+
+    @PostMapping("/orders/{id}/resolve")
+    public OrderDto resolve(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                            @Valid @RequestBody ResolveForm form) {
+        return orders.resolve(me.id(), id, form.action());
     }
 
     @PostMapping("/orders/{id}/confirm")

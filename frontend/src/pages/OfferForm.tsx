@@ -1,21 +1,25 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { MapPinned } from '../components/icons';
+import { MapPinned, Receipt, ShoppingBag } from '../components/icons';
 import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
-import { Screen } from '../components/Layout';
+import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { ActionBar, Empty, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
 import { CATEGORIES, cityCode, daysUntil, krw, maxReward, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
+import { useConfirm } from '../components/confirm';
+import { PayoutRequired } from '../components/payout';
 
 export default function OfferForm() {
+  const ask = useConfirm();
   const routeId = useParams().id;
   const editId = routeId ? Number(routeId) : null;
   const [params] = useSearchParams();
-  const { config } = useSession();
+  const { config, user } = useSession();
+  const needsPayout = !user?.payout;
   const { t, lang } = useI18n();
   const errText = useErrorText();
   const navigate = useNavigate();
@@ -67,7 +71,7 @@ export default function OfferForm() {
       qc.invalidateQueries({ queryKey: ['myOffers'] });
       qc.invalidateQueries({ queryKey: ['offer', o.id] });
       qc.invalidateQueries({ queryKey: ['board'] });
-      navigate(`/offers/${o.id}`, { replace: true });
+      navigate(`/offers/${o.id}`, { replace: true, state: editId ? { edited: true } : { posted: true } });
     },
   });
   const close = useMutation({
@@ -96,10 +100,38 @@ export default function OfferForm() {
   const rewardCap = maxReward(config, Number(estPrice || 0));
   const rewardOver = !!estPrice && Number(reward || 0) > rewardCap;
 
+  const submitButton = (
+    <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || needsPayout || !estPrice || !weightGrams || rewardOver || tripId === '' || (bought && !receiptUrl)}>
+      {save.isPending ? t('order.saving') : editId ? t('of.saveChanges') : t('of.publish')}
+    </button>
+  );
+
   return (
-    <Screen back title={editId ? t('of.edit') : t('of.new')} hideNav>
-      <form id="offer-form" className="stack" onSubmit={submit}>
-        <Sheet>
+    <Screen back title={editId ? t('of.edit') : t('of.new')} hideNav wide>
+      <div className="whale-say of-hello">
+        <Mascot mood="shop" className="whale-say-whale" size={96} />
+        <div className="whale-say-bubble">
+          <p>{editId ? t('of.helloEdit') : t('of.hello')}</p>
+        </div>
+      </div>
+
+      <DetailLayout
+        as="form" id="offer-form" onSubmit={submit}
+        actions={submitButton}
+        aside={(
+          <>
+            <Sheet title={t('of.preview')}>
+              <ReceiptStrip quote={q} budgetLabel={bought ? t('offer.boughtPrice') : undefined} />
+            </Sheet>
+            <div className="of-tip">
+              <Mascot mood="question" size={56} />
+              <p>{t('of.tip')}</p>
+            </div>
+          </>
+        )}
+      >
+        {needsPayout && <PayoutRequired />}
+        <Sheet title={t('of.secItem')}>
           <div className="stack">
             <Field label={t('of.trip')}>
               <select value={tripId} onChange={(e) => setTripId(Number(e.target.value))} required disabled={!!editId}>
@@ -127,26 +159,34 @@ export default function OfferForm() {
                 }}
               />
             </div>
-            <Field label={t('w.label')} hint={t('w.hint')}>
-              <WeightInput value={weightGrams} onChange={setWeight} required />
-            </Field>
-            <Field label={t('req.photo')} optional><ImagePicker value={imageUrl} onChange={setImage} /></Field>
             <div className="two-col">
-              <Field label={t('of.store')} optional><input value={store} onChange={(e) => setStore(e.target.value)} maxLength={80} /></Field>
               <Field label={t('of.category')}>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}>
                   {CATEGORIES.map((c) => <option key={c} value={c}>{t(`cat.${c}`)}</option>)}
                 </select>
               </Field>
+              <Field label={t('of.store')} optional><input value={store} onChange={(e) => setStore(e.target.value)} maxLength={80} /></Field>
             </div>
+            <Field label={t('w.label')} hint={t('w.hint')}>
+              <WeightInput value={weightGrams} onChange={setWeight} required />
+            </Field>
+            <Field label={t('req.photo')} optional><ImagePicker value={imageUrl} onChange={setImage} /></Field>
           </div>
         </Sheet>
 
-        <Sheet>
+        <Sheet title={t('of.secPrice')}>
           <div className="stack">
-            <div className="segmented" role="group" aria-label={t('of.boughtQ')}>
-              <button type="button" aria-pressed={!bought} onClick={() => setBought(false)}>{t('of.notBought')}</button>
-              <button type="button" aria-pressed={bought} onClick={() => setBought(true)}>{t('of.bought')}</button>
+            <div className="ho-tiles" role="group" aria-label={t('of.boughtQ')}>
+              <button type="button" className="ho-tile" aria-pressed={!bought} onClick={() => setBought(false)}>
+                <span className="ho-tile-icon"><ShoppingBag size={24} aria-hidden /></span>
+                <b>{t('of.notBought')}</b>
+                <small>{t('of.notBoughtSub')}</small>
+              </button>
+              <button type="button" className="ho-tile" aria-pressed={bought} onClick={() => setBought(true)}>
+                <span className="ho-tile-icon"><Receipt size={24} aria-hidden /></span>
+                <b>{t('of.bought')}</b>
+                <small>{t('of.boughtSub')}</small>
+              </button>
             </div>
             {bought && (
               <Field label={t('buy.receipt')} hint={t('of.receiptHint')}>
@@ -171,22 +211,14 @@ export default function OfferForm() {
           </div>
         </Sheet>
 
-        <Sheet title={t('of.preview')}>
-          <ReceiptStrip quote={q} budgetLabel={bought ? t('offer.boughtPrice') : undefined} />
-        </Sheet>
         {(save.error || close.error) && <Notice tone="bad">{errText(save.error ?? close.error)}</Notice>}
         {editId && existing.data?.status !== 'CLOSED' && (
           <button type="button" className="link danger center-block"
-            onClick={() => window.confirm(t('of.closeConfirm')) && close.mutate()}>
+            onClick={async () => (await ask({ message: t('of.closeConfirm'), mood: 'alert', danger: true })) && close.mutate()}>
             {t('of.close')}
           </button>
         )}
-      </form>
-      <ActionBar>
-        <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || !estPrice || !weightGrams || rewardOver || tripId === '' || (bought && !receiptUrl)}>
-          {save.isPending ? t('order.saving') : editId ? t('of.saveChanges') : t('of.publish')}
-        </button>
-      </ActionBar>
+      </DetailLayout>
     </Screen>
   );
 }

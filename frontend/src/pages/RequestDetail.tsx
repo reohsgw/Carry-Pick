@@ -9,9 +9,12 @@ import { ErrorBox, Field, KV, Loading, Notice, ProductThumb, Sheet, Tag } from '
 import { countryName, daysUntil, krw, shortDate, weight } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
+import { PayoutRequired } from '../components/payout';
+import { useConfirm } from '../components/confirm';
 import { markRequestSeen } from '../seen';
 
 export default function RequestDetail() {
+  const ask = useConfirm();
   const id = Number(useParams().id);
   const { config, user } = useSession();
   const { t, lang } = useI18n();
@@ -56,15 +59,16 @@ export default function RequestDetail() {
           <>
           {mine && r.status === 'OPEN' && (
             <button className="btn btn-quiet btn-block danger" disabled={cancel.isPending}
-              onClick={() => window.confirm(t('rd.withdrawConfirm')) && cancel.mutate()}>
+              onClick={async () => (await ask({ message: t('rd.withdrawConfirm'), mood: 'alert', danger: true })) && cancel.mutate()}>
               {t('rd.withdraw')}
             </button>
           )}
           {mine && r.orderId && (
             <button className="btn btn-primary btn-block" onClick={() => navigate(`/orders/${r.orderId}`)}>{t('rd.viewOrder')}</button>
           )}
+          {!mine && r.status === 'OPEN' && !user?.payout && <PayoutRequired />}
           {!mine && r.status === 'OPEN' && (
-            <button className="btn btn-primary btn-block" disabled={matching.length === 0 || accept.isPending}
+            <button className="btn btn-primary btn-block" disabled={matching.length === 0 || accept.isPending || !user?.payout}
               onClick={() => accept.mutate()}>
               {accept.isPending ? t('rd.accepting') : t('rd.accept', { reward: krw(r.reward) })}
             </button>

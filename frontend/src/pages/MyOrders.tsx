@@ -7,7 +7,7 @@ import { Screen } from '../components/Layout';
 import { Avatar, Empty, ErrorBox, Loading, ProductThumb, StatusBadge, Tag } from '../components/ui';
 import { krw, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
-import { markRequestSeen, useRequestIsNew } from '../seen';
+import { markOrderSeen, markRequestSeen, useOrderHasNews, useRequestIsNew } from '../seen';
 
 const DONE = new Set(['COMPLETED', 'SETTLED']);
 
@@ -22,6 +22,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
   const orders = useQuery({ queryKey: ['myOrders', role], queryFn: () => api.myOrders(role) });
   const requests = useQuery({ queryKey: ['myRequests'], queryFn: api.myRequests, enabled: buyer });
   const isNew = useRequestIsNew();
+  const hasNews = useOrderHasNews();
 
   const all = orders.data ?? [];
   const groups: Record<Exclude<Tab, 'requests'>, Order[]> = {
@@ -94,7 +95,7 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
               )}
               {orders.data && groups[tab].length > 0 && (
                 <>
-                  <div className="ob-list">{groups[tab].map((o) => <OrderCard key={o.id} order={o} />)}</div>
+                  <div className="ob-list">{groups[tab].map((o) => <OrderCard key={o.id} order={o} isNew={hasNews(o)} />)}</div>
                   <p className="ob-end">{t('ob.noMore')}</p>
                 </>
               )}
@@ -122,17 +123,18 @@ export default function MyOrders({ role }: { role: 'buyer' | 'traveler' }) {
   );
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, isNew }: { order: Order; isNew: boolean }) {
   const { t, lang } = useI18n();
   const route = useRoute();
   const buyer = order.myRole === 'BUYER';
   const other = buyer ? order.traveler : order.buyer;
   const to = `/orders/${order.id}`;
   return (
-    <article className="ob-card">
+    <article className={`ob-card${isNew ? ' is-new' : ''}`} onClickCapture={(e) => { if ((e.target as Element).closest('a')) markOrderSeen(order); }}>
       <div className="ob-card-top">
         <Package size={18} aria-hidden />
         <span>{t('ob.orderNo')} <b>{orderNo(order.id)}</b></span>
+        {isNew && <span className="ob-new-dot">{t('ob.new')}</span>}
         <span className="ob-sep" aria-hidden />
         <span>{t('ob.ordered', { date: shortDate(order.createdAt, lang) })}</span>
         <span className="ob-status"><StatusBadge status={order.status} /></span>

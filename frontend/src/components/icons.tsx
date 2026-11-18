@@ -22,6 +22,10 @@ function carbon(C: CarbonIcon, name: string): Icon {
 }
 
 export const AlertCircle = carbon(Carbon.WarningAlt, 'AlertCircle');
+export const Flag = carbon(Carbon.Flag, 'Flag');
+export const Handshake = carbon(Carbon.Partnership, 'Handshake');
+export const Truck = carbon(Carbon.DeliveryTruck, 'Truck');
+export const Idea = carbon(Carbon.Idea, 'Idea');
 export const ArrowRight = carbon(Carbon.ArrowRight, 'ArrowRight');
 export const Bell = carbon(Carbon.Notification, 'Bell');
 export const Camera = carbon(Carbon.Camera, 'Camera');
@@ -55,6 +59,7 @@ export const ShieldAlert = carbon(Carbon.ShieldAlert, 'ShieldAlert');
 export const ShieldCheck = carbon(Carbon.Security, 'ShieldCheck');
 export const Shirt = carbon(Carbon.Tag, 'Shirt');
 export const ShoppingBag = carbon(Carbon.ShoppingBag, 'ShoppingBag');
+export const Receipt = carbon(Carbon.Receipt, 'Receipt');
 export const Sparkles = carbon(Carbon.Gem, 'Sparkles');
 export const Ticket = carbon(Carbon.Ticket, 'Ticket');
 export const User = carbon(Carbon.User, 'User');

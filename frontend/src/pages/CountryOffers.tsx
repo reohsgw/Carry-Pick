@@ -7,7 +7,7 @@ import { firstName, OfferCard } from '../components/cards';
 import { Screen } from '../components/Layout';
 import CountryPicker from '../components/CountryPicker';
 import { useCountry } from '../country';
-import { Code, Empty, ErrorBox, Loading } from '../components/ui';
+import { Code, Empty, ErrorBox, Loading, Mascot } from '../components/ui';
 import { ALL_COUNTRIES, countryName, displayCode, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -109,11 +109,17 @@ export default function CountryOffers() {
           <Link to={code === ALL_COUNTRIES ? '/requests/new' : `/requests/new?country=${code}`} className="btn btn-primary">{t('home.requestCta')}</Link>
         </Empty>
       )}
-      {list.length > 0 && <div className="card-grid">{list.map((o) => <OfferCard key={o.id} offer={o} />)}</div>}
+      {list.length > 0 && <div className="card-grid live-grid">{list.map((o) => <OfferCard key={o.id} offer={o} />)}</div>}
       {list.length > 0 && (
-        <p className="fine center">
-          {t('country.footer')} <Link className="link" to={code === ALL_COUNTRIES ? '/requests/new' : `/requests/new?country=${code}`}>{t('home.requestCta')}</Link>
-        </p>
+        <div className="whale-say">
+          <Mascot mood="question" className="whale-say-whale" size={110} />
+          <div className="whale-say-bubble">
+            <p>{t('country.footer')}</p>
+            <Link className="btn btn-primary btn-small" to={code === ALL_COUNTRIES ? '/requests/new' : `/requests/new?country=${code}`}>
+              {t('home.requestCta')} <ArrowRight size={15} aria-hidden />
+            </Link>
+          </div>
+        </div>
       )}
     </Screen>
   );

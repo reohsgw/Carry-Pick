@@ -71,6 +71,26 @@ public class AuthService {
                 throw ApiException.badRequest("AVATAR_INVALID", "Please upload a JPG, PNG, WEBP or GIF picture");
             }
         }
+        if (f.payoutBank() != null) {
+            if (f.payoutBank().isBlank()) {
+                u.setPayoutAccount(null, null, null);
+            } else {
+                String digits = f.payoutAccount() == null ? "" : f.payoutAccount().replaceAll("[^0-9]", "");
+                String holder = f.payoutHolder() == null ? "" : f.payoutHolder().trim();
+                if (digits.length() < 8 || digits.length() > 16) {
+                    throw ApiException.badRequest("PAYOUT_ACCOUNT_INVALID", "Account number must be 8 to 16 digits");
+                }
+                if (holder.isEmpty()) throw ApiException.badRequest("PAYOUT_HOLDER_REQUIRED", "Enter the account holder's name");
+                u.setPayoutAccount(f.payoutBank().trim(), digits, holder);
+            }
+        }
         return UserDto.of(u);
+    }
+
+    /** Travelers need somewhere to receive their reward before they take on an order. */
+    public void requirePayoutAccount(User u) {
+        if (!u.hasPayoutAccount()) {
+            throw ApiException.badRequest("PAYOUT_ACCOUNT_REQUIRED", "Register a payout account first");
+        }
     }
 }

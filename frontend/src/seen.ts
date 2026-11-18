@@ -1,17 +1,15 @@
 import { useSyncExternalStore } from 'react';
-import type { PurchaseRequest } from './api';
+import type { Order, PurchaseRequest } from './api';
 
-/* Remembers which of my purchase requests I've opened, per status, so a request counts as "new"
-   until I open it, and becomes new again when its status changes (e.g. a traveler accepts it). */
+/* Remembers what I've already opened, per status, so an item counts as "new" until I open it and
+   becomes new again when its status changes (a traveler accepts my request, my order gets delivered…). */
 
-const KEY = 'carrypick.seenRequests';
 const EVENT = 'carrypick:seen';
-
-type Ref = Pick<PurchaseRequest, 'id' | 'status'>;
+type Ref = { id: number; status: string };
 const tag = (r: Ref) => `${r.id}:${r.status}`;
 
-function read(): string {
-  try { return localStorage.getItem(KEY) ?? ''; } catch { return ''; }
+function read(key: string): string {
+  try { return localStorage.getItem(key) ?? ''; } catch { return ''; }
 }
 
 function subscribe(cb: () => void) {
@@ -20,17 +18,43 @@ function subscribe(cb: () => void) {
   return () => { window.removeEventListener(EVENT, cb); window.removeEventListener('storage', cb); };
 }
 
-export function markRequestSeen(r: Ref) {
-  const seen = new Set(read().split(',').filter(Boolean));
+function mark(key: string, r: Ref) {
+  const seen = new Set(read(key).split(',').filter(Boolean));
   for (const s of seen) if (s.startsWith(`${r.id}:`)) seen.delete(s);
   seen.add(tag(r));
-  try { localStorage.setItem(KEY, [...seen].join(',')); } catch { }
+  try { localStorage.setItem(key, [...seen].join(',')); } catch { }
   window.dispatchEvent(new Event(EVENT));
 }
 
-/** Returns a checker telling whether a request is new (not opened since its last change). */
-export function useRequestIsNew(): (r: Ref) => boolean {
-  const raw = useSyncExternalStore(subscribe, read, () => '');
+function useSeen(key: string) {
+  const raw = useSyncExternalStore(subscribe, () => read(key), () => '');
   const seen = new Set(raw.split(',').filter(Boolean));
-  return (r) => !seen.has(tag(r));
+  return {
+    seenNow: (r: Ref) => seen.has(tag(r)),
+    seenEver: (r: Ref) => [...seen].some((s) => s.startsWith(`${r.id}:`)),
+  };
+}
+
+const REQUESTS = 'carrypick.seenRequests';
+const ORDERS = 'carrypick.seenOrders';
+
+export const markRequestSeen = (r: Pick<PurchaseRequest, 'id' | 'status'>) => mark(REQUESTS, r);
+export const markOrderSeen = (o: Pick<Order, 'id' | 'status'>) => mark(ORDERS, o);
+
+/** A request is new until I open it in its current status. */
+export function useRequestIsNew(): (r: Pick<PurchaseRequest, 'id' | 'status'>) => boolean {
+  const { seenNow } = useSeen(REQUESTS);
+  return (r) => !seenNow(r);
+}
+
+const FINISHED = new Set(['COMPLETED', 'SETTLED', 'CANCELLED']);
+
+/**
+ * An order has news when it has unread chat, or its status changed since I last opened it.
+ * Old finished orders I've never opened don't count, so a fresh browser doesn't light up with history.
+ */
+export function useOrderHasNews(): (o: Pick<Order, 'id' | 'status' | 'unreadMessages'>) => boolean {
+  const { seenNow, seenEver } = useSeen(ORDERS);
+  return (o) => o.unreadMessages > 0
+    || (!seenNow(o) && (seenEver(o) || !FINISHED.has(o.status)));
 }

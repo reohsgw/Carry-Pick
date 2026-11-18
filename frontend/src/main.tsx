@@ -7,6 +7,7 @@ import { I18nProvider } from './i18n';
 import { SessionProvider } from './session';
 import { CountryProvider } from './country';
 import './styles.css';
+import { ConfirmProvider } from './components/confirm';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <I18nProvider>
           <SessionProvider>
             <CountryProvider>
-              <App />
+              <ConfirmProvider>
+                <App />
+              </ConfirmProvider>
             </CountryProvider>
           </SessionProvider>
         </I18nProvider>

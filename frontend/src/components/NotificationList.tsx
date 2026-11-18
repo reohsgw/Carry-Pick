@@ -16,10 +16,10 @@ import { Avatar, Empty, ErrorBox, Loading, ProductThumb } from './ui';
 
 type Filter = 'all' | 'pay' | 'delivery' | 'chat' | 'issues';
 const FILTERS: Record<Exclude<Filter, 'all'>, NotificationKind[]> = {
-  pay: ['BOOKED', 'REQUEST_ACCEPTED', 'PAID', 'EXTRA_PAID', 'SETTLED'],
+  pay: ['BOOKED', 'REQUEST_ACCEPTED', 'PAID', 'EXTRA_PAID', 'SETTLED', 'AUTO_CONFIRMED', 'RESOLVED'],
   delivery: ['PURCHASED', 'DELIVERED'],
   chat: ['MESSAGE'],
-  issues: ['OVER_BUDGET', 'REJECTED', 'CANCELLED'],
+  issues: ['OVER_BUDGET', 'REJECTED', 'CANCELLED', 'REPORTED'],
 };
 
 const KIND_ICON: Record<NotificationKind, { icon: Icon; tone: 'neutral' | 'good' | 'warn' | 'bad' }> = {
@@ -34,6 +34,9 @@ const KIND_ICON: Record<NotificationKind, { icon: Icon; tone: 'neutral' | 'good'
   CANCELLED: { icon: NotifCancelled, tone: 'bad' },
   EXTRA_PAID: { icon: NotifExtraPaid, tone: 'good' },
   MESSAGE: { icon: NotifMessage, tone: 'neutral' },
+  REPORTED: { icon: NotifRejected, tone: 'bad' },
+  RESOLVED: { icon: NotifSettled, tone: 'good' },
+  AUTO_CONFIRMED: { icon: NotifSettled, tone: 'good' },
 };
 
 /** A feed row: one notification, or several consecutive messages from the same order folded together. */

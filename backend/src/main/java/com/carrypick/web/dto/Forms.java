@@ -16,7 +16,10 @@ public final class Forms {
 
     public record LoginForm(@NotBlank String email, @NotBlank String password) {}
 
-    public record UpdateMeForm(@Size(max = 40) String name, Mode mode, @Size(max = 200) String avatarUrl) {}
+    public record UpdateMeForm(@Size(max = 40) String name, Mode mode, @Size(max = 200) String avatarUrl,
+                               @Size(max = 30) String payoutBank,
+                               @Size(max = 30) String payoutAccount,
+                               @Size(max = 40) String payoutHolder) {}
 
     public record TripForm(
             @NotBlank @Size(min = 2, max = 2) String countryCode,
@@ -67,6 +70,9 @@ public final class Forms {
     public record RejectForm(boolean reopenRequest) {}
 
     public record CancelForm(@Size(max = 200) String reason) {}
+
+    /** RECEIVED (buyer: it arrived after all), REFUND (traveler: cancel and refund), WITHDRAW (reporter takes the report back). */
+    public record ResolveForm(@NotBlank String action) {}
 
     public record MessageForm(@Size(max = 1000) String text, @Size(max = 500) String imageUrl) {}
 

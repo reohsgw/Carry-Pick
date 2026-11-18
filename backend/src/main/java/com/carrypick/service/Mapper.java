@@ -2,6 +2,7 @@ package com.carrypick.service;
 
 import com.carrypick.domain.Offer;
 import com.carrypick.domain.Order;
+import com.carrypick.domain.OrderStatus;
 import com.carrypick.domain.PurchaseRequest;
 import com.carrypick.repo.ChatMessageRepository;
 import com.carrypick.repo.OrderRepository;
@@ -73,6 +74,12 @@ public class Mapper {
                 o.getDeliveredAt(), o.getCompletedAt(), o.getSettledAt(), o.getCancelledAt(),
                 full ? payments.findByOrderIdOrderByCreatedAtAsc(o.getId()).stream().map(PaymentDto::of).toList() : java.util.List.of(),
                 full ? SettlementDto.of(settlements.findByOrderId(o.getId()).orElse(null)) : null,
-                unreadMessages);
+                unreadMessages,
+                o.getHandoverMethod(), o.getHandoverPhotoUrl(), o.getAutoConfirmAt(),
+                o.getStatus() == OrderStatus.DISPUTED && o.getDisputedByBuyer() != null
+                        ? new DisputeDto(o.getDisputeReason(), o.getDisputeNote(), o.getDisputePhotoUrl(),
+                                o.getDisputedByBuyer() ? "BUYER" : "TRAVELER",
+                                o.getDisputedByBuyer() == "BUYER".equals(role), o.getDisputedAt())
+                        : null);
     }
 }

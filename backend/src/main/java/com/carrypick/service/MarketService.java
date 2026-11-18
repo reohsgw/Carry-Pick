@@ -88,6 +88,7 @@ public class MarketService {
     @Transactional
     public OfferDto createOffer(Long userId, OfferForm f) {
         User me = auth.require(userId);
+        auth.requirePayoutAccount(me);
         Trip trip = trips.findById(f.tripId()).orElseThrow(() -> ApiException.notFound("Trip"));
         if (!trip.getTraveler().getId().equals(userId)) throw ApiException.forbidden("This is not your trip");
         if (!trip.getDepartDate().isAfter(Today.get())) {

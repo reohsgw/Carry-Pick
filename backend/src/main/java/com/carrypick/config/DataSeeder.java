@@ -58,6 +58,10 @@ public class DataSeeder implements ApplicationRunner {
         User jun = users.save(new User("buyer2@carrypick.test", pw, "Jun (Buyer)", Mode.BUYER, true));
         User kenji = users.save(new User("traveler@carrypick.test", pw, "Kenji (Traveler)", Mode.TRAVELER, true));
         User linh = users.save(new User("traveler2@carrypick.test", pw, "Linh (Traveler)", Mode.TRAVELER, true));
+        kenji.setPayoutAccount("KB국민은행", "12345678901234", "Kenji");
+        linh.setPayoutAccount("신한은행", "110123456789", "Linh");
+        users.save(kenji);
+        users.save(linh);
 
         Trip tokyo = trips.save(new Trip(kenji, "JP", "Tokyo", today.plusDays(10), today.plusDays(17),
                 "One spare carry-on, about 7 kg"));

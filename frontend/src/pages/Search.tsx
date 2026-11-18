@@ -52,7 +52,7 @@ export default function Search() {
     if (sort === 'reward') out.sort((a, b) => a.reward - b.reward);
     return out;
   }, [cat, sort, within, maxPrice]);
-  const browse = apply(country ? sameCountry : bookable).slice(0, 24);
+  const browse = apply(country ? sameCountry : bookable).slice(0, 8);
   const matches = results.data ? apply(results.data.offers) : [];
   const countryLabel = config?.countries.find((c) => c.code === country);
 

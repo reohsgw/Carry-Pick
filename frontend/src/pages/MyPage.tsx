@@ -4,14 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Bell, Camera, ChevronRight, ClipboardList, LogOut, MapPinned, Package, Plane, Plus, ShoppingBag, Ticket,
 } from '../components/icons';
-import { api } from '../api';
+import { api, type Order } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Avatar, Loading, Mascot, Notice, ProductThumb, Tag } from '../components/ui';
 import { ACTIVE_STATUSES, countryName, daysUntil, krw, shortDate } from '../format';
 import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
-import { useRequestIsNew } from '../seen';
+import { PayoutCard } from '../components/payout';
+import { useOrderHasNews, useRequestIsNew } from '../seen';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -32,14 +33,19 @@ export default function MyPage() {
   const buying = useQuery({ queryKey: ['myOrders', 'buyer'], queryFn: () => api.myOrders('buyer') });
   const requests = useQuery({ queryKey: ['myRequests'], queryFn: api.myRequests });
   const isNew = useRequestIsNew();
+  const hasNews = useOrderHasNews();
   if (!user) return null;
 
   const carryActive = (carrying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status));
-  const pending = carryActive
-    .filter((o) => ['PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED'].includes(o.status))
-    .reduce((sum, o) => sum + o.reward, 0);
-  const earned = (carrying.data ?? []).filter((o) => o.status === 'SETTLED').reduce((sum, o) => sum + o.reward, 0);
-  const buyActive = (buying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status)).length;
+  // What the traveler gets paid back: the item price they paid at the store (receipt amount, or the
+  // approved budget before they've bought it) plus their reward. Same rule as the server's settlement.
+  const itemOf = (o: Order) => o.actualPrice ?? o.itemLimit;
+  const sumUp = (list: Order[]) => list.reduce(
+    (acc, o) => ({ item: acc.item + itemOf(o), reward: acc.reward + o.reward }), { item: 0, reward: 0 });
+  const pending = sumUp(carryActive.filter((o) => ['PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED', 'DISPUTED'].includes(o.status)));
+  const earned = sumUp((carrying.data ?? []).filter((o) => o.status === 'SETTLED'));
+  const buyNews = (buying.data ?? []).filter(hasNews).length;
+  const carryNews = (carrying.data ?? []).filter(hasNews).length;
   const newRequests = (requests.data ?? []).filter(isNew).length;
   const next = trips.data?.[0];
   const dates = (a: string, b: string) => `${shortDate(a, lang)} – ${shortDate(b, lang)}`;
@@ -76,10 +82,10 @@ export default function MyPage() {
   }
 
   const shortcuts: { to: string; icon: typeof Package; label: string; count?: number }[] = [
-    { to: '/orders', icon: ShoppingBag, label: t('kt.buyHistory'), count: buyActive },
-    { to: '/t/orders', icon: Package, label: t('kt.history'), count: carryActive.length },
+    { to: '/orders', icon: ShoppingBag, label: t('kt.buyHistory'), count: buyNews },
+    { to: '/t/orders', icon: Package, label: t('kt.history'), count: carryNews },
     { to: '/orders?tab=requests', icon: ClipboardList, label: t('me.requests'), count: newRequests },
-    { to: '#kt-trips', icon: Plane, label: t('t.trips'), count: trips.data?.length },
+    { to: '#kt-trips', icon: Plane, label: t('t.trips') },
   ];
 
   return (
@@ -123,14 +129,24 @@ export default function MyPage() {
             <Mascot className="kt-whale" />
             <span className="kt-wallet-title"><Ticket size={18} aria-hidden /> {t('kt.wallet')}</span>
             <div className="kt-wallet-sums">
-              <div><span>{t('kt.pending')}</span><strong>{krw(pending)}</strong></div>
-              <div><span>{t('kt.earned')}</span><strong>{krw(earned)}</strong></div>
+              <div>
+                <span>{t('kt.pending')}</span>
+                <strong>{krw(pending.item + pending.reward)}</strong>
+                <small>{t('kt.breakdown', { item: krw(pending.item), reward: krw(pending.reward) })}</small>
+              </div>
+              <div>
+                <span>{t('kt.earned')}</span>
+                <strong>{krw(earned.item + earned.reward)}</strong>
+                <small>{t('kt.breakdown', { item: krw(earned.item), reward: krw(earned.reward) })}</small>
+              </div>
             </div>
             <div className="kt-wallet-actions">
               <Link to="/t/trips/new" className="kt-btn"><Plus size={16} aria-hidden /> {t('t.addTrip')}</Link>
               <Link to={next ? `/t/offers/new?trip=${next.id}` : '/t/offers/new'} className="kt-btn is-solid">{t('t.offerItem')}</Link>
             </div>
           </section>
+
+          <PayoutCard />
 
           {/* Trade shortcuts, like 나의 거래 */}
           <section className="kt-sheet kt-shortcuts">

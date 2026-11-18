@@ -10620,3 +10620,269 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 }
 .field-hint.is-error { color: #A9533D; font-weight: 600; }
 .hero-body { white-space: pre-line; }
+
+/* Whale speech bubble: "can't find it? post a request" */
+.whale-say {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  margin: 36px auto 8px; max-width: 560px;
+}
+.whale-say-whale { flex: none; animation: whale-float 4s ease-in-out infinite; filter: drop-shadow(0 8px 10px rgb(46 58 70 / 0.14)); }
+.whale-say-bubble {
+  position: relative;
+  display: grid; gap: 12px; justify-items: start;
+  padding: 16px 20px;
+  background: #F7EFE1;
+  border: 1.5px solid #2E3A46;
+  border-radius: 16px;
+  box-shadow: 3px 3px 0 rgb(46 58 70 / 0.18);
+}
+.whale-say-bubble::before, .whale-say-bubble::after { /* tail pointing at the whale */
+  content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+  border-style: solid; border-color: transparent;
+}
+.whale-say-bubble::before { left: -12px; border-width: 9px 12px 9px 0; border-right-color: #2E3A46; }
+.whale-say-bubble::after { left: -9px; border-width: 8px 10px 8px 0; border-right-color: #F7EFE1; }
+.whale-say-bubble p { margin: 0; color: #2E3A46; font: 600 15px/1.5 var(--font); }
+@media (max-width: 520px) {
+  .whale-say { gap: 10px; }
+  .whale-say-whale { width: 80px !important; }
+  .whale-say-bubble { padding: 12px 14px; }
+  .whale-say-bubble p { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .whale-say-whale { animation: none; } }
+
+/* Traveler offers: big product photo on each ticket card */
+.ticket-product.has-photo { display: grid !important; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+.ticket-photo {
+  display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden;
+  border-radius: 6px; background: #F3E3C7;
+  box-shadow: 0 1px 2px rgb(46 58 70 / 0.08);
+}
+.ticket-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s ease; }
+.ticket-photo .placeholder { display: grid; place-items: center; width: 100%; height: 100%; color: rgb(46 58 70 / 0.4); }
+.ticket-product.has-photo:hover .ticket-photo img { transform: scale(1.03); }
+@media (prefers-reduced-motion: reduce) { .ticket-product.has-photo:hover .ticket-photo img { transform: none; } }
+/* Traveler offers: 4 cards per row on wide screens */
+@media (min-width: 1200px) {
+  .ticket-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+@media (min-width: 1200px) {
+  .ticket-grid .price-line { gap: 8px; }
+  .ticket-grid .price-line > span, .ticket-grid .price-line > b { white-space: nowrap; }
+  .ticket-grid .price-line > b { font-size: 13px; }
+  .ticket-grid .offer-ticket { padding-inline: 18px !important; }
+  .ticket-grid .price-line > span { font-size: 12px; }
+  .ticket-grid .offer-ticket > * { min-width: 0; }
+}
+/* Ticket cards: product name on one line, cut with … so every card lines up */
+.ticket-product strong { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ticket-product .grow { min-width: 0; }
+/* Traveler offers: filter sidebar stays in view while the cards scroll */
+@media (min-width: 900px) {
+  .offers-main > .filter-sidebar {
+    position: sticky;
+    top: 108px;
+    max-height: calc(100dvh - 128px);
+    overflow-y: auto;
+  }
+}
+
+/* Payout account (simulated bank check) */
+.po-card { display: grid; gap: 10px; }
+.po-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.po-account { display: grid; gap: 3px; }
+.po-account strong { font: 700 15px/1.3 var(--font); color: #2E3A46; letter-spacing: 0.02em; }
+.po-account > span { font-size: 13px; color: rgb(46 58 70 / 0.65); }
+.po-ok { display: inline-flex; align-items: center; gap: 3px; color: #4F7F6E; font-weight: 600; }
+.po-actions { display: flex; gap: 12px; }
+.po-none { margin: 0; flex: 1 1 160px; font-size: 14px; color: rgb(46 58 70 / 0.7); }
+.kt-text-btn.is-danger { color: #A9533D; }
+.po-push {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 14px;
+  background: #2E3A46; color: #F4ECDD;
+  box-shadow: 0 8px 20px rgb(46 58 70 / 0.22);
+}
+.po-push-bank {
+  flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px;
+  background: #F4ECDD; color: #2E3A46; font: 800 12px/1 var(--font);
+}
+.po-push strong { display: block; font: 600 14px/1.4 var(--font); }
+.po-push small { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; opacity: 0.7; }
+.po-code { letter-spacing: 0.5em; font-size: 20px !important; font-weight: 700; text-align: center; }
+/* Order cards: give the "what happens next" column room so it stays on one line */
+@media (min-width: 601px) {
+  .ob-facts { grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 1.5fr); }
+  .ob-facts > div:last-child dd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* In-page confirm: small square card with the whale */
+.cf-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  display: grid; place-items: center; padding: 20px;
+  background: rgb(46 58 70 / 0.42);
+  animation: cf-fade .15s ease-out;
+}
+.cf-card {
+  width: min(320px, 100%);
+  display: grid; justify-items: center; gap: 14px;
+  padding: 24px 22px 20px;
+  background: #F7EFE1;
+  border: 1.5px solid #2E3A46;
+  border-radius: 18px;
+  box-shadow: 4px 4px 0 rgb(46 58 70 / 0.22), 0 20px 40px rgb(46 58 70 / 0.25);
+  text-align: center;
+  animation: cf-pop .18s cubic-bezier(.2,.9,.3,1.2);
+}
+.cf-whale { margin-top: -4px; filter: drop-shadow(0 6px 8px rgb(46 58 70 / 0.15)); }
+.cf-msg { margin: 0; color: #2E3A46; font: 600 15px/1.55 var(--font); word-break: keep-all; }
+.cf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 2px; }
+.cf-actions .btn { width: 100%; min-height: 44px; justify-content: center; }
+.cf-actions .btn-primary.is-danger { background: #A9533D !important; border-color: #A9533D !important; }
+@keyframes cf-fade { from { opacity: 0; } }
+@keyframes cf-pop { from { opacity: 0; transform: scale(.92); } }
+@media (prefers-reduced-motion: reduce) { .cf-backdrop, .cf-card { animation: none; } }
+
+/* Hand-over proof, auto-confirm note, problem reports */
+.ac-note { margin: 0; padding: 10px 12px; border-radius: 8px; background: rgb(46 58 70 / 0.06); color: #2E3A46; font-size: 13px; line-height: 1.5; }
+.report-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #A9533D !important; font-size: 13px; }
+.rp-reasons { display: grid; gap: 6px; margin: 0; padding: 0; border: 0; }
+.rp-reasons legend { margin-bottom: 6px; }
+.rp-reason { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid rgb(46 58 70 / 0.15); border-radius: 10px; background: rgb(255 255 255 / 0.45); cursor: pointer; font-size: 14px; color: #2E3A46; }
+.rp-reason:has(input:checked) { border-color: #A9533D; background: rgb(169 83 61 / 0.08); font-weight: 600; }
+.rp-reason input { accent-color: #A9533D; margin: 0; }
+.btn-primary.is-danger { background: #A9533D !important; border-color: #A9533D !important; }
+.dp-card {
+  position: relative; z-index: 2;
+  display: grid; gap: 10px;
+  padding: 18px 20px;
+  background: #FBEDE6; border: 1.5px solid #A9533D; border-radius: 12px;
+}
+.dp-head { display: flex; align-items: center; gap: 12px; }
+.dp-head h2 { margin: 0; font: 700 17px/1.3 var(--font); color: #7E3524; }
+.dp-head .fine { margin: 2px 0 0; }
+.dp-reason { margin: 0; font: 700 15px/1.4 var(--font); color: #2E3A46; }
+.dp-note { margin: 0; padding: 10px 12px; border-left: 3px solid rgb(169 83 61 / 0.4); background: rgb(255 255 255 / 0.5); color: #2E3A46; font-size: 14px; white-space: pre-line; }
+.dp-photo img { max-width: 220px; max-height: 180px; border-radius: 8px; object-fit: cover; display: block; }
+.dp-review { margin: 0; font-size: 13px; color: rgb(46 58 70 / 0.7); }
+.dp-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.kt-wallet-sums small { display: block; margin-top: 4px; font-size: 11.5px; color: rgb(46 58 70 / 0.55); line-height: 1.35; }
+.cf-msg { white-space: pre-line; }
+
+/* Letter pop-ups: an airmail envelope with a whale postage stamp */
+.modal.is-letter {
+  position: relative;
+  padding: 26px 26px calc(24px + env(safe-area-inset-bottom));
+  border: 10px solid transparent !important;
+  border-image: repeating-linear-gradient(135deg, #B65A43 0 14px, #F7EFE1 14px 22px, #2E3A46 22px 36px, #F7EFE1 36px 44px) 10 !important;
+  border-radius: 0 !important;
+  background: #F7EFE1 !important;
+  background-image:
+    linear-gradient(rgb(46 58 70 / 0.05) 1px, transparent 1px) !important;
+  background-size: 100% 30px !important;
+  box-shadow: 0 24px 60px rgb(46 58 70 / 0.3) !important;
+}
+/* envelope flap */
+.modal.is-letter::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 0; height: 54px;
+  background: linear-gradient(#EADBC3, #E4D2B6);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  pointer-events: none;
+}
+.modal.is-letter::after { /* wax seal on the flap */
+  content: '';
+  position: absolute; top: 34px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #C9705A, #9E4B37 70%);
+  box-shadow: 0 2px 4px rgb(46 58 70 / 0.3), inset 0 0 0 4px rgb(255 255 255 / 0.12);
+  pointer-events: none;
+}
+.letter-stamp {
+  position: absolute; top: 14px; right: 16px; z-index: 1;
+  transform: rotate(6deg);
+  filter: drop-shadow(0 3px 4px rgb(46 58 70 / 0.2));
+}
+.letter-stamp .mascot { display: block; }
+.modal.is-letter .modal-head { position: static; margin: 46px 0 6px; padding-right: 90px; text-align: left; }
+.modal.is-letter .modal-head > div { position: relative; z-index: 1; }
+.modal.is-letter .modal-head .eyebrow { margin: 0 0 4px; font-family: var(--script), var(--font); font-size: 20px; color: #A9533D; text-transform: none; letter-spacing: 0; }
+.modal.is-letter .modal-head h2 { margin: 0; }
+.modal.is-letter .modal-close { position: absolute; top: 12px; left: 12px; right: auto; z-index: 2; background: rgb(255 255 255 / 0.7); }
+.letter-re { margin: 0; padding-bottom: 12px; border-bottom: 1px dashed rgb(46 58 70 / 0.25); color: rgb(46 58 70 / 0.65); font-size: 14px; }
+.letter-re b { color: #2E3A46; }
+.letter-ps { margin: 0; color: #5B4A2E; font-size: 13px; line-height: 1.55; }
+.letter-ps span { margin-right: 4px; font-family: var(--script), var(--font); font-size: 18px; color: #A9533D; }
+.modal.is-letter .btn-primary:disabled { opacity: 1 !important; background: rgb(46 58 70 / 0.35) !important; border-color: transparent !important; color: #F7EFE1 !important; }
+@media (max-width: 899px) { .modal.is-letter { border-width: 8px !important; } }
+
+/* Hand-over: method choices as postage tiles, photo as a taped snapshot */
+.ho-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+.ho-tile {
+  position: relative;
+  display: grid; justify-items: center; gap: 4px;
+  padding: 14px 10px 12px;
+  border: 2px dashed rgb(46 58 70 / 0.25); border-radius: 2px;
+  background: #FFFBF3; color: #2E3A46; cursor: pointer;
+  transition: border-color .15s, transform .15s;
+}
+.ho-tile:hover { transform: translateY(-1px) rotate(-0.5deg); }
+.ho-tile b { font: 700 15px/1.2 var(--font); }
+.ho-tile small { font-size: 12px; color: rgb(46 58 70 / 0.6); }
+.ho-tile-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgb(46 58 70 / 0.07); }
+.ho-tile[aria-pressed='true'] { border-style: solid; border-color: #A9533D; background: #FBEDE6; }
+.ho-tile[aria-pressed='true'] .ho-tile-icon { background: #A9533D; color: #FFF8EE; }
+.ho-tile[aria-pressed='true']::after { /* postmark */
+  content: '✓'; position: absolute; top: -10px; right: -8px;
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid #A9533D; background: #FFFBF3; color: #A9533D; font: 800 13px/1 var(--font);
+  transform: rotate(-12deg);
+}
+.ho-tile:focus-visible, .photo-tile:focus-visible { outline: 2px solid #A9533D; outline-offset: 2px; }
+
+.photo-tile-wrap { display: grid; gap: 8px; }
+.photo-tile {
+  position: relative; display: grid; place-items: center;
+  width: 100%; min-height: 140px; padding: 10px 10px 26px;
+  border: 0; border-radius: 0;
+  background: #FFFDF8; color: #2E3A46; cursor: pointer;
+  box-shadow: 0 1px 2px rgb(46 58 70 / 0.12), 0 8px 18px rgb(46 58 70 / 0.1);
+  transform: rotate(-0.6deg);
+}
+.photo-tile::before { /* tape */
+  content: ''; position: absolute; top: -9px; left: 50%; width: 84px; height: 20px; transform: translateX(-50%) rotate(2deg);
+  background: rgb(222 196 120 / 0.7);
+}
+.photo-tile:hover { transform: rotate(0deg); }
+.photo-tile img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
+.photo-tile-empty {
+  display: grid; justify-items: center; gap: 6px; width: 100%; padding: 18px 14px;
+  border: 1.5px dashed rgb(46 58 70 / 0.2); background: rgb(46 58 70 / 0.03); text-align: center;
+}
+.photo-tile-empty b { font: 700 14px/1.3 var(--font); }
+.photo-tile-empty small { font-size: 12px; color: rgb(46 58 70 / 0.6); max-width: 300px; line-height: 1.45; }
+.photo-tile-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: #FBEDE6; color: #A9533D; }
+.photo-tile-change {
+  position: absolute; right: 14px; bottom: 32px; padding: 4px 10px; border-radius: 999px;
+  background: rgb(46 58 70 / 0.8); color: #F4ECDD; font: 600 12px/1.3 var(--font);
+}
+.modal.is-letter .modal-head { padding-bottom: 12px; border-bottom: 1px dashed rgb(46 58 70 / 0.25); }
+
+/* "Posted!" letter */
+.posted-msg { white-space: pre-line; margin: 0; color: #2E3A46; font-size: 15px; line-height: 1.6; }
+.posted-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.posted-actions .btn { width: 100%; justify-content: center; }
+.ac-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+
+/* Offer form: whale greeting + side tip */
+.whale-say.of-hello { justify-content: flex-start; max-width: none; margin: 4px 0 18px; }
+.of-tip {
+  position: relative; z-index: 2;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px; border-radius: 12px;
+  background: #F7EFE1; border: 1px dashed rgb(46 58 70 / 0.25);
+}
+.of-tip p { margin: 0; font-size: 13px; line-height: 1.55; color: rgb(46 58 70 / 0.8); }
+.of-tip .mascot { flex: none; }
+.of-tip { margin-top: 14px; align-items: center; }

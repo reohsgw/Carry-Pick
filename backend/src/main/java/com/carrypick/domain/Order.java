@@ -66,6 +66,21 @@ public class Order {
     private Instant paidAt;
     private Instant purchasedAt;
     private Instant deliveredAt;
+
+    /** How the traveler handed it over (IN_PERSON or SHIPPING) and the photo proving it. */
+    private String handoverMethod;
+    private String handoverPhotoUrl;
+    /** When the buyer's receipt is confirmed automatically if they do nothing. */
+    private Instant autoConfirmAt;
+
+    private String disputeReason;
+    @Column(length = 1000)
+    private String disputeNote;
+    private String disputePhotoUrl;
+    private Boolean disputedByBuyer;
+    private Instant disputedAt;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus disputePrevStatus;
     private Instant completedAt;
     private Instant settledAt;
     private Instant cancelledAt;
@@ -149,6 +164,26 @@ public class Order {
     public Instant getPurchasedAt() { return purchasedAt; }
     public void setPurchasedAt(Instant purchasedAt) { this.purchasedAt = purchasedAt; }
     public Instant getDeliveredAt() { return deliveredAt; }
+    public String getHandoverMethod() { return handoverMethod; }
+    public String getHandoverPhotoUrl() { return handoverPhotoUrl; }
+    public void setHandover(String method, String photoUrl) { this.handoverMethod = method; this.handoverPhotoUrl = photoUrl; }
+    public Instant getAutoConfirmAt() { return autoConfirmAt; }
+    public void setAutoConfirmAt(Instant autoConfirmAt) { this.autoConfirmAt = autoConfirmAt; }
+    public String getDisputeReason() { return disputeReason; }
+    public String getDisputeNote() { return disputeNote; }
+    public String getDisputePhotoUrl() { return disputePhotoUrl; }
+    public Boolean getDisputedByBuyer() { return disputedByBuyer; }
+    public Instant getDisputedAt() { return disputedAt; }
+    public OrderStatus getDisputePrevStatus() { return disputePrevStatus; }
+    public void openDispute(boolean byBuyer, String reason, String note, String photoUrl, Instant at) {
+        this.disputePrevStatus = this.status;
+        this.disputedByBuyer = byBuyer;
+        this.disputeReason = reason;
+        this.disputeNote = note;
+        this.disputePhotoUrl = photoUrl;
+        this.disputedAt = at;
+        this.status = OrderStatus.DISPUTED;
+    }
     public void setDeliveredAt(Instant deliveredAt) { this.deliveredAt = deliveredAt; }
     public Instant getCompletedAt() { return completedAt; }
     public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }

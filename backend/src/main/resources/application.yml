@@ -32,6 +32,9 @@ app:
     ttl-hours: 72
   upload-dir: ${UPLOAD_DIR:uploads}
   seed-demo-data: true
+  orders:
+    # Buyers who don't press "received" are confirmed automatically after this many days.
+    auto-confirm-days: 3
   pricing:
     fee-rate: 0.10
     tax-threshold-krw: 150000

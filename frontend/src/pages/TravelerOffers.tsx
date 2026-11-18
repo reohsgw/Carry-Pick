@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Lock, Plane } from '../components/icons';
+import { ArrowRight, Plane } from '../components/icons';
 import { api, type Offer } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import CountryPicker from '../components/CountryPicker';
 import { useCountry } from '../country';
-import { Avatar, Empty, ErrorBox, Loading, ProductPhoto, ProductThumb } from '../components/ui';
-import { ALL_COUNTRIES, daysUntil, krw, shortDate } from '../format';
+import { Avatar, Empty, ErrorBox, Loading, ProductPhoto } from '../components/ui';
+import { ALL_COUNTRIES, daysUntil, krw, shortDate, boardDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -216,7 +216,6 @@ export default function TravelerOffers() {
             ))}
           </div>
         )}
-        <p className="protection-note"><Lock size={13} aria-hidden /> {t('to.protect')}</p>
       </section>
     </Screen>
   );
@@ -225,7 +224,7 @@ export default function TravelerOffers() {
 function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
   offer: Offer; best: boolean; comparing: boolean; compareFull: boolean; onCompare: () => void;
 }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const route = useRoute();
   const [from, to] = route(offer.trip.city, offer.countryCode).split(' → ');
   return (
@@ -238,16 +237,16 @@ function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
           <p className="fine">{t('card.backFrom', { city: offer.trip.city ?? offer.countryCode })}</p>
         </div>
       </div>
-      <Link to={`/offers/${offer.id}`} className="ticket-product">
-        <ProductThumb src={offer.imageUrl} category={offer.category} size={56} />
+      <Link to={`/offers/${offer.id}`} className="ticket-product has-photo">
+        <span className="ticket-photo"><ProductPhoto src={offer.imageUrl} category={offer.category} iconSize={48} /></span>
         <div className="grow">
           <span className="meta-label">{offer.category ? t(`cat.${offer.category}` as Key) : ' '}</span>
-          <strong>{offer.productName}</strong>
+          <strong title={offer.productName}>{offer.productName}</strong>
         </div>
       </Link>
       <div className="offer-ticket">
         <span className="ticket-pill">{from} <span className="route-arrow">→</span> {to}</span>
-        <div className="price-line"><span>{t('to.dates')}</span><b>{shortDate(offer.trip.departDate, lang)} – {shortDate(offer.trip.returnDate, lang)}</b></div>
+        <div className="price-line"><span>{t('to.dates')}</span><b>{boardDate(offer.trip.departDate)} – {boardDate(offer.trip.returnDate)}</b></div>
         <div className="price-line"><span>{t('to.itemPrice')}</span><b>{krw(offer.estPrice)}</b></div>
         <div className="price-line"><span>{t('to.reward')}</span><b>{krw(offer.reward)}</b></div>
         <div className="price-line">

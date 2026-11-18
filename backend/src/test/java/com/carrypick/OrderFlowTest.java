@@ -23,6 +23,7 @@ class OrderFlowTest {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
+    @Autowired com.carrypick.service.OrderService orderService;
 
     private static final String PW = "carrypick123";
 
@@ -43,7 +44,7 @@ class OrderFlowTest {
         purchase(traveler, orderId, budget - 1000);
         assertStatus(buyer, orderId, "PURCHASED");
 
-        body(post("/api/orders/" + orderId + "/deliver", traveler, null), 200);
+        deliver(traveler, orderId);
         JsonNode done = body(post("/api/orders/" + orderId + "/confirm", buyer, null), 200);
         assertThat(done.get("status").asText()).isEqualTo("SETTLED");
         assertThat(done.get("settlement").get("buyerRefund").asLong()).isEqualTo(1000);
@@ -89,7 +90,7 @@ class OrderFlowTest {
         purchase(traveler, orderId, 35000);
         assertStatus(buyer, orderId, "PURCHASED");
 
-        body(post("/api/orders/" + orderId + "/deliver", traveler, null), 200);
+        deliver(traveler, orderId);
         JsonNode done = body(post("/api/orders/" + orderId + "/confirm", buyer, null), 200);
         assertThat(done.get("status").asText()).isEqualTo("SETTLED");
         assertThat(done.get("settlement").get("travelerPayout").asLong()).isEqualTo(35000 + 5000);
@@ -307,6 +308,89 @@ class OrderFlowTest {
         body(post("/api/payments/confirm", token, """
                 {"paymentKey":"%s","tossOrderId":"%s","amount":%d}
                 """.formatted(paymentKey, tossOrderId, amount)), 200);
+    }
+
+    private JsonNode deliver(String token, long orderId) throws Exception {
+        MockMultipartFile proof = new MockMultipartFile("proof", "handover.png", "image/png", new byte[]{1, 2, 3});
+        return body(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .multipart("/api/orders/" + orderId + "/deliver").file(proof).param("method", "IN_PERSON")
+                .header("Authorization", "Bearer " + token), 200);
+    }
+
+    private JsonNode report(String token, long orderId, String reason, int expected) throws Exception {
+        return body(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .multipart("/api/orders/" + orderId + "/report").param("reason", reason).param("note", "test")
+                .header("Authorization", "Bearer " + token), expected);
+    }
+
+    @Test
+    void handoverNeedsProof_thenBuyerReportsAndResolves() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        String traveler = login("traveler@carrypick.test");
+        long offerId = firstBookableOffer("JP");
+        JsonNode order = body(post("/api/orders", buyer, "{\"offerId\":" + offerId + ",\"quantity\":1}"), 201);
+        long orderId = order.get("id").asLong();
+        pay(buyer, orderId, "mock_ok_dispute");
+        purchase(traveler, orderId, order.get("budget").asLong());
+
+        // No photo, no hand-over.
+        body(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .multipart("/api/orders/" + orderId + "/deliver")
+                .header("Authorization", "Bearer " + traveler), 400);
+
+        JsonNode delivered = deliver(traveler, orderId);
+        assertThat(delivered.get("handoverPhotoUrl").asText()).startsWith("/uploads/");
+        assertThat(delivered.get("autoConfirmAt").isNull()).isFalse();
+
+        // A traveler reason doesn't fit the buyer.
+        report(buyer, orderId, "NO_CONTACT", 400);
+        JsonNode disputed = report(buyer, orderId, "NOT_RECEIVED", 200);
+        assertThat(disputed.get("status").asText()).isEqualTo("DISPUTED");
+        assertThat(disputed.get("dispute").get("byRole").asText()).isEqualTo("BUYER");
+        assertThat(disputed.get("dispute").get("mine").asBoolean()).isTrue();
+
+        // While disputed, the normal "received" button is blocked; resolving settles it.
+        body(post("/api/orders/" + orderId + "/confirm", buyer, null), 409);
+        body(post("/api/orders/" + orderId + "/resolve", traveler, "{\"action\":\"RECEIVED\"}"), 403);
+        JsonNode done = body(post("/api/orders/" + orderId + "/resolve", buyer, "{\"action\":\"RECEIVED\"}"), 200);
+        assertThat(done.get("status").asText()).isEqualTo("SETTLED");
+    }
+
+    @Test
+    void buyerWhoNeverConfirms_isConfirmedAutomatically() throws Exception {
+        org.springframework.test.util.ReflectionTestUtils.setField(orderService, "autoConfirmDays", 0);
+        String buyer = login("buyer@carrypick.test");
+        String traveler = login("traveler@carrypick.test");
+        long offerId = firstBookableOffer("JP");
+        JsonNode order = body(post("/api/orders", buyer, "{\"offerId\":" + offerId + ",\"quantity\":1}"), 201);
+        long orderId = order.get("id").asLong();
+        pay(buyer, orderId, "mock_ok_auto");
+        purchase(traveler, orderId, order.get("budget").asLong());
+        deliver(traveler, orderId);
+
+        orderService.autoConfirmDelivered();
+        assertStatus(buyer, orderId, "SETTLED");
+    }
+
+    @Test
+    void travelerReport_refundCancelsOrder() throws Exception {
+        String buyer = login("buyer@carrypick.test");
+        String traveler = login("traveler@carrypick.test");
+        long offerId = firstBookableOffer("JP");
+        JsonNode order = body(post("/api/orders", buyer, "{\"offerId\":" + offerId + ",\"quantity\":1}"), 201);
+        long orderId = order.get("id").asLong();
+        pay(buyer, orderId, "mock_ok_refund");
+        purchase(traveler, orderId, order.get("budget").asLong());
+        deliver(traveler, orderId);
+
+        report(traveler, orderId, "NOT_CONFIRMING", 200);
+        JsonNode withdrawn = body(post("/api/orders/" + orderId + "/resolve", traveler, "{\"action\":\"WITHDRAW\"}"), 200);
+        assertThat(withdrawn.get("status").asText()).isEqualTo("DELIVERED");
+
+        report(buyer, orderId, "WRONG_OR_DAMAGED", 200);
+        body(post("/api/orders/" + orderId + "/resolve", traveler, "{\"action\":\"WITHDRAW\"}"), 403);
+        JsonNode refunded = body(post("/api/orders/" + orderId + "/resolve", traveler, "{\"action\":\"REFUND\"}"), 200);
+        assertThat(refunded.get("status").asText()).isEqualTo("CANCELLED");
     }
 
     private void purchase(String token, long orderId, long actualPrice) throws Exception {

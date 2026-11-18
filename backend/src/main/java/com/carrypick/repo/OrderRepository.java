@@ -17,6 +17,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByTravelerIdOrderByCreatedAtDesc(Long travelerId);
 
+    List<Order> findByStatus(com.carrypick.domain.OrderStatus status);
+
     Optional<Order> findFirstByRequestIdOrderByCreatedAtDesc(Long requestId);
 
     @Query("""

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, ChevronRight, ExternalLink, FileText, MessageCircle } from '../components/icons';
+import { ChevronRight, ExternalLink, FileText, MessageCircle } from '../components/icons';
 import { api, assetUrl, type Order } from '../api';
 import { ReceiptLine, ReceiptStrip, StatusTimeline, firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -10,12 +10,18 @@ import { ReceiptCapture } from '../components/receipt';
 import { ActionBar, Avatar, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge } from '../components/ui';
 import { krw, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
+import { useConfirm } from '../components/confirm';
+import { PhotoPick } from '../components/PhotoPick';
+import { AutoConfirmNote, DisputePanel, HandoverModal, HandoverProof, ReportProblem } from '../components/dispute';
+import { markOrderSeen } from '../seen';
 
 export default function OrderDetail() {
   const id = Number(useParams().id);
   const { t, lang } = useI18n();
   const route = useRoute();
   const order = useQuery({ queryKey: ['order', id], queryFn: () => api.order(id), refetchInterval: 15_000 });
+  const seenStatus = order.data?.status;
+  useEffect(() => { if (seenStatus) markOrderSeen({ id, status: seenStatus }); }, [id, seenStatus]);
 
   if (order.isLoading) return <Screen back title={t('order.title')}><Loading /></Screen>;
   if (order.error || !order.data) return <Screen back title={t('order.title')}><ErrorBox error={order.error} /></Screen>;
@@ -65,9 +71,13 @@ export default function OrderDetail() {
             </div>
           </section>
 
+          <DisputePanel order={o} />
+
           <Sheet title={t('order.progress')}>
             <StatusTimeline order={o} />
           </Sheet>
+
+          <HandoverProof order={o} />
 
           {o.priceTagUrl && (
             <Sheet title={t('pc.tag')} aside={<span className="amount">{krw(o.quotedPrice)}</span>}>
@@ -123,7 +133,9 @@ export default function OrderDetail() {
             )}
           </aside>
 
+          <AutoConfirmNote order={o} />
           {buyer ? <BuyerActions order={o} /> : <TravelerActions order={o} />}
+          <ReportProblem order={o} />
         </div>
       </div>
     </Screen>
@@ -131,6 +143,7 @@ export default function OrderDetail() {
 }
 
 function BuyerActions({ order: o }: { order: Order }) {
+  const ask = useConfirm();
   const { t } = useI18n();
   const errText = useErrorText();
   const navigate = useNavigate();
@@ -154,7 +167,7 @@ function BuyerActions({ order: o }: { order: Order }) {
       {payment.error && <Notice tone="bad">{payment.error}</Notice>}
       {canCancel && (
         <button className="link danger center-block" disabled={cancel.isPending}
-          onClick={() => window.confirm(t('order.cancelConfirm') + (paid ? ` ${t('order.cancelRefund')}` : '')) && cancel.mutate()}>
+          onClick={async () => (await ask({ message: t('order.cancelConfirm') + (paid ? `\n${t('order.cancelRefund')}` : ''), mood: 'alert', danger: true })) && cancel.mutate()}>
           {t('order.cancel')}
         </button>
       )}
@@ -170,11 +183,11 @@ function BuyerActions({ order: o }: { order: Order }) {
         )}
         {o.status === 'DELIVERED' && (
           <button className="btn btn-primary btn-block btn-tall" disabled={confirm.isPending}
-            onClick={() => window.confirm(t('order.receivedConfirm')) && confirm.mutate()}>
+            onClick={async () => (await ask({ message: t('order.receivedConfirm'), mood: 'unbox' })) && confirm.mutate()}>
             {confirm.isPending ? t('order.confirming') : t('order.received')}
           </button>
         )}
-        {['PAID', 'PURCHASED', 'COMPLETED', 'SETTLED', 'CANCELLED'].includes(o.status) && (
+        {['PAID', 'PURCHASED', 'DISPUTED', 'COMPLETED', 'SETTLED', 'CANCELLED'].includes(o.status) && (
           <Link to="/orders" className="btn btn-quiet btn-block">{t('order.backToOrders')}</Link>
         )}
       </ActionBar>
@@ -215,6 +228,7 @@ function BuyerActions({ order: o }: { order: Order }) {
 }
 
 function TravelerActions({ order: o }: { order: Order }) {
+  const ask = useConfirm();
   const { t } = useI18n();
   const errText = useErrorText();
   const qc = useQueryClient();
@@ -234,9 +248,9 @@ function TravelerActions({ order: o }: { order: Order }) {
     mutationFn: () => api.priceCheck(o.id, Number(tagPrice), tagPhoto!),
     onSuccess: () => { setCheckOpen(false); refresh(); },
   });
-  const deliver = useMutation({ mutationFn: () => api.deliver(o.id), onSuccess: refresh });
+  const [handOpen, setHandOpen] = useState(false);
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
-  const err = deliver.error ?? cancel.error;
+  const err = cancel.error;
   const approved = o.extraItemAmount > 0;
   const over = price !== '' && price > o.itemLimit;
   const under = price !== '' && price > 0 && price < o.itemLimit;
@@ -250,7 +264,7 @@ function TravelerActions({ order: o }: { order: Order }) {
       {err && <Notice tone="bad">{errText(err)}</Notice>}
       {['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL'].includes(o.status) && (
         <button className="link danger center-block" disabled={cancel.isPending}
-          onClick={() => window.confirm(t('order.travelerCancelConfirm')) && cancel.mutate()}>
+          onClick={async () => (await ask({ message: t('order.travelerCancelConfirm'), mood: 'alert', danger: true })) && cancel.mutate()}>
           {t('order.cancel')}
         </button>
       )}
@@ -263,15 +277,16 @@ function TravelerActions({ order: o }: { order: Order }) {
           <button className="btn btn-primary btn-block btn-tall" onClick={() => setOpen(true)}>{t('order.bought')}</button>
         )}
         {o.status === 'PURCHASED' && (
-          <button className="btn btn-primary btn-block btn-tall" disabled={deliver.isPending}
-            onClick={() => window.confirm(t('order.handedOverConfirm')) && deliver.mutate()}>
-            {deliver.isPending ? t('order.saving') : t('order.handedOver')}
+          <button className="btn btn-primary btn-block btn-tall" onClick={() => setHandOpen(true)}>
+            {t('order.handedOver')}
           </button>
         )}
         {!['PAID', 'PURCHASED'].includes(o.status) && (
           <Link to="/t/orders" className="btn btn-quiet btn-block">{t('order.backToOrders')}</Link>
         )}
       </ActionBar>
+
+      <HandoverModal order={o} open={handOpen} onClose={() => setHandOpen(false)} />
 
       <Modal open={open} onClose={() => setOpen(false)} title={t('buy.title')} eyebrow={o.productName}>
         <form className="stack" onSubmit={(e) => { e.preventDefault(); purchase.mutate(); }}>
@@ -304,32 +319,5 @@ function TravelerActions({ order: o }: { order: Order }) {
         </form>
       </Modal>
     </>
-  );
-}
-
-function PhotoPick({ file, onFile, label, hint }: { file: File | null; onFile: (f: File | null) => void; label: string; hint: string }) {
-  const { t } = useI18n();
-  const input = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  useEffect(() => {
-    if (!file) { setPreview(null); return; }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-  return (
-    <div className="capture-pick">
-      {preview
-        ? <img className="capture-thumb" src={preview} alt="" />
-        : <div className="capture-thumb is-empty"><Camera size={22} strokeWidth={1.5} aria-hidden /></div>}
-      <div className="capture-pick-body">
-        <span className="field-label">{label}</span>
-        <span className="field-hint">{file ? file.name : hint}</span>
-        <button type="button" className="link" onClick={() => input.current?.click()}>
-          {file ? t('buy.change') : t('buy.choose')}
-        </button>
-      </div>
-      <input ref={input} type="file" accept="image/*" aria-label={label} hidden onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
-    </div>
   );
 }

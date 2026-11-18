@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ArrowRight, Check, Minus, Plus, ShieldCheck } from '../components/icons';
 import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
-import { Avatar, ErrorBox, KV, Loading, Notice, ProductPhoto, Tag } from '../components/ui';
+import { Avatar, ErrorBox, KV, Loading, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
 import { countryName, daysUntil, krw, quote, shortDate, weight } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -19,6 +19,12 @@ export default function OfferDetail() {
   const navigate = useNavigate();
   const offer = useQuery({ queryKey: ['offer', id], queryFn: () => api.offer(id) });
   const [qty, setQty] = useState(1);
+  const location = useLocation();
+  // Just posted from the offer form: celebrate once, then drop the flag so a refresh doesn't show it again.
+  const flags = location.state as { posted?: boolean; edited?: boolean } | null;
+  const [posted, setPosted] = useState(() => !!flags?.posted);
+  const [edited, setEdited] = useState(() => !!flags?.edited);
+  const closePosted = () => { setPosted(false); setEdited(false); navigate(location.pathname, { replace: true, state: null }); };
 
   const book = useMutation({
     mutationFn: () => api.book(id, qty),
@@ -110,6 +116,21 @@ export default function OfferDetail() {
         {book.error && <Notice tone="bad">{errText(book.error)}</Notice>}
       </DetailLayout>
 
+      <Modal open={edited && mine} onClose={closePosted} title={o.productName} eyebrow={t('edited.eyebrow')} mood="happy" hideClose>
+        <div className="stack posted">
+          <p className="posted-msg">{t('edited.body')}</p>
+          <button type="button" className="btn btn-primary btn-block" onClick={closePosted}>{t('cf.ok')}</button>
+        </div>
+      </Modal>
+      <Modal open={posted && mine} onClose={closePosted} title={o.productName} eyebrow={t('posted.eyebrow')} mood="happy" hideClose>
+        <div className="stack posted">
+          <p className="posted-msg">{t('posted.body', { country, date: shortDate(o.trip.returnDate, lang) })}</p>
+          <div className="posted-actions">
+            <Link to="/t/offers/new" className="btn btn-quiet" onClick={() => setPosted(false)}>{t('posted.another')}</Link>
+            <button type="button" className="btn btn-primary" onClick={closePosted}>{t('posted.view')}</button>
+          </div>
+        </div>
+      </Modal>
     </Screen>
   );
 }

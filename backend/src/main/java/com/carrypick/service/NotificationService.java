@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service;
 public class NotificationService {
 
     public enum Kind {
-        BOOKED, REQUEST_ACCEPTED, PAID, PURCHASED, OVER_BUDGET, DELIVERED, REJECTED, SETTLED, CANCELLED, EXTRA_PAID, MESSAGE
+        BOOKED, REQUEST_ACCEPTED, PAID, PURCHASED, OVER_BUDGET, DELIVERED, REJECTED, SETTLED, CANCELLED, EXTRA_PAID, MESSAGE,
+        REPORTED, RESOLVED, AUTO_CONFIRMED
     }
 
     private final NotificationRepository repo;

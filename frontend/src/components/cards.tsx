@@ -269,7 +269,9 @@ export function StatusTimeline({ order }: { order: Order }) {
   );
 
   let shown: Step[];
-  if (order.status === 'CANCELLED') {
+  if (order.status === 'DISPUTED') {
+    shown = [...steps.filter((s) => s.done), { id: 'disputed', label: t('tl.disputed'), at: order.dispute?.at ?? null, done: true, bad: true }];
+  } else if (order.status === 'CANCELLED') {
     shown = [...steps.filter((s) => s.done), { id: 'cancelled', label: t('tl.cancelled'), at: order.cancelledAt, done: true, bad: true }];
   } else {
     const firstOpen = steps.findIndex((s) => !s.done);

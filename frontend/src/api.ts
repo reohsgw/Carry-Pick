@@ -9,11 +9,13 @@ export type OrderStatus =
   | 'AWAITING_APPROVAL'
   | 'PURCHASED'
   | 'DELIVERED'
+  | 'DISPUTED'
   | 'COMPLETED'
   | 'SETTLED'
   | 'CANCELLED';
 
-export interface User { id: number; email: string; name: string; mode: Mode; test: boolean; avatarUrl?: string | null }
+export interface Payout { bank: string; accountMasked: string; holder: string }
+export interface User { id: number; email: string; name: string; mode: Mode; test: boolean; avatarUrl?: string | null; payout?: Payout | null }
 export interface Person { id: number; name: string; avatarUrl?: string | null }
 export interface Country { code: string; name: string; nameKo: string; currency: string; flag: string }
 export interface Quote { budget: number; reward: number; fee: number; tax: number; total: number }
@@ -81,6 +83,14 @@ export interface Order {
   payments: PaymentRecord[];
   settlement: { travelerPayout: number; buyerRefund: number; platformFee: number; mock: boolean } | null;
   unreadMessages: number;
+  handoverMethod: 'IN_PERSON' | 'SHIPPING' | null;
+  handoverPhotoUrl: string | null;
+  autoConfirmAt: string | null;
+  dispute: Dispute | null;
+}
+
+export interface Dispute {
+  reason: string; note: string | null; photoUrl: string | null; byRole: 'BUYER' | 'TRAVELER'; mine: boolean; at: string;
 }
 
 export interface ChatMessage {
@@ -104,7 +114,8 @@ export interface PaymentPrepare {
 
 export type NotificationKind =
   | 'BOOKED' | 'REQUEST_ACCEPTED' | 'PAID' | 'PURCHASED' | 'OVER_BUDGET'
-  | 'DELIVERED' | 'REJECTED' | 'SETTLED' | 'CANCELLED' | 'EXTRA_PAID' | 'MESSAGE';
+  | 'DELIVERED' | 'REJECTED' | 'SETTLED' | 'CANCELLED' | 'EXTRA_PAID' | 'MESSAGE'
+  | 'REPORTED' | 'RESOLVED' | 'AUTO_CONFIRMED';
 
 export interface Notification {
   id: number; orderId: number | null; kind: NotificationKind | null; actorName: string | null;
@@ -185,7 +196,8 @@ export const api = {
     post<{ token: string; user: User }>('/api/auth/signup', b),
   login: (b: { email: string; password: string }) => post<{ token: string; user: User }>('/api/auth/login', b),
   me: () => get<{ user: User; unreadNotifications: number }>('/api/users/me'),
-  updateMe: (b: { name?: string; mode?: Mode; avatarUrl?: string }) => patch<User>('/api/users/me', b),
+  updateMe: (b: { name?: string; mode?: Mode; avatarUrl?: string; payoutBank?: string; payoutAccount?: string; payoutHolder?: string }) =>
+    patch<User>('/api/users/me', b),
 
   board: () => get<BoardRow[]>('/api/board'),
   ranking: (country: string) => get<Ranking>(`/api/countries/${country}/ranking`),
@@ -232,7 +244,20 @@ export const api = {
     post<ChatMessage>(`/api/orders/${id}/messages`, b),
   approve: (id: number) => post<PaymentPrepare>(`/api/orders/${id}/approve`),
   reject: (id: number, reopenRequest = false) => post<Order>(`/api/orders/${id}/reject`, { reopenRequest }),
-  deliver: (id: number) => post<Order>(`/api/orders/${id}/deliver`),
+  deliver: (id: number, method: 'IN_PERSON' | 'SHIPPING', proof: File) => {
+    const form = new FormData();
+    form.append('method', method);
+    form.append('proof', proof);
+    return http.post<Order>(`/api/orders/${id}/deliver`, form).then((r) => r.data);
+  },
+  report: (id: number, reason: string, note: string, photo: File | null) => {
+    const form = new FormData();
+    form.append('reason', reason);
+    if (note.trim()) form.append('note', note.trim());
+    if (photo) form.append('photo', photo);
+    return http.post<Order>(`/api/orders/${id}/report`, form).then((r) => r.data);
+  },
+  resolve: (id: number, action: 'RECEIVED' | 'REFUND' | 'WITHDRAW') => post<Order>(`/api/orders/${id}/resolve`, { action }),
   confirmReceived: (id: number) => post<Order>(`/api/orders/${id}/confirm`),
   cancelOrder: (id: number, reason?: string) => post<Order>(`/api/orders/${id}/cancel`, { reason }),
 

@@ -7,10 +7,13 @@ import com.carrypick.repo.*;
 import com.carrypick.web.dto.Dtos.OrderDto;
 import com.carrypick.service.PricingService.Quote;
 import com.carrypick.web.dto.Forms.BookForm;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
@@ -50,6 +53,101 @@ public class OrderService {
         this.mapper = mapper;
     }
 
+    @Value("${app.orders.auto-confirm-days:3}")
+    private int autoConfirmDays;
+
+    private static final Set<OrderStatus> REPORTABLE = EnumSet.of(OrderStatus.PAID, OrderStatus.AWAITING_APPROVAL,
+            OrderStatus.PURCHASED, OrderStatus.DELIVERED);
+    private static final Set<String> BUYER_REASONS = Set.of("NOT_RECEIVED", "WRONG_OR_DAMAGED", "OTHER");
+    private static final Set<String> TRAVELER_REASONS = Set.of("NOT_CONFIRMING", "NO_CONTACT", "OTHER");
+
+    /** Either side reports a problem: the order pauses (no payout, no auto-confirm) until it's resolved. */
+    @Transactional
+    public OrderDto report(Long userId, Long orderId, String reason, String note, MultipartFile photo) {
+        Order o = findForParticipant(userId, orderId);
+        if (!REPORTABLE.contains(o.getStatus())) {
+            throw ApiException.conflict("CANNOT_REPORT", "This order can't be reported right now");
+        }
+        boolean byBuyer = o.isBuyer(userId);
+        String code = reason == null ? "" : reason.trim().toUpperCase();
+        if (!(byBuyer ? BUYER_REASONS : TRAVELER_REASONS).contains(code)) {
+            throw ApiException.badRequest("REPORT_REASON", "Choose a reason for the report");
+        }
+        String text = note == null || note.isBlank() ? null : note.trim();
+        if (text != null && text.length() > 1000) text = text.substring(0, 1000);
+        String photoUrl = photo == null || photo.isEmpty() ? null : files.store(photo);
+        o.openDispute(byBuyer, code, text, photoUrl, Instant.now());
+        User me = byBuyer ? o.getBuyer() : o.getTraveler();
+        User other = byBuyer ? o.getTraveler() : o.getBuyer();
+        notifications.notify(other, o.getId(), NotificationService.Kind.REPORTED, me.getName(), o.getProductName(), null,
+                me.getName() + " reported a problem with " + o.getProductName() + ". The order is paused.");
+        return mapper.order(o, userId);
+    }
+
+    @Transactional
+    public OrderDto resolve(Long userId, Long orderId, String action) {
+        Order o = findForParticipant(userId, orderId);
+        requireStatus(o, OrderStatus.DISPUTED);
+        boolean byBuyer = o.isBuyer(userId);
+        String a = action == null ? "" : action.trim().toUpperCase();
+        switch (a) {
+            case "RECEIVED" -> {
+                requireBuyer(o, userId);
+                if (o.getActualPrice() == null) {
+                    throw ApiException.conflict("NOT_PURCHASED", "The traveler hasn't bought the item yet");
+                }
+                o.setCompletedAt(Instant.now());
+                settle(o);
+                notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.RESOLVED, o.getBuyer().getName(),
+                        o.getProductName(), null, o.getBuyer().getName() + " confirmed they received "
+                        + o.getProductName() + ". Your payout was settled (simulated).");
+            }
+            case "REFUND" -> {
+                requireTraveler(o, userId);
+                refundAll(o);
+                o.setStatus(OrderStatus.CANCELLED);
+                o.setCancelledAt(Instant.now());
+                o.setCancelReason("Refunded after a reported problem");
+                if (o.getOffer() != null) o.getOffer().release(o.getQuantity());
+                if (o.getRequest() != null) o.getRequest().setStatus(RequestStatus.CANCELLED);
+                notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.CANCELLED, o.getTraveler().getName(),
+                        o.getProductName(), null, o.getTraveler().getName() + " cancelled the order and refunded you.");
+            }
+            case "WITHDRAW" -> {
+                if (o.getDisputedByBuyer() == null || o.getDisputedByBuyer() != byBuyer) {
+                    throw ApiException.forbidden("Only the person who reported can withdraw the report");
+                }
+                OrderStatus back = o.getDisputePrevStatus() == null ? OrderStatus.PURCHASED : o.getDisputePrevStatus();
+                o.setStatus(back);
+                if (back == OrderStatus.DELIVERED) o.setAutoConfirmAt(Instant.now().plus(Duration.ofDays(autoConfirmDays)));
+                User me = byBuyer ? o.getBuyer() : o.getTraveler();
+                notifications.notify(byBuyer ? o.getTraveler() : o.getBuyer(), o.getId(), NotificationService.Kind.RESOLVED,
+                        me.getName(), o.getProductName(), null, me.getName() + " withdrew the report. The order continues.");
+            }
+            default -> throw ApiException.badRequest("RESOLVE_ACTION", "Unknown action");
+        }
+        return mapper.order(o, userId);
+    }
+
+    /** Buyers who never press "received": confirm for them once the timer runs out. */
+    @Scheduled(initialDelay = 15_000, fixedDelay = 300_000)
+    @Transactional
+    public void autoConfirmDelivered() {
+        Instant now = Instant.now();
+        for (Order o : orders.findByStatus(OrderStatus.DELIVERED)) {
+            Instant due = o.getAutoConfirmAt() != null ? o.getAutoConfirmAt()
+                    : o.getDeliveredAt() == null ? null : o.getDeliveredAt().plus(Duration.ofDays(autoConfirmDays));
+            if (due == null || due.isAfter(now)) continue;
+            o.setCompletedAt(now);
+            settle(o);
+            notifications.notify(o.getTraveler(), o.getId(), NotificationService.Kind.AUTO_CONFIRMED, o.getBuyer().getName(),
+                    o.getProductName(), null, "Receipt of " + o.getProductName()
+                    + " was confirmed automatically. Your payout was settled (simulated).");
+            notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.AUTO_CONFIRMED, o.getTraveler().getName(),
+                    o.getProductName(), null, "Receipt of " + o.getProductName() + " was confirmed automatically.");
+        }
+    }
+
     @Transactional
     public OrderDto book(Long userId, BookForm f) {
         User buyer = auth.require(userId);
@@ -77,6 +175,7 @@ public class OrderService {
     @Transactional
     public OrderDto acceptRequest(Long userId, Long requestId, Long tripId) {
         User traveler = auth.require(userId);
+        auth.requirePayoutAccount(traveler);
         PurchaseRequest r = market.findRequest(requestId);
         if (r.getBuyer().getId().equals(userId)) {
             throw ApiException.badRequest("OWN_REQUEST", "You cannot accept your own request");
@@ -162,12 +261,19 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto deliver(Long userId, Long orderId) {
+    public OrderDto deliver(Long userId, Long orderId, String method, MultipartFile proof) {
         Order o = findForParticipant(userId, orderId);
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PURCHASED);
+        String how = "SHIPPING".equalsIgnoreCase(method) ? "SHIPPING" : "IN_PERSON";
+        if (proof == null || proof.isEmpty()) {
+            throw ApiException.badRequest("PROOF_REQUIRED", "Add a photo of the hand-over or the shipping receipt");
+        }
+        o.setHandover(how, files.store(proof));
+        Instant now = Instant.now();
         o.setStatus(OrderStatus.DELIVERED);
-        o.setDeliveredAt(Instant.now());
+        o.setDeliveredAt(now);
+        o.setAutoConfirmAt(now.plus(Duration.ofDays(autoConfirmDays)));
         notifications.notify(o.getBuyer(), o.getId(), NotificationService.Kind.DELIVERED, o.getTraveler().getName(),
                 o.getProductName(), null, o.getTraveler().getName() + " handed over "
                 + o.getProductName() + ". Please confirm you received it.");
