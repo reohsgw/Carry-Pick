@@ -97,8 +97,8 @@ function useNav() {
   const me = pathname === '/me' || pathname.startsWith('/t/trips') || pathname.startsWith('/t/offers');
   return [
     { to: '/', label: t('nav.discover'), icon: Home, end: true },
-    { to: '/offers', label: t('nav.offers'), icon: Ticket, end: true, active: offers || undefined },
-    { to: '/t/requests', label: t('nav.requests'), icon: ClipboardList, active: requests || undefined },
+    { to: '/offers', label: t('nav.offers'), short: t('nav.offersShort'), icon: Ticket, end: true, active: offers || undefined },
+    { to: '/t/requests', label: t('nav.requests'), short: t('nav.requestsShort'), icon: ClipboardList, active: requests || undefined },
     { to: '/orders', label: t('nav.orders'), icon: ShoppingBag, active: orders || undefined },
     { to: '/me', label: t('nav.me'), icon: User, active: me || undefined },
   ];
@@ -112,7 +112,7 @@ function BottomNav() {
       {items.map((it) => (
         <NavLink key={it.to} to={it.to} end={it.end} className={({ isActive }) => `mobile-nav-item ${it.active ?? isActive ? 'active' : ''}`}>
           <it.icon size={20} strokeWidth={1.8} aria-hidden />
-          <span>{it.label}</span>
+          <span>{'short' in it && it.short ? it.short : it.label}</span>
         </NavLink>
       ))}
     </nav>
