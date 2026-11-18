@@ -7,6 +7,7 @@ import { useSession } from '../session';
 import { NotificationList } from './NotificationList';
 import { ActionBar, initials } from './ui';
 import HeroLogo from './HeroLogo';
+import CountryPicker from './CountryPicker';
 
 export function Screen({ title, back, children, hideNav, flush, wide = !title, headerExtra }: {
   title?: string; back?: boolean | string; children: ReactNode;
@@ -65,7 +66,11 @@ function HeaderActions() {
   const photo = photoBroken ? null : assetUrl(user.avatarUrl);
   return (
     <>
-      <NavLink to="/search" className="icon-btn only-desktop" aria-label={t('nav.search')}>
+      <CountryPicker />
+      <NavLink to="/" end className="icon-btn only-desktop" aria-label={t('nav.home')}>
+        <Home size={20} />
+      </NavLink>
+      <NavLink to="/search"className="icon-btn only-desktop" aria-label={t('nav.search')}>
         <Search size={20} />
       </NavLink>
       <NotificationsButton unread={unread} />
@@ -172,7 +177,7 @@ function MenuButton() {
       </button>
       {open && (
         <nav className="nav-dropdown" aria-label="Main">
-          {items.map((it) => (
+          {items.filter((it) => it.to !== '/').map((it) => (
             <NavLink key={it.to} to={it.to} end={it.end} className={({ isActive }) => `nav-dropdown-item ${it.active ?? isActive ? 'active' : ''}`}>
               <it.icon size={18} strokeWidth={1.9} aria-hidden />
               {it.label}

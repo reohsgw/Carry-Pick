@@ -5,7 +5,6 @@ import { ArrowRight, Plane } from '../components/icons';
 import { api, type Offer } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
-import CountryPicker from '../components/CountryPicker';
 import { useCountry } from '../country';
 import { Avatar, Empty, ErrorBox, Loading, Mascot, ProductPhoto } from '../components/ui';
 import { ALL_COUNTRIES, CATEGORIES, daysUntil, krw, shortDate, boardDate, weight } from '../format';
@@ -95,7 +94,7 @@ export default function TravelerOffers() {
   }
 
   return (
-    <Screen wide headerExtra={<CountryPicker />}>
+    <Screen wide>
       <section className="home-section offers-page">
         <div className="section-heading">
           <div>

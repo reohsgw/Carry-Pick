@@ -84,7 +84,6 @@ export default function OfferDetail() {
         <div className="od-top">
           <div className="detail-media od-photo">
             <ProductPhoto src={o.imageUrl} category={o.category} iconSize={56} />
-            <Mascot mood="fly" className="od-photo-whale" size={120} />
           </div>
           <div className="od-top-text">
             <p className="eyebrow">{t('offer.from', { category: cat, country })}</p>

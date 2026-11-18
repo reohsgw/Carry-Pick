@@ -11073,14 +11073,8 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 .home-section.offers-page { padding-top: 0 !important; margin-top: 0 !important; }
 .offers-page .section-heading { margin-top: 0 !important; padding-top: 0 !important; }
 
-/* Offer detail: whale on the photo, fact chips, traveler speech, tip in the summary */
+/* Offer detail: fact chips, traveler speech, tip in the summary */
 .od-photo { position: relative; overflow: visible !important; }
-.od-photo-whale {
-  position: absolute; right: -18px; bottom: -34px; z-index: 2;
-  animation: whale-float 4.5s ease-in-out infinite;
-  filter: drop-shadow(0 8px 10px rgb(46 58 70 / 0.2));
-  pointer-events: none;
-}
 .od-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
 .od-facts > div {
   display: grid; gap: 4px; padding: 12px 14px;
@@ -11098,25 +11092,16 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 .od-tip { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: #FFF6E6; }
 .od-tip p { margin: 0; font-size: 13px; line-height: 1.5; color: #5B4A2E; }
 @media (max-width: 700px) {
-  .od-photo-whale { width: 84px !important; right: 4px; bottom: -22px; }
   .od-traveler-say { margin-left: 0; width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) { .od-photo-whale { animation: none; } }
-.detail-media.od-photo img.od-photo-whale, .od-photo .od-photo-whale {
-  position: absolute !important; inset: auto -18px -34px auto !important;
-  width: 120px !important; height: auto !important; max-width: none !important;
-  object-fit: contain !important; border: 0 !important; background: none !important; box-shadow: none !important;
-}
-@media (max-width: 700px) { .detail-media.od-photo img.od-photo-whale, .od-photo .od-photo-whale { width: 84px !important; inset: auto 4px -22px auto !important; } }
 
 /* Offer detail: smaller photo beside the title so the key info fits without scrolling */
 .od-top { display: grid; gap: 18px; }
 .od-photo { aspect-ratio: auto !important; height: clamp(200px, 32vh, 320px) !important; }
-.od-photo > img:not(.od-photo-whale), .od-photo > .placeholder { width: 100% !important; height: 100% !important; object-fit: contain !important; }
+.od-photo > img, .od-photo > .placeholder { width: 100% !important; height: 100% !important; object-fit: contain !important; }
 .od-top-text .detail-title { font-size: clamp(1.6rem, 2.4vw, 2.3rem) !important; line-height: 1.15; margin: 4px 0 0; }
 @media (min-width: 900px) {
   .od-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
   .od-photo { height: clamp(220px, 34vh, 300px) !important; }
-  .detail-media.od-photo img.od-photo-whale, .od-photo .od-photo-whale { width: 92px !important; inset: auto -14px -22px auto !important; }
 }
 .od-tip p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

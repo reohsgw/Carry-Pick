@@ -12,7 +12,6 @@ import { HERO_LANDMARKS } from '../images';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { useCountry } from '../country';
-import CountryPicker from '../components/CountryPicker';
 
 const HOME_CATEGORIES = CATEGORIES.filter((c) => c !== 'Other');
 
@@ -38,7 +37,7 @@ export default function BuyerHome() {
     .slice(0, 8);
 
   return (
-    <Screen flush headerExtra={<CountryPicker />}>
+    <Screen flush>
       <section className="hero-section">
         <div className="hero-inner">
           <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
