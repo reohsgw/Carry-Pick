@@ -103,7 +103,7 @@ public class DataSeeder implements ApplicationRunner {
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));
         requests.save(new PurchaseRequest(minji, "FR", "Le Labo Santal 33 50ml", null, "demo:le-labo-santal33",
                 "50ml", "Paris boutique only please", 260000, 20000, today.plusDays(35)));
-        requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, null,
+        requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, "demo:jim-thompson-scarf",
                 "Blue tones", null, 70000, 10000, today.plusDays(20)));
 
         demoOrder(jun, tokyoBanana, 5);

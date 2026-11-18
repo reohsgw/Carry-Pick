@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Plane } from '../components/icons';
+import { ArrowRight, ChevronDown, Plane } from '../components/icons';
 import { api, type Offer } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -44,6 +44,7 @@ export default function TravelerOffers() {
   const weightLimit = maxWeight != null && maxWeight < 5000 ? maxWeight : null;
   const [bookableOnly, setBookableOnly] = useState(true);
   const [compare, setCompare] = useState<number[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const all = offers.data ?? [];
   const rewardCap = useMemo(() => Math.max(5000, ...all.map((o) => o.reward)), [all]);
@@ -139,8 +140,13 @@ export default function TravelerOffers() {
         </div>
 
         <div className="offers-main">
-          <aside className="filter-sidebar">
-            <h3>{t('to.refine')}</h3>
+          <aside className={`filter-sidebar${filtersOpen ? ' is-open' : ''}`}>
+            <h3>
+              <button type="button" className="filter-toggle" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((o) => !o)}>
+                {t('to.refine')}
+                <ChevronDown size={18} aria-hidden className="filter-toggle-icon" />
+              </button>
+            </h3>
             <div className="range-label"><span>{t('to.maxReward')}</span><strong>{krw(rewardLimit)}</strong></div>
             <input
               type="range" min={0} max={rewardCap} step={1000} value={rewardLimit}

@@ -11105,3 +11105,47 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
   .od-photo { height: clamp(220px, 34vh, 300px) !important; }
 }
 .od-tip p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Phone & tablet fit (below the 900px desktop layout) ---------- */
+/* Below the desktop layout the app always uses the full width, never a fixed phone column. */
+@media (max-width: 899.98px) {
+  :root { --col: 100%; }
+}
+@media (max-width: 899.98px) {
+  /* Hero sits right under the header and is only as tall as its content. */
+  .hero-section {
+    margin-top: 0 !important;
+    min-height: 0 !important;
+  }
+  .hero-inner {
+    padding-top: 36px !important;
+    padding-bottom: 36px !important;
+  }
+  /* The second whale overlaps the category row when the hero is narrow. */
+  .hero-whale-2 { display: none; }
+  /* The last band runs down behind the bottom tab bar instead of leaving an empty strip. */
+  .content:has(> .ask-panel:last-child) { padding-bottom: 0 !important; }
+  .ask-panel:last-child {
+    padding-bottom: calc(48px + 68px + env(safe-area-inset-bottom)) !important;
+  }
+}
+@media (max-width: 899.98px) {
+  /* Tighter rhythm between home sections on small screens. */
+  .home-section { margin-top: 0 !important; padding-top: 20px !important; padding-bottom: 20px !important; }
+  .ask-panel { margin-top: 16px !important; }
+}
+
+/* Offers filters: a plain heading on desktop, a tap-to-open row on phones and tablets. */
+.filter-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; text-align: left; cursor: default;
+}
+.filter-toggle-icon { display: none; transition: transform 0.2s ease; }
+@media (max-width: 899.98px) {
+  .filter-toggle { cursor: pointer; min-height: 32px; }
+  .filter-toggle-icon { display: block; }
+  .filter-sidebar.is-open .filter-toggle-icon { transform: rotate(180deg); }
+  .filter-sidebar:not(.is-open) h3 { margin-bottom: 0 !important; }
+  .filter-sidebar:not(.is-open) > :not(h3) { display: none !important; }
+}

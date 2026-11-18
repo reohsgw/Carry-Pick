@@ -55,7 +55,8 @@ public class CatalogInitializer implements ApplicationRunner {
             Map.entry("Levi's 501 Original jeans", "demo:levis-501"),
             Map.entry("Bioderma Sensibio H2O 500ml", "demo:bioderma-sensibio"),
             Map.entry("Sanrio Hello Kitty Tokyo Limited Edition", "demo:hello-kitty-tokyo"),
-            Map.entry("Le Labo Santal 33 50ml", "demo:le-labo-santal33"));
+            Map.entry("Le Labo Santal 33 50ml", "demo:le-labo-santal33"),
+            Map.entry("Jim Thompson silk scarf", "demo:jim-thompson-scarf"));
 
     /** Estimated packed weight (grams) for the starter catalog. */
     private static final Map<String, Integer> DEMO_WEIGHTS = Map.ofEntries(
