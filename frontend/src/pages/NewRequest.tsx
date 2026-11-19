@@ -163,7 +163,7 @@ export default function NewRequest() {
               {currency === 'KRW'
                 ? <MoneyInput value={budgetLocal} onChange={setBudgetLocal} required placeholder="50,000" />
                 : <CurrencyInput value={budgetLocal} onChange={setBudgetLocal} symbol={currencySymbol(currency)} decimals={decimals} required
-                    placeholder={decimals > 0 ? '30.00' : (rate ? toLocal(50000, rate) : 5000).toLocaleString('en-US', { maximumFractionDigits: 0 })} />}
+                    placeholder="5,000" />}
             </Field>
             {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
             {currency !== 'KRW' && rate && budgetLocal !== '' && maxBudget !== '' && (
