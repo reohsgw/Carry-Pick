@@ -11208,3 +11208,20 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 @media (max-width: 599.98px) {
   .action-bar > .btn { padding-left: 12px !important; padding-right: 12px !important; }
 }
+
+/* Request form: budget converted to won, shown as a small box */
+.fx-box {
+  display: grid; gap: 8px; padding: 14px 16px; border-radius: 12px;
+  background: #FFFBF3; border: 1.5px dashed rgb(46 58 70 / 0.22);
+}
+.fx-box-row { display: flex; align-items: center; gap: 12px; }
+.fx-box-side { display: grid; gap: 2px; min-width: 0; }
+.fx-box-side.is-won { margin-left: auto; text-align: right; }
+.fx-box-label { font: 700 12px/1.2 var(--font); color: rgb(46 58 70 / 0.6); }
+.fx-box-local { font: 700 18px/1.2 var(--font); color: #2E3A46; }
+.fx-box-won { font: 800 22px/1.2 var(--font); color: #A9533D; }
+.fx-box-arrow { flex: none; color: rgb(46 58 70 / 0.45); }
+.fx-box-rate { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 600 13px/1.4 var(--font); color: #5B4A2E; }
+.fx-box-source { padding: 2px 8px; border-radius: 999px; background: rgb(46 58 70 / 0.08); font-size: 12px; color: #5B4A2E; }
+.fx-box-source.is-live { background: rgb(63 111 122 / 0.14); color: #3F6F7A; }
+.fx-box-note { margin: 0; padding-top: 8px; border-top: 1px dashed rgb(46 58 70 / 0.15); font-size: 12px; line-height: 1.5; color: rgb(46 58 70 / 0.65); }

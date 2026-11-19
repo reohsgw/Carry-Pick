@@ -6,7 +6,8 @@ import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
 import { CurrencyInput, Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
-import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
+import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, money, quote } from '../format';
+import { ArrowRight } from '../components/icons';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 import { markRequestSeen } from '../seen';
@@ -158,16 +159,33 @@ export default function NewRequest() {
 
         <Sheet title={t('req.secPrice')}>
           <div className="stack">
-            <Field label={currency === 'KRW' ? t('req.budget') : t('req.budgetIn', { cur: currency })}
-              hint={maxBudget !== '' && currency !== 'KRW' && rate
-                ? t('req.budgetKrw', { amount: krw(maxBudget), cur: currency, rate: rate.toLocaleString('ko-KR', { maximumFractionDigits: rate < 1 ? 4 : 2 }), source: t(rates.data?.live ? 'fx.live' : 'fx.fixed') })
-                : t('req.budgetHint')}>
+            <Field label={currency === 'KRW' ? t('req.budget') : t('req.budgetIn', { cur: currency })} hint={t('req.budgetHint')}>
               {currency === 'KRW'
                 ? <MoneyInput value={budgetLocal} onChange={setBudgetLocal} required placeholder="50,000" />
                 : <CurrencyInput value={budgetLocal} onChange={setBudgetLocal} symbol={currencySymbol(currency)} decimals={decimals} required
                     placeholder={decimals > 0 ? '30.00' : (rate ? toLocal(50000, rate) : 5000).toLocaleString('en-US', { maximumFractionDigits: 0 })} />}
             </Field>
             {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
+            {currency !== 'KRW' && rate && budgetLocal !== '' && maxBudget !== '' && (
+              <div className="fx-box" aria-live="polite">
+                <div className="fx-box-row">
+                  <div className="fx-box-side">
+                    <span className="fx-box-label">{t('fx.typed')}</span>
+                    <strong className="fx-box-local">{money(Number(budgetLocal), currency)}</strong>
+                  </div>
+                  <ArrowRight size={20} aria-hidden className="fx-box-arrow" />
+                  <div className="fx-box-side is-won">
+                    <span className="fx-box-label">{t('fx.inWon')}</span>
+                    <strong className="fx-box-won">{krw(maxBudget)}</strong>
+                  </div>
+                </div>
+                <p className="fx-box-rate">
+                  {t('fx.rateLine', { cur: currency, rate: rate.toLocaleString('ko-KR', { maximumFractionDigits: rate < 1 ? 4 : 2 }) })}
+                  <span className={`fx-box-source${rates.data?.live ? ' is-live' : ''}`}>{t(rates.data?.live ? 'fx.live' : 'fx.fixed')}</span>
+                </p>
+                <p className="fx-box-note">{t('fx.note')}</p>
+              </div>
+            )}
             <Field label={t('req.reward')} error={rewardOver}
               hint={maxBudget ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : t('reward.rule', { pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) })}>
               <MoneyInput value={reward} onChange={setReward} placeholder="5,000" />
