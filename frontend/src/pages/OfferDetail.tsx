@@ -5,7 +5,6 @@ import { ArrowRight, Minus, Plane, Plus } from '../components/icons';
 import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
-import { FxBox } from '../components/FxBox';
 import { Avatar, ErrorBox, Loading, Mascot, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
 import { countryName, daysUntil, krw, quote, shortDate, weight, money, offerPriceText } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
@@ -18,7 +17,6 @@ export default function OfferDetail() {
   const errText = useErrorText();
   const navigate = useNavigate();
   const offer = useQuery({ queryKey: ['offer', id], queryFn: () => api.offer(id) });
-  const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
   const [qty, setQty] = useState(1);
   const location = useLocation();
   // Just posted from the offer form: celebrate once, then drop the flag so a refresh doesn't show it again.
@@ -40,7 +38,6 @@ export default function OfferDetail() {
   const q = quote(config, o.estPrice * qty, o.reward * qty);
   // Priced in the trip country's currency: show that amount and its won value for the chosen quantity.
   const local = o.priceLocal != null && o.priceCurrency && o.priceCurrency !== 'KRW' ? { amount: Number(o.priceLocal), currency: o.priceCurrency } : null;
-  const fxRate = local ? (rates.data?.krwPerUnit[local.currency] ?? o.estPrice / local.amount) : 0;
   const closesIn = daysUntil(o.trip.returnDate) - 1; // last booking day is the day before they return
   const country = countryName(config, o.countryCode, lang);
   const cat = o.category ? t(`cat.${o.category}` as Key) : '';
@@ -72,11 +69,11 @@ export default function OfferDetail() {
                   </div>
                 )}
               </div>
-              {local && (
-                <FxBox amount={local.amount * qty} currency={local.currency} won={o.estPrice * qty} rate={fxRate}
-                  source={rates.data?.live ? 'live' : 'fixed'} fromLabel={o.receiptUrl ? 'fx.boughtPrice' : 'fx.itemPrice'}
-                  note={o.receiptUrl ? undefined : t('fx.bookNote')} />
-              )}
+              <div className="od-price-stub">
+                <small>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</small>
+                <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
+                {o.priceLocal != null && o.priceCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</span>}
+              </div>
               <ReceiptStrip quote={q} budgetLabel={local ? `${t(o.receiptUrl ? 'price.itemPaid' : 'price.itemEstimate')} · ${money(local.amount * qty, local.currency)}` : undefined} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: offerPriceText(o, lang) })} />
               <div className="od-tip">
                 <Mascot mood="love" size={52} />
@@ -135,11 +132,6 @@ export default function OfferDetail() {
               {o.weightGrams != null && <div><dt>{t('w.label')}</dt><dd>{weight(o.weightGrams)}</dd></div>}
               {o.trip.luggageNote && <div className="is-wide"><dt>{t('offer.luggage')}</dt><dd>{o.trip.luggageNote}</dd></div>}
             </dl>
-          </div>
-          <div className="od-pass-stub">
-            <small>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</small>
-            <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
-            {o.priceLocal != null && o.priceCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</span>}
           </div>
         </section>
 
