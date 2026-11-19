@@ -8,7 +8,7 @@ import { ReceiptStrip } from '../components/cards';
 import { ReceiptCapture } from '../components/receipt';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { DualMoneyInput, Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
+import { DualMoneyInput, Empty, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { CATEGORIES, cityCode, currencyDecimals, currencyOf, currencySymbol, daysUntil, krw, maxReward, money, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -180,7 +180,6 @@ export default function OfferForm() {
   return (
     <Screen back title={editId ? t('of.edit') : t('of.new')} hideNav wide>
       <div className="whale-say of-hello">
-        <Mascot mood="shop" className="whale-say-whale" size={96} />
         <div className="whale-say-bubble">
           <p>{editId ? t('of.helloEdit') : t('of.hello')}</p>
         </div>
@@ -195,7 +194,6 @@ export default function OfferForm() {
               <ReceiptStrip quote={q} budgetLabel={bought ? t('offer.boughtPrice') : undefined} />
             </Sheet>
             <div className="of-tip">
-              <Mascot mood="question" size={56} />
               <p>{t('of.tip')}</p>
             </div>
           </>

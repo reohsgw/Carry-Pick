@@ -8,22 +8,34 @@ import { api, assetUrl, type OrderStatus } from '../api';
 import { STATUS_TONE } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { productPhoto } from '../images';
-import whaleFly from '../assets/whale-mascot.webp';
-import whaleHappy from '../assets/whale-happy.webp';
-import whaleQuestion from '../assets/whale-question.webp';
-import whaleLove from '../assets/whale-love.webp';
-import whaleAlert from '../assets/whale-alert.webp';
-import whaleShop from '../assets/whale-shop.webp';
-import whaleUnbox from '../assets/whale-unbox.webp';
-import whaleSleep from '../assets/whale-sleep.webp';
-import whaleStamp from '../assets/whale-stamp.webp';
+// The only whale artwork in the app (replaced the earlier set). Heads and stickers are for small spots.
+import whaleFly from '../assets/whale-fly.webp';
+import whaleWave from '../assets/whale-wave.webp';
+import whaleMap from '../assets/whale-map.webp';
+import whaleGift from '../assets/whale-gift.webp';
+import whaleShocked from '../assets/whale-shocked.webp';
+import whaleLaptop from '../assets/whale-laptop.webp';
+import whaleBox from '../assets/whale-box.webp';
+import whaleSparkle from '../assets/whale-sparkle.webp';
+import headSleep from '../assets/whale-head-sleep.webp';
+import headSmile from '../assets/whale-head-smile.webp';
+import headLaugh from '../assets/whale-head-laugh.webp';
+import headSurprised from '../assets/whale-head-surprised.webp';
+import headSad from '../assets/whale-head-sad.webp';
+import stickerGift from '../assets/sticker-gift.webp';
+import stickerBox from '../assets/sticker-box.webp';
+import stickerPlane from '../assets/sticker-plane.webp';
+import stickerPin from '../assets/sticker-pin.webp';
 
-/** The courier whale's moods. */
-export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep' | 'stamp';
+export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep' | 'stamp'
+  | 'smile' | 'laugh' | 'surprised' | 'sad';
 const MOODS: Record<Mood, string> = {
-  fly: whaleFly, happy: whaleHappy, question: whaleQuestion, love: whaleLove,
-  alert: whaleAlert, shop: whaleShop, unbox: whaleUnbox, sleep: whaleSleep, stamp: whaleStamp,
+  fly: whaleFly, happy: whaleWave, question: whaleMap, love: whaleGift, alert: whaleShocked,
+  shop: whaleLaptop, unbox: whaleBox, sleep: headSleep, stamp: whaleSparkle,
+  smile: headSmile, laugh: headLaugh, surprised: headSurprised, sad: headSad,
 };
+/** Small objects from the same set, for decoration next to the whale. */
+export const STICKERS = { gift: stickerGift, box: stickerBox, plane: stickerPlane, pin: stickerPin } as const;
 
 /** CarryPick's courier whale. Decorative, so hidden from screen readers. */
 export function Mascot({ mood = 'fly', className = '', size }: { mood?: Mood; className?: string; size?: number }) {
@@ -98,8 +110,8 @@ export function SectionHeading({ eyebrow, title, action }: { eyebrow?: string; t
   return (
     <div className="section-heading">
       <div>
-        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
         <h2 className="font-display">{title}</h2>
+        {eyebrow && <p className="section-sub">{eyebrow}</p>}
       </div>
       {action}
     </div>
@@ -131,7 +143,7 @@ function usePhoto(src: string | null | undefined, category: string | null | unde
 export function ProductPhoto({ src, category, iconSize = 36 }: { src?: string | null; category?: string | null; iconSize?: number }) {
   const { url, onError } = usePhoto(src, category);
   const Icon = categoryIcon(category);
-  return url ? <img src={url} alt="" onError={onError} /> : <div className="placeholder"><Icon size={iconSize} strokeWidth={1.4} aria-hidden /></div>;
+  return url ? <img src={url} alt="" loading="lazy" decoding="async" onError={onError} /> : <div className="placeholder"><Icon size={iconSize} strokeWidth={1.4} aria-hidden /></div>;
 }
 
 export function ProductThumb({ src, category, size = 56 }: { src?: string | null; category?: string | null; size?: number }) {
@@ -139,7 +151,7 @@ export function ProductThumb({ src, category, size = 56 }: { src?: string | null
   const Icon = categoryIcon(category);
   return (
     <div className="thumb" style={{ width: size, height: size }}>
-      {url ? <img src={url} alt="" onError={onError} /> : <Icon size={Math.round(size * 0.42)} strokeWidth={1.5} aria-hidden />}
+      {url ? <img src={url} alt="" loading="lazy" decoding="async" onError={onError} /> : <Icon size={Math.round(size * 0.42)} strokeWidth={1.5} aria-hidden />}
     </div>
   );
 }
@@ -311,8 +323,8 @@ export function Modal({ open, onClose, title, eyebrow, mood, hideClose, children
         {mood && <span className="letter-stamp" aria-hidden><Mascot mood={mood} size={78} /></span>}
         <div className="modal-head">
           <div>
-            {eyebrow && <p className="eyebrow">{eyebrow}</p>}
             <h2 className="font-display">{title}</h2>
+            {eyebrow && <p className="modal-sub">{eyebrow}</p>}
           </div>
           {!hideClose && <button className="modal-close" onClick={onClose}>{t('common.close')}</button>}
         </div>

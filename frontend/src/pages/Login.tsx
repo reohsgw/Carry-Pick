@@ -64,7 +64,7 @@ export default function Login() {
             </Field>
           )}
           <Field label={t('login.email')}>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="you@example.com" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" name="email" spellCheck={false} autoCapitalize="none" placeholder="you@example.com" />
           </Field>
           <Field label={t('login.password')}>
             <input

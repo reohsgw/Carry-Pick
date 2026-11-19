@@ -75,7 +75,7 @@ export default function PayResult({ success }: { success: boolean }) {
       )}
       {state === 'failed' && (
         <div className="result">
-          <Mascot mood="alert" className="result-whale" size={130} />
+          <Mascot mood="sad" className="result-whale" size={130} />
           <h2 className="font-display">{t('pay.failed')}</h2>
           <p className="result-body">{message ?? t('pay.failedBody')}</p>
         </div>

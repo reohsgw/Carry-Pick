@@ -239,12 +239,17 @@ export function OrderHero({ order }: { order: Order }) {
 
 type Line = { label: string; value: number; note?: string; muted?: boolean };
 
-export function ReceiptStrip({ quote, budgetLabel, note, extra }: {
-  quote: Quote; budgetLabel?: string; note?: string; extra?: Line[];
+/**
+ * Price details laid out like Trip.com, Klook and Agoda: label left, amount right, how the item price
+ * is made up in a grey line under it, a divider, the total, the currency it is charged in, and the
+ * refund or approval rules in a soft info box at the end.
+ */
+export function ReceiptStrip({ quote, budgetLabel, budgetNote, note, extra }: {
+  quote: Quote; budgetLabel?: string; budgetNote?: string; note?: string; extra?: Line[];
 }) {
   const { t } = useI18n();
   const lines: Line[] = [
-    { label: budgetLabel ?? t('price.itemEstimate'), value: quote.budget },
+    { label: budgetLabel ?? t('price.itemEstimate'), value: quote.budget, note: budgetNote },
     { label: t('price.reward'), value: quote.reward },
     { label: t('price.fee'), value: quote.fee },
   ];
@@ -257,6 +262,7 @@ export function ReceiptStrip({ quote, budgetLabel, note, extra }: {
         <span>{t('price.total')}</span>
         <strong>{krw(quote.total)}</strong>
       </div>
+      <p className="receipt-currency">{t('price.chargedKrw')}</p>
       {extra && extra.length > 0 && (
         <div className="receipt-extra">{extra.map((l) => <ReceiptLine key={l.label} {...l} />)}</div>
       )}

@@ -4,8 +4,8 @@ import { api } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
-import { Avatar, ErrorBox, Loading, Mascot, Notice, ProductThumb, Sheet, StatusBadge, type Mood } from '../components/ui';
-import { krw, shortDate } from '../format';
+import { Avatar, ErrorBox, Loading, Notice, ProductThumb, Sheet, StatusBadge, type Mood } from '../components/ui';
+import { krw, money, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 
 const STEPS: { mood: Mood; key: Key }[] = [
@@ -41,7 +41,6 @@ export default function Checkout() {
   return (
     <Screen back={`/orders/${o.id}`} title={t('pay.title')} hideNav wide>
       <div className="whale-say of-hello">
-        <Mascot mood="love" className="whale-say-whale" size={100} />
         <div className="whale-say-bubble">
           <p>{payable ? t('pay.hello', { name: traveler }) : t('pay.notPayable')}</p>
         </div>
@@ -56,6 +55,9 @@ export default function Checkout() {
               <ReceiptStrip
                 quote={{ budget: o.budget, reward: o.reward, fee: o.fee, tax: o.tax, total: o.initialCharge }}
                 budgetLabel={o.source === 'REQUEST' ? t('price.itemBudget') : t('price.itemEstimate')}
+                budgetNote={o.currency && o.limitLocal != null
+                  ? t('price.unitTimes', { price: money(Number(o.limitLocal) / Math.max(1, o.quantity), o.currency), n: o.quantity })
+                  : undefined}
                 note={t('pay.note')}
               />
             </aside>
@@ -87,7 +89,6 @@ export default function Checkout() {
           <ol className="pay-steps">
             {STEPS.map((s, i) => (
               <li key={s.key}>
-                <Mascot mood={s.mood} size={64} />
                 <span className="pay-step-n">{i + 1}</span>
                 <p>{t(s.key, { name: traveler })}</p>
               </li>

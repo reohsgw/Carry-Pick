@@ -28,6 +28,7 @@ export const Truck = carbon(Carbon.DeliveryTruck, 'Truck');
 export const Idea = carbon(Carbon.Idea, 'Idea');
 export const ArrowRight = carbon(Carbon.ArrowRight, 'ArrowRight');
 export const Bell = carbon(Carbon.Notification, 'Bell');
+export const Calendar = carbon(Carbon.Calendar, 'Calendar');
 export const Camera = carbon(Carbon.Camera, 'Camera');
 export const Check = carbon(Carbon.Checkmark, 'Check');
 export const ChevronDown = carbon(Carbon.ChevronDown, 'ChevronDown');

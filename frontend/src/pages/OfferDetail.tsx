@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ArrowRight, Minus, Plane, Plus } from '../components/icons';
+import { ArrowRight, Calendar, Minus, Plane, Plus, Receipt } from '../components/icons';
 import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
-import { Avatar, ErrorBox, Loading, Mascot, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, quote, shortDate, weight, money, offerPriceText } from '../format';
+import { Avatar, ErrorBox, Loading, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
+import { countryName, daysUntil, krw, quote, shortDate, weight, money } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -74,11 +74,26 @@ export default function OfferDetail() {
                 <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
                 {o.priceLocal != null && o.priceCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</span>}
               </div>
-              <ReceiptStrip quote={q} budgetLabel={local ? `${t(o.receiptUrl ? 'price.itemPaid' : 'price.itemEstimate')} · ${money(local.amount * qty, local.currency)}` : undefined} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: offerPriceText(o, lang) })} />
-              <div className="od-tip">
-                <Mascot mood="love" size={52} />
-                <p>{o.bookable ? t('offer.tipBook', { date: shortDate(o.trip.returnDate, lang) }) : t('offer.tipClosed')}</p>
-              </div>
+              <ReceiptStrip quote={q}
+                budgetLabel={t(o.receiptUrl ? 'price.itemPaid' : 'price.itemEstimate')}
+                budgetNote={t('price.unitTimes', { price: local ? money(local.amount, local.currency) : krw(o.estPrice), n: qty })} />
+              {/* Key facts as icon rows, the way Trip.com, Klook and Agoda list dates and policies */}
+              <ul className="od-facts-list">
+                <li>
+                  <Calendar size={20} aria-hidden />
+                  <div>
+                    <b>{o.bookable ? t('offer.arriveBy', { date: shortDate(o.trip.returnDate, lang) }) : t('offer.notBookable')}</b>
+                    <span>{o.bookable ? t('offer.arriveSub', { name: firstName(o.traveler.name) }) : t('offer.tipClosed')}</span>
+                  </div>
+                </li>
+                <li className="is-good">
+                  <Receipt size={20} aria-hidden />
+                  <div>
+                    <b>{o.receiptUrl ? t('offer.policyBought') : t('offer.policyReceipt')}</b>
+                    <span>{o.receiptUrl ? t('offer.boughtNote') : t('offer.policyReceiptSub')}</span>
+                  </div>
+                </li>
+              </ul>
               {o.receiptUrl && (
                 <a className="link small" href={assetUrl(o.receiptUrl) ?? '#'} target="_blank" rel="noreferrer" style={{ marginTop: 12 }}>
                   {t('offer.seeReceipt')}
@@ -92,8 +107,8 @@ export default function OfferDetail() {
             <ProductPhoto src={o.imageUrl} category={o.category} iconSize={56} />
           </div>
           <div className="od-top-text">
-            <p className="eyebrow">{t('offer.from', { category: cat, country })}</p>
             <h1 className="detail-title font-display">{o.productName}</h1>
+            <p className="od-meta">{t('offer.from', { category: cat, country })}</p>
             {o.description && <p className="body-text" style={{ marginTop: 10 }}>{o.description}</p>}
           </div>
         </div>

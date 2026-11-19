@@ -122,7 +122,6 @@ export default function Search() {
           {others.isLoading && <Loading />}
           {browse.length > 0 && (
             <section className="search-suggest search-browse" aria-labelledby="browse-title">
-              <p className="eyebrow">{t('search.browseEyebrow')}</p>
               <h2 id="browse-title" className="search-suggest-title">
                 {countryLabel ? t('search.browseCountry', { country: lang === 'ko' ? countryLabel.nameKo : countryLabel.name }) : t('search.browseTitle')}
               </h2>
@@ -152,8 +151,8 @@ export default function Search() {
 
           {noMatch && suggestions.length > 0 && (
             <section className="search-suggest" aria-labelledby="suggest-title">
-              <p className="eyebrow">{t('search.suggestEyebrow')}</p>
               <h2 id="suggest-title" className="search-suggest-title">{t('search.suggestTitle')}</h2>
+              <p className="search-suggest-sub">{t('search.suggestEyebrow')}</p>
               <div className="card-grid live-grid suggest-grid">
                 {suggestions.map((o) => <OfferCard key={o.id} offer={o} />)}
               </div>

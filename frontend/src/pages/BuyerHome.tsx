@@ -73,8 +73,7 @@ export default function BuyerHome() {
 
       <section id="most-wanted" className="home-section most-wanted-section">
         <SectionHeading
-          eyebrow={t('home.trendEyebrow', { country: name })}
-          title={t('home.trendTitle')}
+          title={country === ALL_COUNTRIES ? t('home.trendTitle') : t('home.trendTitleIn', { country: name })}
         />
         {ranking.isLoading && <Loading />}
         {ranking.error && <ErrorBox error={ranking.error} onRetry={() => ranking.refetch()} />}
@@ -89,7 +88,6 @@ export default function BuyerHome() {
       <section className="home-section live-section stack">
         <header className="live-head">
           <div className="live-copy">
-            <p className="eyebrow">{t('home.liveEyebrow', { country: name })}</p>
             <h2 className="live-title">{t('home.liveTitle')}</h2>
             <p className="live-body">{t('home.liveBody')}</p>
           </div>

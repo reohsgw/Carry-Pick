@@ -6,7 +6,7 @@ import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
 import { FxBox } from '../components/FxBox';
-import { DualMoneyInput, Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
+import { DualMoneyInput, Field, ImagePicker, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -91,7 +91,6 @@ export default function NewRequest() {
   return (
     <Screen back title={t('req.title')} hideNav wide>
       <div className="whale-say of-hello">
-        <Mascot mood="question" className="whale-say-whale" size={96} />
         <div className="whale-say-bubble">
           <p>{t('req.hello')}</p>
         </div>
@@ -114,7 +113,6 @@ export default function NewRequest() {
               <ReceiptStrip quote={q} budgetLabel={t('price.itemBudget')} note={t('req.youPayNote')} />
             </Sheet>
             <div className="of-tip">
-              <Mascot mood="shop" size={56} />
               <p>{t('req.tip')}</p>
             </div>
           </>

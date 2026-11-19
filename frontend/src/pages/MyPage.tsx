@@ -7,7 +7,7 @@ import {
 import { api, type Order } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
-import { Avatar, Loading, Mascot, Notice, ProductThumb, Tag } from '../components/ui';
+import { Avatar, Loading, Notice, ProductThumb, Tag } from '../components/ui';
 import { ACTIVE_STATUSES, countryName, daysUntil, krw, money, yearDate, yearRange } from '../format';
 import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -137,7 +137,6 @@ export default function MyPage() {
 
           {/* Rewards wallet, like 당근페이 */}
           <section className="kt-sheet kt-wallet">
-            <Mascot className="kt-whale" />
             <span className="kt-wallet-title"><Ticket size={18} aria-hidden /> {t('kt.wallet')}</span>
             <div className="kt-wallet-sums">
               <div>

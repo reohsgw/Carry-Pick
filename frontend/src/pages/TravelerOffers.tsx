@@ -209,7 +209,6 @@ export default function TravelerOffers() {
             )}
             {list.length > 0 && (
               <div className="whale-say">
-                <Mascot mood="question" className="whale-say-whale" size={110} />
                 <div className="whale-say-bubble">
                   <p>{t('country.footer')}</p>
                   <Link className="btn btn-primary btn-small" to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`}>
@@ -225,7 +224,6 @@ export default function TravelerOffers() {
       <section className="home-section comparison-board">
         <div className="comparison-head">
           <div>
-            <p className="eyebrow">{t('to.compareKicker')}</p>
             <h3 className="font-display">{t('to.compareTitle')}</h3>
           </div>
           <b>{t('to.selected', { n: compared.length })}</b>
@@ -281,7 +279,7 @@ function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
         </div>
       </Link>
       <div className="offer-ticket">
-        <span className="ticket-pill">{from} <span className="route-arrow">→</span> {to}</span>
+        <div className="price-line"><span>{t('to.route')}</span><b>{from} → {to}</b></div>
         <div className="price-line"><span>{t('to.dates')}</span><b>{boardDate(offer.trip.departDate)} – {boardDate(offer.trip.returnDate)}</b></div>
         <div className="price-line"><span>{t('to.itemPrice')}</span><b>{offerPriceText(offer, lang)}</b></div>
         <div className="price-line"><span>{t('to.reward')}</span><b>{krw(offer.reward)}</b></div>
