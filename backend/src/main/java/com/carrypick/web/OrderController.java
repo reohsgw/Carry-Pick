@@ -56,14 +56,18 @@ public class OrderController {
 
     @PostMapping(value = "/orders/{id}/purchase", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public OrderDto purchase(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
-                             @RequestParam long actualPrice, @RequestPart("receipt") MultipartFile receipt) {
-        return orders.purchase(me.id(), id, actualPrice, receipt);
+                             @RequestParam(required = false) Long actualPrice,
+                             @RequestParam(required = false) java.math.BigDecimal actualLocal,
+                             @RequestPart("receipt") MultipartFile receipt) {
+        return orders.purchase(me.id(), id, actualPrice, actualLocal, receipt);
     }
 
     @PostMapping(value = "/orders/{id}/price-check", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public OrderDto priceCheck(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
-                               @RequestParam long price, @RequestPart("photo") MultipartFile photo) {
-        return orders.priceCheck(me.id(), id, price, photo);
+                               @RequestParam(required = false) Long price,
+                               @RequestParam(required = false) java.math.BigDecimal priceLocal,
+                               @RequestPart("photo") MultipartFile photo) {
+        return orders.priceCheck(me.id(), id, price, priceLocal, photo);
     }
 
     @PostMapping("/orders/{id}/approve")

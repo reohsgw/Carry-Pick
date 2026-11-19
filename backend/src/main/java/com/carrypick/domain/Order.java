@@ -49,6 +49,20 @@ public class Order {
     private String priceTagUrl;
 
     private long extraItemAmount;
+
+    /**
+     * Prices in the currency of the country the item is bought in, with the won rate locked for the whole order
+     * (set when the order is made, which is what the buyer pays). Null for won-only orders.
+     */
+    @Column(length = 3)
+    private String currency;
+    private Double fxRate;
+    @Column(precision = 15, scale = 2)
+    private java.math.BigDecimal limitLocal;
+    @Column(precision = 15, scale = 2)
+    private java.math.BigDecimal quotedLocal;
+    @Column(precision = 15, scale = 2)
+    private java.math.BigDecimal actualLocal;
     private long extraFee;
 
     private LocalDate expectedDelivery;
@@ -194,4 +208,28 @@ public class Order {
 
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
+
+    public void lockCurrency(String currency, double krwPerUnit, java.math.BigDecimal limitLocal) {
+        this.currency = currency;
+        this.fxRate = krwPerUnit;
+        this.limitLocal = limitLocal;
+    }
+    public boolean hasLocalPrices() { return currency != null && fxRate != null && limitLocal != null; }
+    /** The local-currency limit the traveler may spend: the original one, or the higher price the buyer approved. */
+    public java.math.BigDecimal localLimit() {
+        return extraItemAmount > 0 && quotedLocal != null ? quotedLocal : limitLocal;
+    }
+    /** Won value of a local amount at this order's locked rate. */
+    public long toKrw(java.math.BigDecimal local) { return Math.round(local.doubleValue() * fxRate); }
+    /** Largest local amount whose won value does not exceed the given won amount at the rate. */
+    public static java.math.BigDecimal toLocal(long krw, double krwPerUnit, int decimals) {
+        return java.math.BigDecimal.valueOf(krw).divide(java.math.BigDecimal.valueOf(krwPerUnit), decimals, java.math.RoundingMode.FLOOR);
+    }
+    public String getCurrency() { return currency; }
+    public Double getFxRate() { return fxRate; }
+    public java.math.BigDecimal getLimitLocal() { return limitLocal; }
+    public java.math.BigDecimal getQuotedLocal() { return quotedLocal; }
+    public void setQuotedLocal(java.math.BigDecimal quotedLocal) { this.quotedLocal = quotedLocal; }
+    public java.math.BigDecimal getActualLocal() { return actualLocal; }
+    public void setActualLocal(java.math.BigDecimal actualLocal) { this.actualLocal = actualLocal; }
 }

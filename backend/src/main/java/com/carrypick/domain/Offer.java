@@ -37,6 +37,12 @@ public class Offer {
 
     private long estPrice;
 
+    /** Price per item in the trip country's currency (e.g. ¥1,500). The won price follows today's rate. */
+    @Column(length = 3)
+    private String priceCurrency;
+    @Column(precision = 15, scale = 2)
+    private java.math.BigDecimal priceLocal;
+
     private long reward;
 
     /** Estimated weight in grams, so travelers can judge whether it fits in their luggage. */
@@ -128,4 +134,14 @@ public class Offer {
 
     public Integer getWeightGrams() { return weightGrams; }
     public void setWeightGrams(Integer weightGrams) { this.weightGrams = weightGrams; }
+
+    /** Sets the local price and the won price it is worth at the given rate. */
+    public void setLocalPrice(String currency, java.math.BigDecimal amount, double krwPerUnit) {
+        this.priceCurrency = currency;
+        this.priceLocal = amount;
+        this.estPrice = Math.round(amount.doubleValue() * krwPerUnit);
+    }
+    public boolean hasLocalPrice() { return priceCurrency != null && priceLocal != null; }
+    public String getPriceCurrency() { return priceCurrency; }
+    public java.math.BigDecimal getPriceLocal() { return priceLocal; }
 }

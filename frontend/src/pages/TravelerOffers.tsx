@@ -7,7 +7,7 @@ import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { useCountry } from '../country';
 import { Avatar, Empty, ErrorBox, Loading, Mascot, ProductPhoto } from '../components/ui';
-import { ALL_COUNTRIES, CATEGORIES, daysUntil, krw, shortDate, boardDate, weight } from '../format';
+import { ALL_COUNTRIES, CATEGORIES, daysUntil, krw, shortDate, boardDate, weight, offerPriceText } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -244,7 +244,7 @@ export default function TravelerOffers() {
                 <span className="fine">{t('to.arrival')}</span>
                 <b>{shortDate(o.trip.returnDate, lang)}</b>
                 <span className="fine">{t('to.itemPrice')} / {t('to.reward')}</span>
-                <b>{krw(o.estPrice)} + {krw(o.reward)}</b>
+                <b>{offerPriceText(o, lang)} + {krw(o.reward)}</b>
                 <span className="fine">{t('to.total')}</span>
                 <b className="amount">{krw(o.unitQuote.total)}</b>
                 <button className="btn btn-primary btn-small" onClick={() => navigate(`/offers/${o.id}`)}>{t('to.select')}</button>
@@ -260,7 +260,7 @@ export default function TravelerOffers() {
 function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
   offer: Offer; best: boolean; comparing: boolean; compareFull: boolean; onCompare: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const route = useRoute();
   const [from, to] = route(offer.trip.city, offer.countryCode).split(' → ');
   return (
@@ -283,7 +283,7 @@ function TicketCard({ offer, best, comparing, compareFull, onCompare }: {
       <div className="offer-ticket">
         <span className="ticket-pill">{from} <span className="route-arrow">→</span> {to}</span>
         <div className="price-line"><span>{t('to.dates')}</span><b>{boardDate(offer.trip.departDate)} – {boardDate(offer.trip.returnDate)}</b></div>
-        <div className="price-line"><span>{t('to.itemPrice')}</span><b>{krw(offer.estPrice)}</b></div>
+        <div className="price-line"><span>{t('to.itemPrice')}</span><b>{offerPriceText(offer, lang)}</b></div>
         <div className="price-line"><span>{t('to.reward')}</span><b>{krw(offer.reward)}</b></div>
         <div className="price-line">
           <span>{t('to.left')}</span>

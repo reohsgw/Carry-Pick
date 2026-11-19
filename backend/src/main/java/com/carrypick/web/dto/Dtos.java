@@ -47,7 +47,9 @@ public final class Dtos {
     public record OfferDto(Long id, PersonDto traveler, TripDto trip, String countryCode, String productName,
                            String store, String category, String description, String imageUrl, long estPrice,
                            long reward, int quantity, OfferStatus status, boolean bookable, Quote unitQuote,
-                           String receiptUrl, ProductDto product, Integer weightGrams) {}
+                           String receiptUrl, ProductDto product, Integer weightGrams,
+                           /** Price per item in the trip country's currency; estPrice is its won value today. */
+                           String priceCurrency, java.math.BigDecimal priceLocal) {}
 
     public record RequestDto(Long id, PersonDto buyer, PersonDto traveler, String countryCode, String productName,
                              String productLink, String imageUrl, String options, String note, long maxBudget,
@@ -91,7 +93,10 @@ public final class Dtos {
                            Instant completedAt, Instant settledAt, Instant cancelledAt,
                            List<PaymentDto> payments, SettlementDto settlement, long unreadMessages,
                            String handoverMethod, String handoverPhotoUrl, Instant autoConfirmAt,
-                           DisputeDto dispute) {}
+                           DisputeDto dispute,
+                           /** Local-currency prices and the order's locked won rate (null for won-only orders). */
+                           String currency, Double fxRate, java.math.BigDecimal limitLocal,
+                           java.math.BigDecimal quotedLocal, java.math.BigDecimal actualLocal) {}
 
     /** An open problem report. byRole is BUYER or TRAVELER; mine tells the viewer whether they filed it. */
     public record DisputeDto(String reason, String note, String photoUrl, String byRole, boolean mine, Instant at) {}

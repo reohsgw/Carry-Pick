@@ -10,7 +10,7 @@ export const FIT_SELECTOR = [
   'h1', 'h2', 'h3', 'h4', '.eyebrow', '.btn', '[role="tab"]', '.chip',
   '.mobile-nav-item > span', '.nav-dropdown-item', '.filter-toggle', '.lf-chips button',
   // Short values in cards: prices, dates, counts, names.
-  '.meta-label', '.meta-value', '.person p', '.person small', '.route-chip',
+  '.meta-label', '.meta-value', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip',
 ].join(',');
 
 /** Number of rendered text lines inside el (icons, badges and emoji at other heights don't count). */

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FxBox } from '../components/FxBox';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink } from '../components/icons';
@@ -124,6 +125,10 @@ export default function RequestDetail() {
             </KV>
           )}
           <KV label={t('rd.budget')}><strong className="amount">{budgetText(r, lang)}</strong></KV>
+          {r.budgetLocal != null && r.budgetCurrency && r.fxRate != null && (
+            <FxBox amount={Number(r.budgetLocal)} currency={r.budgetCurrency} won={r.maxBudget} rate={r.fxRate}
+              source="locked" sourceLabel="fx.requestRate" fromLabel="fx.budget" note={t('fx.requestLocked')} />
+          )}
           <KV label={t('rd.reward')}><strong className="amount reward">{krw(r.reward)}</strong></KV>
         </Sheet>
         {r.note && <p className="quote">{r.note}</p>}

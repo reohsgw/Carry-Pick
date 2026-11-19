@@ -82,6 +82,13 @@ public class ExchangeRateService {
         return rates().krwPerUnit().get(currency.toUpperCase());
     }
 
+    /** Won price of one item of an offer right now: its local price at today's rate, or its won price. */
+    public long offerPriceKrw(com.carrypick.domain.Offer o) {
+        if (!o.hasLocalPrice()) return o.getEstPrice();
+        Double rate = krwPerUnit(o.getPriceCurrency());
+        return rate == null ? o.getEstPrice() : Math.round(o.getPriceLocal().doubleValue() * rate);
+    }
+
     private Rates fixedRates() {
         return new Rates(fixed, false, null);
     }

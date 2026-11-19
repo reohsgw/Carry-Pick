@@ -1,14 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapPinned, Receipt, ShoppingBag } from '../components/icons';
+import { FxBox } from '../components/FxBox';
 import { api, assetUrl, type ReceiptScan } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { ReceiptCapture } from '../components/receipt';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
-import { CATEGORIES, cityCode, daysUntil, krw, maxReward, quote, shortDate } from '../format';
+import { CurrencyInput, Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { CATEGORIES, cityCode, currencyDecimals, currencyOf, currencySymbol, daysUntil, krw, maxReward, money, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 import { useConfirm } from '../components/confirm';
@@ -36,7 +37,9 @@ export default function OfferForm() {
   const [category, setCategory] = useState('Food');
   const [description, setDescription] = useState('');
   const [imageUrl, setImage] = useState<string | null>(null);
-  const [estPrice, setPrice] = useState<number | ''>('');
+  // Price per item in the trip country's currency (e.g. ¥1,500); its won value follows today's rate.
+  const [price, setPrice] = useState<number | ''>('');
+  const pendingWon = useRef(0);
   const [reward, setReward] = useState<number | ''>(5000);
   const [quantity, setQuantity] = useState(1);
   const [bought, setBought] = useState(false);
@@ -53,7 +56,8 @@ export default function OfferForm() {
     const o = existing.data;
     if (!o) return;
     setTripId(o.trip.id); setName(o.productName); setProductId(o.product?.id ?? null); setStore(o.store ?? ''); setCategory(o.category ?? 'Other');
-    setDescription(o.description ?? ''); setImage(o.imageUrl); setPrice(o.estPrice); setReward(o.reward);
+    setDescription(o.description ?? ''); setImage(o.imageUrl); setReward(o.reward);
+    if (o.priceLocal != null) setPrice(Number(o.priceLocal)); else pendingWon.current = o.estPrice;
     setQuantity(Math.max(o.quantity, 1));
     setBought(!!o.receiptUrl); setReceipt(o.receiptUrl); setSavedReceipt(o.receiptUrl);
     setWeight(o.weightGrams ?? '');
@@ -61,6 +65,21 @@ export default function OfferForm() {
 
   // Products can be posted until the day before the traveler returns.
   const futureTrips = (trips.data ?? []).filter((tr) => daysUntil(tr.returnDate) > 0);
+
+  const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
+  const tripCountry = (trips.data ?? []).find((tr) => tr.id === tripId)?.countryCode ?? existing.data?.countryCode ?? 'KRW';
+  const currency = currencyOf(config, tripCountry);
+  const decimals = currencyDecimals(currency);
+  const rate = currency === 'KRW' ? 1 : rates.data?.krwPerUnit[currency];
+  const local = currency !== 'KRW' && !!rate;
+  const roundLocal = (v: number) => { const f = 10 ** decimals; return Math.round(v * f) / f; };
+  // Won price of one item (used for the price summary and the reward cap).
+  const estPrice: number | '' = price === '' ? '' : currency === 'KRW' ? Number(price) : rate ? Math.round(Number(price) * rate) : '';
+  // An older offer priced only in won is shown in the local currency once rates arrive.
+  useEffect(() => {
+    if (pendingWon.current && rate && currency !== 'KRW') { setPrice(roundLocal(pendingWon.current / rate)); pendingWon.current = 0; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rate, currency]);
   useEffect(() => {
     if (tripId === '' && futureTrips.length > 0 && !editId) setTripId(futureTrips[0].id);
   }, [futureTrips, tripId, editId]);
@@ -69,7 +88,8 @@ export default function OfferForm() {
     mutationFn: () => {
       const body = {
         tripId: Number(tripId), productName, store, category, description, imageUrl,
-        estPrice: Number(estPrice), reward: Number(reward || 0), quantity,
+        ...(local ? { priceLocal: Number(price), priceCurrency: currency } : { estPrice: Number(price) }),
+        reward: Number(reward || 0), quantity,
         receiptUrl: bought ? receiptUrl : null, productId,
         weightGrams: weightGrams === '' ? null : weightGrams,
       };
@@ -96,11 +116,15 @@ export default function OfferForm() {
     save.mutate();
   }
 
-  // The receipt total covers every unit, so the per-item price follows the quantity.
-  const receiptTotalKrw = receiptScan && !receiptScan.mock ? receiptScan.totalKrw : null;
+  // The receipt total covers every unit, so the per-item price follows the quantity. Read in the receipt's own
+  // currency when it matches the trip country (¥ receipt for a Japan trip), otherwise in won.
+  const receiptTotal = receiptScan && !receiptScan.mock
+    ? (local ? (receiptScan.currency === currency ? receiptScan.total : null) : receiptScan.totalKrw)
+    : null;
   useEffect(() => {
-    if (bought && receiptTotalKrw != null) setPrice(Math.round(receiptTotalKrw / Math.max(quantity, 1)));
-  }, [quantity, receiptTotalKrw, bought]);
+    if (bought && receiptTotal != null) setPrice(local ? roundLocal(receiptTotal / Math.max(quantity, 1)) : Math.round(receiptTotal / Math.max(quantity, 1)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quantity, receiptTotal, bought]);
 
   if (trips.isLoading || (editId && existing.isLoading)) return <Screen back title={t('of.new')}><Loading /></Screen>;
   if (!editId && futureTrips.length === 0) {
@@ -121,10 +145,12 @@ export default function OfferForm() {
   // "Already bought" needs an AI-checked receipt. A receipt saved earlier on this offer still counts.
   const receiptChecked = !!receiptScan || (!!receiptUrl && !receiptFile && receiptUrl === savedReceipt);
   const receiptReady = !bought || (!!receiptUrl && receiptChecked && !receiptUploading);
-  const enteredTotal = Number(estPrice || 0) * quantity;
-  const scanTotal = receiptTotalKrw;
-  const receiptMismatch = bought && scanTotal != null && !!estPrice
-    && Math.abs(enteredTotal - scanTotal) > Math.max(1000, scanTotal * 0.05);
+  const enteredTotal = Number(price || 0) * quantity;
+  const scanTotal = receiptTotal;
+  const receiptMismatch = bought && scanTotal != null && price !== ''
+    && Math.abs(enteredTotal - scanTotal) > Math.max(local ? 1 : 1000, scanTotal * 0.05);
+  const showAmount = (v: number) => (local ? money(v, currency) : krw(v));
+  const scanCurrencyOff = bought && local && !!receiptScan && !receiptScan.mock && !!receiptScan.currency && receiptScan.currency !== currency;
 
   async function pickReceipt(file: File | null) {
     setReceiptFile(file);
@@ -144,12 +170,10 @@ export default function OfferForm() {
 
   function onReceiptScan(scan: ReceiptScan | null) {
     setReceiptScan(scan);
-    // Fill the per-item price from the receipt total (not from the sample result in mock mode).
-    if (scan && !scan.mock && scan.totalKrw != null) setPrice(Math.round(scan.totalKrw / Math.max(quantity, 1)));
   }
 
   const submitButton = (
-    <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || needsPayout || !estPrice || !weightGrams || rewardOver || tripId === '' || !receiptReady}>
+    <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || needsPayout || !estPrice || (currency !== 'KRW' && !rate) || !weightGrams || rewardOver || tripId === '' || !receiptReady}>
       {save.isPending ? t('order.saving') : editId ? t('of.saveChanges') : t('of.publish')}
     </button>
   );
@@ -249,13 +273,22 @@ export default function OfferForm() {
                 {receiptFile && !receiptScan && !receiptUploading && <Notice tone="warn">{t('of.scanRequired')}</Notice>}
                 {receiptScan && !receiptMismatch && <Notice tone="good">{t('of.scanOk')}</Notice>}
                 {receiptMismatch && (
-                  <Notice tone="bad">{t('of.scanMismatch', { amount: krw(scanTotal ?? 0), entered: krw(enteredTotal) })}</Notice>
+                  <Notice tone="bad">{t('of.scanMismatch', { amount: showAmount(scanTotal ?? 0), entered: showAmount(enteredTotal) })}</Notice>
                 )}
+                {scanCurrencyOff && <Notice tone="warn">{t('buy.currencyMismatch', { found: receiptScan?.currency ?? '', cur: currency })}</Notice>}
               </div>
             )}
-            <Field label={bought ? t('of.boughtPrice') : t('of.price')} hint={bought ? t('of.boughtPriceHint') : t('of.priceHint')}>
-              <MoneyInput value={estPrice} onChange={setPrice} required placeholder="20,000" />
+            <Field
+              label={local ? t(bought ? 'of.boughtPriceIn' : 'of.priceIn', { cur: currency }) : bought ? t('of.boughtPrice') : t('of.price')}
+              hint={local ? t(bought ? 'of.boughtPriceHintLocal' : 'of.priceHintLocal') : bought ? t('of.boughtPriceHint') : t('of.priceHint')}>
+              {local
+                ? <CurrencyInput value={price} onChange={setPrice} symbol={currencySymbol(currency)} decimals={decimals} required placeholder="5,000" />
+                : <MoneyInput value={price} onChange={setPrice} required placeholder="20,000" />}
             </Field>
+            {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
+            {local && price !== '' && estPrice !== '' && (
+              <FxBox amount={Number(price)} currency={currency} won={estPrice} rate={rate ?? 0} source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.offerNote')} />
+            )}
             <div className="two-col">
               <Field label={t('of.reward')} error={rewardOver}
                 hint={estPrice ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct }) : t('reward.rule', { pct })}>

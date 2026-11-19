@@ -136,6 +136,7 @@ public class DataSeeder implements ApplicationRunner {
                 "Blue tones", null, 70000, 10000, today.plusDays(20)));
 
         localBudgets();
+        localPrices();
 
         demoOrder(jun, tokyoBanana, 5);
         demoOrder(seoyeon, tokyoBanana, 3);
@@ -175,6 +176,7 @@ public class DataSeeder implements ApplicationRunner {
             o.setCompletedAt(settled);
             o.setSettledAt(settled);
             o.setStatus(OrderStatus.SETTLED);
+            if (lockCurrency(o)) o.setActualLocal(o.getLimitLocal());
             orders.save(o);
             settlements.save(new Settlement(o, q.budget() + q.reward(), 0, q.fee()));
         }
@@ -189,6 +191,7 @@ public class DataSeeder implements ApplicationRunner {
             o.setCreatedAt(when);
             o.setPaidAt(when);
             o.setStatus(OrderStatus.PAID);
+            lockCurrency(o);
             orders.save(o);
             offer.reserve(1);
             Payment p = new Payment(o, PaymentType.INITIAL, q.total(), "demo-" + o.getId(), true);
@@ -219,7 +222,40 @@ public class DataSeeder implements ApplicationRunner {
         }
     }
 
-    private static Instant at(LocalDate day, int hour) {
+    /** Gives a demo order its local-currency limit at the current rate, like a real order gets when it is made. */
+    private boolean lockCurrency(Order o) {
+        String currency = Countries.find(o.getCountryCode()).map(Countries.Country::currency).orElse(null);
+        Double rate = currency == null || "KRW".equals(currency) ? null : fx.krwPerUnit(currency);
+        if (rate == null) return false;
+        Offer offer = o.getOffer();
+        java.math.BigDecimal limit = offer != null && offer.hasLocalPrice()
+                ? offer.getPriceLocal().multiply(java.math.BigDecimal.valueOf(o.getQuantity()))
+                : Order.toLocal(o.getBudget(), rate, Countries.decimals(currency));
+        o.lockCurrency(currency, rate, limit);
+        return true;
+    }
+
+    /** Demo products are priced the way travelers post them now: a round amount in the trip country's currency. */
+    private void localPrices() {
+        for (Offer o : offers.findAll()) {
+            String currency = Countries.find(o.getCountryCode()).map(Countries.Country::currency).orElse(null);
+            Double rate = currency == null ? null : fx.krwPerUnit(currency);
+            if (rate == null || "KRW".equals(currency)) continue;
+            double local = Math.max(roundStep(currency), Math.round(o.getEstPrice() / rate / roundStep(currency)) * roundStep(currency));
+            o.setLocalPrice(currency, java.math.BigDecimal.valueOf(local).stripTrailingZeros(), rate);
+        }
+    }
+
+    private static double roundStep(String currency) {
+        return switch (currency) {
+            case "JPY", "TWD" -> 100;
+            case "THB" -> 10;
+            case "VND", "IDR" -> 1000;
+            default -> 1;
+        };
+    }
+
+        private static Instant at(LocalDate day, int hour) {
         return day.atTime(hour, 0).atZone(java.time.ZoneId.of("Asia/Seoul")).toInstant();
     }
 }

@@ -35,11 +35,13 @@ public class OrderService {
     private final FileStorageService files;
     private final ReceiptScanService receipts;
     private final Mapper mapper;
+    private final ExchangeRateService fx;
 
     public OrderService(OrderRepository orders, PaymentRepository payments, SettlementRepository settlements,
                         TripRepository trips, MarketService market, AuthService auth, PricingService pricing,
                         NotificationService notifications, FileStorageService files,
-                        ReceiptScanService receipts, Mapper mapper) {
+                        ReceiptScanService receipts, Mapper mapper, ExchangeRateService fx) {
+        this.fx = fx;
         this.orders = orders;
         this.payments = payments;
         this.settlements = settlements;
@@ -162,10 +164,16 @@ public class OrderService {
             throw ApiException.conflict("NOT_ENOUGH_STOCK", "Only " + offer.getQuantity() + " left");
         }
         offer.reserve(f.quantity());
-        Quote q = pricing.quote(offer.getEstPrice() * f.quantity(), offer.getReward() * f.quantity());
+        // Priced in the country's currency: lock today's rate now; the buyer pays the won value of that price.
+        Double rate = offer.hasLocalPrice() ? fx.krwPerUnit(offer.getPriceCurrency()) : null;
+        java.math.BigDecimal localTotal = rate != null ? offer.getPriceLocal().multiply(java.math.BigDecimal.valueOf(f.quantity())) : null;
+        long itemsKrw = localTotal != null ? Math.round(localTotal.doubleValue() * rate) : offer.getEstPrice() * f.quantity();
+        Quote q = pricing.quote(itemsKrw, offer.getReward() * f.quantity());
         Order o = orders.save(new Order(buyer, offer.getTraveler(), offer, null, offer.getProductName(),
                 offer.getCountryCode(), offer.getImageUrl(), f.quantity(), q.budget(), q.reward(), q.fee(), q.tax(),
                 offer.getTrip().getReturnDate()));
+        if (localTotal != null) o.lockCurrency(offer.getPriceCurrency(), rate, localTotal);
+        else lockCurrencyNow(o);
         notifications.notify(offer.getTraveler(), o.getId(), NotificationService.Kind.BOOKED, buyer.getName(),
                 offer.getProductName(), (long) f.quantity(),
                 buyer.getName() + " booked " + f.quantity() + " x " + offer.getProductName() + ". Waiting for payment.");
@@ -197,6 +205,9 @@ public class OrderService {
         Quote q = pricing.quote(r.getMaxBudget(), r.getReward());
         Order o = orders.save(new Order(r.getBuyer(), traveler, null, r, r.getProductName(), r.getCountryCode(),
                 r.getImageUrl(), 1, q.budget(), q.reward(), q.fee(), q.tax(), trip.getReturnDate()));
+        // The buyer's limit stays in the currency they set it in, at the rate their won budget was based on.
+        if (r.getBudgetLocal() != null && r.getFxRate() != null) o.lockCurrency(r.getBudgetCurrency(), r.getFxRate(), r.getBudgetLocal());
+        else lockCurrencyNow(o);
         notifications.notify(r.getBuyer(), o.getId(), NotificationService.Kind.REQUEST_ACCEPTED, traveler.getName(),
                 r.getProductName(), null,
                 traveler.getName() + " accepted your request for " + r.getProductName() + ". Please complete payment.");
@@ -217,14 +228,27 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto purchase(Long userId, Long orderId, long actualPrice, MultipartFile receipt) {
+    public OrderDto purchase(Long userId, Long orderId, Long actualPriceKrw, java.math.BigDecimal actualLocal, MultipartFile receipt) {
         Order o = findForParticipant(userId, orderId);
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PAID);
-        if (actualPrice <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
-        if (actualPrice > o.itemLimit()) {
-            throw ApiException.conflict("OVER_LIMIT", "The price is over the approved " + o.itemLimit()
-                    + " KRW. Send the buyer a price check first.");
+        long actualPrice;
+        if (actualLocal != null && o.hasLocalPrices()) {
+            // Compared in the local currency (¥ to ¥); the won value uses the order's locked rate.
+            if (actualLocal.signum() <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
+            if (actualLocal.compareTo(o.localLimit()) > 0) {
+                throw ApiException.conflict("OVER_LIMIT", "The price is over the approved " + o.localLimit().toPlainString()
+                        + " " + o.getCurrency() + ". Send the buyer a price check first.");
+            }
+            actualPrice = Math.min(o.toKrw(actualLocal), o.itemLimit());
+            o.setActualLocal(actualLocal);
+        } else {
+            if (actualPriceKrw == null || actualPriceKrw <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
+            actualPrice = actualPriceKrw;
+            if (actualPrice > o.itemLimit()) {
+                throw ApiException.conflict("OVER_LIMIT", "The price is over the approved " + o.itemLimit()
+                        + " KRW. Send the buyer a price check first.");
+            }
         }
         receipts.requireReceipt(receipt);
         o.setReceiptUrl(files.store(receipt));
@@ -238,12 +262,24 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto priceCheck(Long userId, Long orderId, long price, MultipartFile priceTag) {
+    public OrderDto priceCheck(Long userId, Long orderId, Long priceKrw, java.math.BigDecimal priceLocal, MultipartFile priceTag) {
         Order o = findForParticipant(userId, orderId);
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PAID);
         if (o.getExtraItemAmount() > 0) {
             throw ApiException.conflict("ALREADY_APPROVED", "The buyer already approved a higher price for this order");
+        }
+        long price;
+        if (priceLocal != null && o.hasLocalPrices()) {
+            // Over budget in the local currency; the extra is charged at the same locked rate as the first payment.
+            if (priceLocal.compareTo(o.getLimitLocal()) <= 0) {
+                throw ApiException.badRequest("NOT_OVER_BUDGET", "The price is within the budget. You can buy it now.");
+            }
+            price = o.getBudget() + o.toKrw(priceLocal.subtract(o.getLimitLocal()));
+            o.setQuotedLocal(priceLocal);
+        } else {
+            if (priceKrw == null) throw ApiException.badRequest("PRICE", "Enter the price");
+            price = priceKrw;
         }
         if (price <= o.getBudget()) {
             throw ApiException.badRequest("NOT_OVER_BUDGET", "The price is within the budget. You can buy it now.");
@@ -439,5 +475,15 @@ public class OrderService {
         }
         o.setStatus(OrderStatus.SETTLED);
         o.setSettledAt(Instant.now());
+    }
+
+    /** Locks today's rate on an order and expresses its won item budget in the country's currency. */
+    private void lockCurrencyNow(Order o) {
+        String currency = com.carrypick.domain.Countries.find(o.getCountryCode())
+                .map(com.carrypick.domain.Countries.Country::currency).orElse(null);
+        if (currency == null || "KRW".equals(currency)) return;
+        Double rate = fx.krwPerUnit(currency);
+        if (rate == null) return;
+        o.lockCurrency(currency, rate, Order.toLocal(o.getBudget(), rate, com.carrypick.domain.Countries.decimals(currency)));
     }
 }

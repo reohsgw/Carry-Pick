@@ -7,8 +7,9 @@ import { ReceiptLine, ReceiptStrip, StatusTimeline, firstName, useRoute } from '
 import { Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
 import { ReceiptCapture } from '../components/receipt';
-import { ActionBar, Avatar, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge } from '../components/ui';
-import { krw, shortDate } from '../format';
+import { FxBox } from '../components/FxBox';
+import { ActionBar, Avatar, CurrencyInput, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge } from '../components/ui';
+import { currencyDecimals, currencySymbol, krw, money, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useConfirm } from '../components/confirm';
 import { PhotoPick } from '../components/PhotoPick';
@@ -80,7 +81,7 @@ export default function OrderDetail() {
           <HandoverProof order={o} />
 
           {o.priceTagUrl && (
-            <Sheet title={t('pc.tag')} aside={<span className="amount">{krw(o.quotedPrice)}</span>}>
+            <Sheet title={t('pc.tag')} aside={<span className="amount">{o.quotedLocal != null && o.currency ? `${money(Number(o.quotedLocal), o.currency)} (${t('fx.about')} ${krw(o.quotedPrice)})` : krw(o.quotedPrice)}</span>}>
               <a href={assetUrl(o.priceTagUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
                 <img src={assetUrl(o.priceTagUrl) ?? ''} alt={t('pc.tag')} />
               </a>
@@ -88,7 +89,7 @@ export default function OrderDetail() {
           )}
 
           {o.receiptUrl && (
-            <Sheet title={t('order.receipt')} aside={<span className="amount">{krw(o.actualPrice)}</span>}>
+            <Sheet title={t('order.receipt')} aside={<span className="amount">{o.actualLocal != null && o.currency ? `${money(Number(o.actualLocal), o.currency)} (${t('fx.about')} ${krw(o.actualPrice)})` : krw(o.actualPrice)}</span>}>
               <a href={assetUrl(o.receiptUrl) ?? '#'} target="_blank" rel="noreferrer" className="receipt-photo">
                 {o.receiptUrl.endsWith('.pdf')
                   ? <span className="link"><FileText size={18} aria-hidden /> {t('order.receiptPdf')}</span>
@@ -240,27 +241,45 @@ function TravelerActions({ order: o }: { order: Order }) {
   const [tagPhoto, setTagPhoto] = useState<File | null>(null);
   const refresh = () => qc.invalidateQueries();
 
+  // Orders in a foreign currency: limits and prices are entered and compared in that currency (¥ to ¥),
+  // and turned into won at the rate locked for this order.
+  const local = !!(o.currency && o.fxRate && o.limitLocal != null);
+  const cur = o.currency ?? 'KRW';
+  const rate = o.fxRate ?? 1;
+  const decimals = currencyDecimals(cur);
+  const limit = local ? Number(o.limitLocal) : o.itemLimit;
+  const budgetLimit = local ? Number(o.limitLocal) : o.budget;
+  const won = (v: number) => Math.round(v * rate);
+  const show = (v: number) => (local ? `${money(v, cur)} (${t('fx.about')} ${krw(won(v))})` : krw(v));
+  const [scanCurrency, setScanCurrency] = useState<string | null>(null);
+
   const purchase = useMutation({
-    mutationFn: () => api.purchase(o.id, Number(price), file!),
+    mutationFn: () => api.purchase(o.id, local ? { actualLocal: Number(price) } : { actualPrice: Number(price) }, file!),
     onSuccess: () => { setOpen(false); refresh(); },
   });
   const priceCheck = useMutation({
-    mutationFn: () => api.priceCheck(o.id, Number(tagPrice), tagPhoto!),
+    mutationFn: () => api.priceCheck(o.id, local ? { priceLocal: Number(tagPrice) } : { price: Number(tagPrice) }, tagPhoto!),
     onSuccess: () => { setCheckOpen(false); refresh(); },
   });
   const [handOpen, setHandOpen] = useState(false);
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
   const err = cancel.error;
   const approved = o.extraItemAmount > 0;
-  const over = price !== '' && price > o.itemLimit;
-  const under = price !== '' && price > 0 && price < o.itemLimit;
-  const tagOk = tagPrice !== '' && tagPrice > o.budget;
+  const over = price !== '' && price > limit;
+  const under = price !== '' && price > 0 && price < limit;
+  const tagOk = tagPrice !== '' && tagPrice > budgetLimit;
+  const fxBox = (v: number | '') => local && v !== '' && v > 0 && (
+    <FxBox amount={Number(v)} currency={cur} won={won(Number(v))} rate={rate} source="locked" />
+  );
+  const priceInput = (value: number | '', onChange: (v: number | '') => void) => (local
+    ? <CurrencyInput value={value} onChange={onChange} symbol={currencySymbol(cur)} decimals={decimals} required />
+    : <MoneyInput value={value} onChange={onChange} required />);
 
   return (
     <>
       {o.status === 'PAID' && (approved
-        ? <Notice tone="good">{t('pc.approvedLimit', { amount: krw(o.itemLimit) })}</Notice>
-        : <Notice>{t('order.budgetLimit', { amount: krw(o.budget) })}</Notice>)}
+        ? <Notice tone="good">{t('pc.approvedLimit', { amount: show(limit) })}</Notice>
+        : <Notice>{t('order.budgetLimit', { amount: show(budgetLimit) })}</Notice>)}
       {err && <Notice tone="bad">{errText(err)}</Notice>}
       {['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL'].includes(o.status) && (
         <button className="link danger center-block" disabled={cancel.isPending}
@@ -290,12 +309,22 @@ function TravelerActions({ order: o }: { order: Order }) {
 
       <Modal open={open} onClose={() => setOpen(false)} title={t('buy.title')} eyebrow={o.productName}>
         <form className="stack" onSubmit={(e) => { e.preventDefault(); purchase.mutate(); }}>
-          <ReceiptCapture file={file} onFile={setFile} onAmount={setPrice} />
-          <Field label={t('buy.price')} hint={t('buy.priceHint', { amount: krw(o.itemLimit) })}>
-            <MoneyInput value={price} onChange={setPrice} required />
+          <ReceiptCapture file={file} onFile={(f) => { setFile(f); setScanCurrency(null); }}
+            onAmount={(krwTotal) => { if (!local) setPrice(krwTotal); }}
+            onScan={(scan) => {
+              setScanCurrency(scan?.currency ?? null);
+              if (local && scan && scan.currency === cur && scan.total != null) setPrice(scan.total);
+            }}
+            showKrw={!local} />
+          {local && scanCurrency && scanCurrency !== cur && (
+            <Notice tone="warn">{t('buy.currencyMismatch', { found: scanCurrency, cur })}</Notice>
+          )}
+          <Field label={local ? t('buy.priceIn', { cur }) : t('buy.price')} hint={t('buy.priceHint', { amount: show(limit) })}>
+            {priceInput(price, setPrice)}
           </Field>
-          {over && <Notice tone="bad">{t(approved ? 'buy.overApproved' : 'buy.over', { amount: krw(o.itemLimit) })}</Notice>}
-          {under && <Notice tone="good">{t('buy.under', { amount: krw(o.itemLimit - Number(price)) })}</Notice>}
+          {fxBox(price)}
+          {over && <Notice tone="bad">{t(approved ? 'buy.overApproved' : 'buy.over', { amount: show(limit) })}</Notice>}
+          {under && <Notice tone="good">{t('buy.under', { amount: show(limit - Number(price)) })}</Notice>}
           {purchase.error && <Notice tone="bad">{errText(purchase.error)}</Notice>}
           <button className="btn btn-primary btn-block btn-tall" disabled={purchase.isPending || !price || !file || over}>
             {purchase.isPending ? t('buy.uploading') : t('buy.save')}
@@ -305,12 +334,13 @@ function TravelerActions({ order: o }: { order: Order }) {
 
       <Modal open={checkOpen} onClose={() => setCheckOpen(false)} title={t('pc.title')} eyebrow={o.productName}>
         <form className="stack" onSubmit={(e) => { e.preventDefault(); priceCheck.mutate(); }}>
-          <p className="body-text">{t('pc.body', { amount: krw(o.budget) })}</p>
+          <p className="body-text">{t('pc.body', { amount: show(budgetLimit) })}</p>
           <PhotoPick file={tagPhoto} onFile={setTagPhoto} label={t('pc.photo')} hint={t('pc.photoHint')} />
-          <Field label={t('pc.price')} hint={t('buy.priceHint', { amount: krw(o.budget) })}>
-            <MoneyInput value={tagPrice} onChange={setTagPrice} required />
+          <Field label={local ? t('pc.priceIn', { cur }) : t('pc.price')} hint={t('buy.priceHint', { amount: show(budgetLimit) })}>
+            {priceInput(tagPrice, setTagPrice)}
           </Field>
-          {tagOk && <Notice tone="warn">{t('pc.extra', { amount: krw(Number(tagPrice) - o.budget) })}</Notice>}
+          {fxBox(tagPrice)}
+          {tagOk && <Notice tone="warn">{t('pc.extra', { amount: show(Number(tagPrice) - budgetLimit) })}</Notice>}
           {tagPrice !== '' && !tagOk && <Notice>{t('pc.notOver')}</Notice>}
           {priceCheck.error && <Notice tone="bad">{errText(priceCheck.error)}</Notice>}
           <button className="btn btn-primary btn-block btn-tall" disabled={priceCheck.isPending || !tagOk || !tagPhoto}>

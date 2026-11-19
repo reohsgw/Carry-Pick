@@ -97,10 +97,13 @@ public class MarketService {
         if (!trip.getReturnDate().isAfter(Today.get())) {
             throw ApiException.badRequest("TRIP_ENDED", "Bookings for this trip have closed");
         }
-        pricing.checkReward(f.estPrice(), f.reward());
-        Offer o = offers.save(new Offer(me, trip, f.productName().trim(), blankToNull(f.store()),
+        PriceIn price = offerPrice(trip.getCountryCode(), f);
+        pricing.checkReward(price.krw(), f.reward());
+        Offer o = new Offer(me, trip, f.productName().trim(), blankToNull(f.store()),
                 blankToNull(f.category()), blankToNull(f.description()), blankToNull(f.imageUrl()),
-                f.estPrice(), f.reward(), f.quantity()));
+                price.krw(), f.reward(), f.quantity());
+        if (price.local() != null) o.setLocalPrice(price.currency(), price.local(), price.rate());
+        o = offers.save(o);
         o.setReceiptUrl(blankToNull(f.receiptUrl()));
         o.setProduct(catalog.resolve(f.productId(), o.getProductName(), o.getCategory(), o.getCountryCode()));
         o.setWeightGrams(weightOr(f.weightGrams(), o.getProduct()));
@@ -113,9 +116,11 @@ public class MarketService {
         Offer o = findOffer(offerId);
         if (!o.getTraveler().getId().equals(userId)) throw ApiException.forbidden("This is not your offer");
         if (o.getStatus() == OfferStatus.CLOSED) throw ApiException.conflict("OFFER_CLOSED", "Offer is closed");
-        pricing.checkReward(f.estPrice(), f.reward());
+        PriceIn price = offerPrice(o.getCountryCode(), f);
+        pricing.checkReward(price.krw(), f.reward());
         o.update(f.productName().trim(), blankToNull(f.store()), blankToNull(f.category()),
-                blankToNull(f.description()), blankToNull(f.imageUrl()), f.estPrice(), f.reward(), f.quantity());
+                blankToNull(f.description()), blankToNull(f.imageUrl()), price.krw(), f.reward(), f.quantity());
+        if (price.local() != null) o.setLocalPrice(price.currency(), price.local(), price.rate());
         o.setReceiptUrl(blankToNull(f.receiptUrl()));
         o.setProduct(catalog.resolve(f.productId(), o.getProductName(), o.getCategory(), o.getCountryCode()));
         o.setWeightGrams(weightOr(f.weightGrams(), o.getProduct()));
@@ -142,7 +147,24 @@ public class MarketService {
         offers.delete(o);
     }
 
-    public Offer findOffer(Long id) {
+    private record PriceIn(long krw, String currency, java.math.BigDecimal local, double rate) {}
+
+    /** A product's price: in the trip country's currency (converted at today's rate), or in won. */
+    private PriceIn offerPrice(String countryCode, OfferForm f) {
+        String currency = Countries.find(countryCode).map(Countries.Country::currency).orElse("KRW");
+        if (f.priceLocal() != null) {
+            if (f.priceCurrency() != null && !f.priceCurrency().equalsIgnoreCase(currency)) {
+                throw ApiException.badRequest("PRICE_CURRENCY", "The price must be in " + currency);
+            }
+            Double rate = fx.krwPerUnit(currency);
+            if (rate == null) throw ApiException.badRequest("FX_UNAVAILABLE", "No exchange rate for " + currency);
+            return new PriceIn(Math.round(f.priceLocal().doubleValue() * rate), currency, f.priceLocal(), rate);
+        }
+        if (f.estPrice() == null) throw ApiException.badRequest("PRICE", "Enter a price");
+        return new PriceIn(f.estPrice(), null, null, 0);
+    }
+
+        public Offer findOffer(Long id) {
         return offers.findById(id).orElseThrow(() -> ApiException.notFound("Offer"));
     }
 
@@ -294,7 +316,7 @@ public class MarketService {
             Order latest = active != null ? null
                     : orders.findFirstByProductIdOrderByCreatedAtDesc(p.getId()).orElse(null);
             String image = active != null ? active.getImageUrl() : latest != null ? latest.getImageUrl() : null;
-            Long estPrice = active != null ? Long.valueOf(active.getEstPrice())
+            Long estPrice = active != null ? Long.valueOf(fx.offerPriceKrw(active))
                     : latest != null ? Long.valueOf(latest.getBudget() / Math.max(1, latest.getQuantity())) : null;
             String category = active != null && active.getCategory() != null ? active.getCategory() : p.getCategory();
             items.add(new RankingItem(rank++, p.getName(), count, active != null ? active.getId() : null,

@@ -35,12 +35,16 @@ public final class Forms {
             @Size(max = 40) String category,
             @Size(max = 1000) String description,
             @Size(max = 500) String imageUrl,
-            @Positive long estPrice,
+            /** Price in won. Optional when the price is given in the trip country's currency (priceLocal). */
+            @Positive Long estPrice,
             @PositiveOrZero long reward,
             @Min(1) @Max(99) int quantity,
             @Size(max = 500) String receiptUrl,
             Long productId,
-            @Min(1) @Max(50000) Integer weightGrams) {}
+            @Min(1) @Max(50000) Integer weightGrams,
+            /** Price per item in the trip country's currency, e.g. 1500 (JPY). */
+            @Positive @Digits(integer = 13, fraction = 2) java.math.BigDecimal priceLocal,
+            @Size(max = 3) String priceCurrency) {}
 
     public record RequestForm(
             @NotBlank @Size(min = 2, max = 2) String countryCode,

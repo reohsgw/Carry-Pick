@@ -24,6 +24,14 @@ public final class Countries {
         return ALL.stream().filter(c -> c.code().equalsIgnoreCase(code)).findFirst();
     }
 
+    /** Digits after the decimal point for a currency's prices: none for yen, won, dong, rupiah and NT dollars. */
+    public static int decimals(String currency) {
+        return switch (currency == null ? "" : currency) {
+            case "JPY", "KRW", "VND", "IDR", "TWD" -> 0;
+            default -> 2;
+        };
+    }
+
     public static boolean exists(String code) {
         return find(code).isPresent();
     }

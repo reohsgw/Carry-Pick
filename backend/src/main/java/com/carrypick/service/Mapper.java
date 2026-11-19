@@ -19,8 +19,11 @@ public class Mapper {
     private final OrderRepository orders;
     private final ChatMessageRepository chat;
 
+    private final ExchangeRateService fx;
+
     public Mapper(PricingService pricing, PaymentRepository payments, SettlementRepository settlements,
-                  OrderRepository orders, ChatMessageRepository chat) {
+                  OrderRepository orders, ChatMessageRepository chat, ExchangeRateService fx) {
+        this.fx = fx;
         this.pricing = pricing;
         this.payments = payments;
         this.settlements = settlements;
@@ -29,10 +32,12 @@ public class Mapper {
     }
 
     public OfferDto offer(Offer o) {
+        long price = fx.offerPriceKrw(o);
         return new OfferDto(o.getId(), PersonDto.of(o.getTraveler()), TripDto.of(o.getTrip()), o.getCountryCode(),
                 o.getProductName(), o.getStore(), o.getCategory(), o.getDescription(), o.getImageUrl(),
-                o.getEstPrice(), o.getReward(), o.getQuantity(), o.getStatus(), o.isBookable(Today.get()),
-                pricing.quote(o.getEstPrice(), o.getReward()), o.getReceiptUrl(), ProductDto.of(o.getProduct()), o.getWeightGrams());
+                price, o.getReward(), o.getQuantity(), o.getStatus(), o.isBookable(Today.get()),
+                pricing.quote(price, o.getReward()), o.getReceiptUrl(), ProductDto.of(o.getProduct()), o.getWeightGrams(),
+                o.getPriceCurrency(), o.getPriceLocal());
     }
 
     public RequestDto request(PurchaseRequest r) {
@@ -81,6 +86,8 @@ public class Mapper {
                         ? new DisputeDto(o.getDisputeReason(), o.getDisputeNote(), o.getDisputePhotoUrl(),
                                 o.getDisputedByBuyer() ? "BUYER" : "TRAVELER",
                                 o.getDisputedByBuyer() == "BUYER".equals(role), o.getDisputedAt())
-                        : null);
+                        : null,
+                o.getCurrency(), o.getFxRate(), o.hasLocalPrices() ? o.localLimit() : null,
+                o.getQuotedLocal(), o.getActualLocal());
     }
 }

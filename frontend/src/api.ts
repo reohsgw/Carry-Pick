@@ -40,6 +40,8 @@ export interface Offer {
   store: string | null; category: string | null; description: string | null; imageUrl: string | null;
   estPrice: number; reward: number; quantity: number; status: 'ACTIVE' | 'SOLD_OUT' | 'CLOSED';
   bookable: boolean; unitQuote: Quote;
+  /** Price per item in the trip country's currency; estPrice is its won value today. */
+  priceCurrency: string | null; priceLocal: number | null;
   receiptUrl: string | null;
   product: Product | null;
   weightGrams: number | null;
@@ -73,6 +75,8 @@ export interface PaymentRecord {
 }
 
 export interface Order {
+  /** Prices in the purchase country's currency and the order's locked won rate; null for won-only orders. */
+  currency: string | null; fxRate: number | null; limitLocal: number | null; quotedLocal: number | null; actualLocal: number | null;
   id: number; myRole: 'BUYER' | 'TRAVELER'; status: OrderStatus; source: 'OFFER' | 'REQUEST';
   offerId: number | null; requestId: number | null; buyer: Person; traveler: Person;
   productName: string; countryCode: string; imageUrl: string | null; category: string | null; options: string | null;
@@ -237,15 +241,17 @@ export const api = {
   book: (offerId: number, quantity: number) => post<Order>('/api/orders', { offerId, quantity }),
   myOrders: (role: 'buyer' | 'traveler') => get<Order[]>('/api/orders/me', { role }),
   order: (id: number) => get<Order>(`/api/orders/${id}`),
-  purchase: (id: number, actualPrice: number, receipt: File) => {
+  purchase: (id: number, price: { actualPrice?: number; actualLocal?: number }, receipt: File) => {
     const form = new FormData();
-    form.append('actualPrice', String(actualPrice));
+    if (price.actualLocal != null) form.append('actualLocal', String(price.actualLocal));
+    else form.append('actualPrice', String(price.actualPrice));
     form.append('receipt', receipt);
     return http.post<Order>(`/api/orders/${id}/purchase`, form).then((r) => r.data);
   },
-  priceCheck: (id: number, price: number, photo: File) => {
+  priceCheck: (id: number, price: { price?: number; priceLocal?: number }, photo: File) => {
     const form = new FormData();
-    form.append('price', String(price));
+    if (price.priceLocal != null) form.append('priceLocal', String(price.priceLocal));
+    else form.append('price', String(price.price));
     form.append('photo', photo);
     return http.post<Order>(`/api/orders/${id}/price-check`, form).then((r) => r.data);
   },
@@ -294,7 +300,8 @@ export const api = {
 
 export interface OfferInput {
   tripId: number; productName: string; store?: string; category?: string; description?: string;
-  imageUrl?: string | null; estPrice: number; reward: number; quantity: number;
+  imageUrl?: string | null; estPrice?: number; reward: number; quantity: number;
+  priceLocal?: number; priceCurrency?: string;
   receiptUrl?: string | null;
   productId?: number | null;
   weightGrams?: number | null;

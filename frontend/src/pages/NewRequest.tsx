@@ -5,9 +5,9 @@ import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
+import { FxBox } from '../components/FxBox';
 import { CurrencyInput, Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
-import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, money, quote } from '../format';
-import { ArrowRight } from '../components/icons';
+import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 import { markRequestSeen } from '../seen';
@@ -167,24 +167,7 @@ export default function NewRequest() {
             </Field>
             {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
             {currency !== 'KRW' && rate && budgetLocal !== '' && maxBudget !== '' && (
-              <div className="fx-box" aria-live="polite">
-                <div className="fx-box-row">
-                  <div className="fx-box-side">
-                    <span className="fx-box-label">{t('fx.typed')}</span>
-                    <strong className="fx-box-local">{money(Number(budgetLocal), currency)}</strong>
-                  </div>
-                  <ArrowRight size={20} aria-hidden className="fx-box-arrow" />
-                  <div className="fx-box-side is-won">
-                    <span className="fx-box-label">{t('fx.inWon')}</span>
-                    <strong className="fx-box-won">{krw(maxBudget)}</strong>
-                  </div>
-                </div>
-                <p className="fx-box-rate">
-                  {t('fx.rateLine', { cur: currency, rate: rate.toLocaleString('ko-KR', { maximumFractionDigits: rate < 1 ? 4 : 2 }) })}
-                  <span className={`fx-box-source${rates.data?.live ? ' is-live' : ''}`}>{t(rates.data?.live ? 'fx.live' : 'fx.fixed')}</span>
-                </p>
-                <p className="fx-box-note">{t('fx.note')}</p>
-              </div>
+              <FxBox amount={Number(budgetLocal)} currency={currency} won={maxBudget} rate={rate} source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.note')} />
             )}
             <Field label={t('req.reward')} error={rewardOver}
               hint={maxBudget ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : t('reward.rule', { pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) })}>

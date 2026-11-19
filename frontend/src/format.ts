@@ -165,3 +165,9 @@ export function budgetText(r: { maxBudget: number; budgetLocal?: number | null; 
   if (r.budgetLocal == null || !r.budgetCurrency) return krw(r.maxBudget);
   return `${money(r.budgetLocal, r.budgetCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(r.maxBudget)})`;
 }
+
+/** A product's price per item: in its local currency with the won value, or just won. */
+export function offerPriceText(o: { estPrice: number; priceLocal?: number | null; priceCurrency?: string | null }, lang: Lang): string {
+  if (o.priceLocal == null || !o.priceCurrency) return krw(o.estPrice);
+  return `${money(Number(o.priceLocal), o.priceCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(o.estPrice)})`;
+}

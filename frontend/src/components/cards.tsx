@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronRight } from './icons';
 import type { Offer, Order, PurchaseRequest, Quote, Ranking } from '../api';
-import { countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText } from '../format';
+import { countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText, money } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { Avatar, Code, ProductPhoto, ProductThumb, StatusBadge, Tag } from './ui';
@@ -76,7 +76,11 @@ export function OfferCard({ offer }: { offer: Offer }) {
         <p className="meta-label">{offer.category ? t(`cat.${offer.category}` as Key) : ' '}</p>
         <h3 className="offer-title">{offer.productName}</h3>
         <div className="meta-grid">
-          <div><span className="meta-label">{t('card.price')}</span><strong className="meta-value">{krw(offer.estPrice)}</strong></div>
+          <div>
+            <span className="meta-label">{t('card.price')}</span>
+            <strong className="meta-value">{offer.priceLocal != null && offer.priceCurrency ? money(Number(offer.priceLocal), offer.priceCurrency) : krw(offer.estPrice)}</strong>
+            {offer.priceLocal != null && offer.priceCurrency && <small className="meta-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(offer.estPrice)}</small>}
+          </div>
           <div><span className="meta-label">{t('card.reward')}</span><strong className="meta-value">{krw(offer.reward)}</strong></div>
           <div><span className="meta-label">{t('card.arrives')}</span><strong className="meta-value">{shortDate(offer.trip.returnDate, lang)}</strong></div>
         </div>

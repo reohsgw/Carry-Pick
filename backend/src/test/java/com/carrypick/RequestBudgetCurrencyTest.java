@@ -70,6 +70,98 @@ class RequestBudgetCurrencyTest {
         assertThat(rates.get("live").asBoolean()).isFalse();
     }
 
+    @Test
+    void yenLimit_isCheckedInYen_extraUsesTheLockedRate() throws Exception {
+        String minji = login("buyer@carrypick.test");
+        String kenji = login("traveler@carrypick.test");
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        body(send(post("/api/trips"), kenji, """
+                {"countryCode":"JP","city":"Tokyo","departDate":"%s","returnDate":"%s"}
+                """.formatted(today.plusDays(2), today.plusDays(6))), 201);
+
+        // Two requests with a ¥1,500 limit (₩13,800 at the fixed ₩9.2 rate).
+        long okId = request(minji, today);
+        long overId = request(minji, today);
+
+        // Bought for exactly ¥1,500: within the yen limit.
+        long okOrder = acceptAndPay(kenji, minji, okId);
+        JsonNode order = body(get("/api/orders/" + okOrder).header("Authorization", "Bearer " + kenji), 200);
+        assertThat(order.get("currency").asText()).isEqualTo("JPY");
+        assertThat(order.get("limitLocal").asInt()).isEqualTo(1500);
+        assertThat(order.get("fxRate").asDouble()).isEqualTo(9.2);
+        JsonNode bought = body(purchase(kenji, okOrder, "actualLocal", "1500"), 200);
+        assertThat(bought.get("actualLocal").asInt()).isEqualTo(1500);
+        assertThat(bought.get("actualPrice").asLong()).isEqualTo(13800);
+
+        // ¥1,600 is over the ¥1,500 limit; a price check asks for ¥100 more at the same locked rate (₩920).
+        long overOrder = acceptAndPay(kenji, minji, overId);
+        body(purchase(kenji, overOrder, "actualLocal", "1600"), 409);
+        JsonNode checked = body(multipart("/api/orders/" + overOrder + "/price-check")
+                .file(new org.springframework.mock.web.MockMultipartFile("photo", "tag.png", "image/png", new byte[]{1, 2, 3}))
+                .param("priceLocal", "1600").header("Authorization", "Bearer " + kenji), 200);
+        assertThat(checked.get("extraItemAmount").asLong()).isEqualTo(920);
+        assertThat(checked.get("quotedPrice").asLong()).isEqualTo(13800 + 920);
+        assertThat(checked.get("quotedLocal").asInt()).isEqualTo(1600);
+    }
+
+    @Test
+    void productPricedInYen_ordersLockThatYenPrice() throws Exception {
+        String minji = login("buyer@carrypick.test");
+        String kenji = login("traveler@carrypick.test");
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        long tripId = body(send(post("/api/trips"), kenji, """
+                {"countryCode":"JP","city":"Tokyo","departDate":"%s","returnDate":"%s"}
+                """.formatted(today.plusDays(2), today.plusDays(6))), 201).get("id").asLong();
+
+        JsonNode offer = body(send(post("/api/offers"), kenji, """
+                {"tripId":%d,"productName":"Matcha","priceLocal":1500,"priceCurrency":"JPY","reward":3000,"quantity":3,"weightGrams":200}
+                """.formatted(tripId)), 201);
+        assertThat(offer.get("priceLocal").asInt()).isEqualTo(1500);
+        assertThat(offer.get("priceCurrency").asText()).isEqualTo("JPY");
+        assertThat(offer.get("estPrice").asLong()).isEqualTo(13800);
+
+        // Wrong currency for a Japan trip.
+        body(send(post("/api/offers"), kenji, """
+                {"tripId":%d,"productName":"x","priceLocal":10,"priceCurrency":"USD","reward":0,"quantity":1}
+                """.formatted(tripId)), 400);
+
+        long orderId = body(send(post("/api/orders"), minji, "{\"offerId\":" + offer.get("id").asLong() + ",\"quantity\":2}"), 201)
+                .get("id").asLong();
+        JsonNode order = body(get("/api/orders/" + orderId).header("Authorization", "Bearer " + minji), 200);
+        assertThat(order.get("limitLocal").asInt()).isEqualTo(3000);
+        assertThat(order.get("budget").asLong()).isEqualTo(27600);
+
+        JsonNode prep = body(send(post("/api/payments/prepare"), minji, "{\"orderId\":" + orderId + "}"), 200);
+        body(send(post("/api/payments/confirm"), minji, """
+                {"paymentKey":"mock_ok_p%d","tossOrderId":"%s","amount":%d}
+                """.formatted(orderId, prep.get("tossOrderId").asText(), prep.get("amount").asLong())), 200);
+        JsonNode bought = body(purchase(kenji, orderId, "actualLocal", "3000"), 200);
+        assertThat(bought.get("actualPrice").asLong()).isEqualTo(27600);
+    }
+
+    private long request(String buyer, LocalDate today) throws Exception {
+        return body(send(post("/api/requests"), buyer, """
+                {"countryCode":"JP","productName":"Hair treatment","budgetLocal":1500,"budgetCurrency":"JPY",
+                 "reward":3000,"deadline":"%s","weightGrams":200}
+                """.formatted(today.plusDays(10))), 201).get("id").asLong();
+    }
+
+    private long acceptAndPay(String traveler, String buyer, long requestId) throws Exception {
+        long orderId = body(post("/api/requests/" + requestId + "/accept").header("Authorization", "Bearer " + traveler), 201)
+                .get("id").asLong();
+        JsonNode prep = body(send(post("/api/payments/prepare"), buyer, "{\"orderId\":" + orderId + "}"), 200);
+        body(send(post("/api/payments/confirm"), buyer, """
+                {"paymentKey":"mock_ok_%d","tossOrderId":"%s","amount":%d}
+                """.formatted(orderId, prep.get("tossOrderId").asText(), prep.get("amount").asLong())), 200);
+        return orderId;
+    }
+
+    private RequestBuilder purchase(String token, long orderId, String param, String value) {
+        return multipart("/api/orders/" + orderId + "/purchase")
+                .file(new org.springframework.mock.web.MockMultipartFile("receipt", "r.png", "image/png", new byte[]{1, 2, 3}))
+                .param(param, value).header("Authorization", "Bearer " + token);
+    }
+
     private RequestBuilder send(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder req, String token, String body) {
         return req.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON).content(body);
     }

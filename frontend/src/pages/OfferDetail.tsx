@@ -6,7 +6,7 @@ import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { Avatar, ErrorBox, KV, Loading, Mascot, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, quote, shortDate, weight } from '../format';
+import { countryName, daysUntil, krw, quote, shortDate, weight, money, offerPriceText } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -68,7 +68,7 @@ export default function OfferDetail() {
                   </div>
                 )}
               </div>
-              <ReceiptStrip quote={q} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: krw(o.estPrice) })} />
+              <ReceiptStrip quote={q} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: offerPriceText(o, lang) })} />
               <div className="od-tip">
                 <Mascot mood="love" size={52} />
                 <p>{o.bookable ? t('offer.tipBook', { date: shortDate(o.trip.returnDate, lang) }) : t('offer.tipClosed')}</p>
@@ -93,7 +93,11 @@ export default function OfferDetail() {
         </div>
 
         <div className="od-facts">
-          <div><span>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</span><strong>{krw(o.estPrice)}</strong></div>
+          <div>
+            <span>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</span>
+            <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
+            {o.priceLocal != null && o.priceCurrency && <small className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</small>}
+          </div>
           <div><span>{t('card.reward')}</span><strong>{krw(o.reward)}</strong></div>
           <div><span>{t('offer.leftLabel')}</span><strong>{o.quantity}</strong></div>
           {o.weightGrams != null && <div><span>{t('w.label')}</span><strong>{weight(o.weightGrams)}</strong></div>}
