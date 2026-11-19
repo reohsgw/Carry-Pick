@@ -5,8 +5,7 @@ import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { FxBox } from '../components/FxBox';
-import { DualMoneyInput, Field, ImagePicker, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
+import { DualMoneyInput, Field, Mascot, ImagePicker, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -90,10 +89,10 @@ export default function NewRequest() {
 
   return (
     <Screen back title={t('req.title')} hideNav wide>
-      <div className="whale-say of-hello">
-        <div className="whale-say-bubble">
-          <p>{t('req.hello')}</p>
-        </div>
+      {/* The whale says the intro, in the same speech bubble as on the home page */}
+      <div className="live-say req-say">
+        <Mascot mood="question" className="live-say-whale" size={76} />
+        <p className="live-say-bubble">{t('req.hello')}</p>
       </div>
 
       {fromRanking && <Notice tone="info">{t('req.soldOut', { name: productName })}</Notice>}
@@ -156,19 +155,15 @@ export default function NewRequest() {
 
         <Sheet title={t('req.secPrice')}>
           <div className="stack">
-            <Field label={t('req.budget')} hint={t('req.budgetHint')}>
+            <Field label={t('req.budget')} info={t('req.budgetHint')}>
               {!foreign
                 ? <MoneyInput value={budget.amount} onChange={budget.setAmount} required placeholder="50,000" />
                 : <DualMoneyInput dual={budget} currency={currency} symbol={currencySymbol(currency)} decimals={decimals} required
-                    placeholder="5,000" wonPlaceholder="50,000" />}
+                    rate={rate} rateNote={t(rates.data?.live ? 'fx.live' : 'fx.fixed')} placeholder="5,000" wonPlaceholder="50,000" />}
             </Field>
             {foreign && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
-            {foreign && rate && budget.local !== '' && maxBudget !== '' && (
-              <FxBox amount={Number(budget.local)} currency={currency} won={maxBudget} rate={rate} typedWon={budget.mode === 'won'}
-                source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.note')} />
-            )}
             <Field label={t('req.reward')} error={rewardOver}
-              hint={maxBudget ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : t('reward.rule', { pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) })}>
+              hint={rewardOver ? t('reward.over', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : undefined}>
               <MoneyInput value={reward} onChange={setReward} placeholder="5,000" />
             </Field>
             <Field label={t('req.deadline')} hint={t('req.deadlineHint')}>

@@ -11523,3 +11523,226 @@ p, li, dd { text-wrap: pretty; }
 .od-facts-list li { grid-template-columns: 20px minmax(0, 1fr) !important; }
 .od-facts-list b { line-height: 22px !important; }
 .od-facts-list svg { width: 20px; height: 20px; margin-top: 1px !important; display: block; }
+
+/* Home: the whale says the booking line, in a paper speech bubble with a tail pointing at it */
+.live-say { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+.live-say-whale { flex: none; width: 76px; height: auto; }
+.live-say-bubble {
+  position: relative; margin: 0; max-width: 40rem;
+  padding: 12px 16px; border: 1.5px solid #2E3A46; border-radius: 16px;
+  background: #FFFFFF; color: #2E3A46; font: 500 15px/1.55 var(--font);
+}
+.live-say-bubble::before, .live-say-bubble::after {
+  content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+  border-style: solid; border-color: transparent;
+}
+.live-say-bubble::before { left: -11px; border-width: 8px 11px 8px 0; border-right-color: #2E3A46; }
+.live-say-bubble::after { left: -8px; border-width: 7px 9px 7px 0; border-right-color: #FFFFFF; }
+@media (max-width: 600px) {
+  .live-say { align-items: flex-start; gap: 10px; }
+  .live-say-whale { width: 60px; }
+  .live-say-bubble { font-size: 14px; padding: 10px 12px; }
+  .live-say-bubble::before, .live-say-bubble::after { top: 24px; }
+}
+
+/* Whale next to the live title: its speech bubble appears on hover, keyboard focus or tap */
+.live-title-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.live-title-row .live-title { min-width: 0; }
+.live-tip { position: relative; flex: none; display: inline-flex; }
+.live-tip-btn {
+  display: grid; place-items: center; width: 56px; height: 56px; padding: 0;
+  border: 0; background: none; cursor: pointer; border-radius: 50%;
+  transition: transform 150ms var(--s-ease);
+}
+.live-tip-btn img { width: 52px; height: auto; }
+.live-tip-btn:hover, .live-tip-btn:focus-visible { transform: rotate(-6deg); }
+.live-tip-bubble {
+  position: absolute; z-index: 5; left: calc(100% + 14px); top: 50%;
+  width: max-content; max-width: min(46rem, calc(100vw - 160px));
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translate(-4px, -50%);
+  transition: opacity 160ms var(--s-ease), transform 160ms var(--s-ease), visibility 0s linear 160ms;
+}
+.live-tip:hover .live-tip-bubble, .live-tip:focus-within .live-tip-bubble {
+  opacity: 1; visibility: visible; transform: translate(0, -50%);
+  transition: opacity 160ms var(--s-ease), transform 160ms var(--s-ease), visibility 0s;
+}
+@media (max-width: 700px) {
+  /* No room to the right on phones: the bubble opens below the whale, tail pointing up */
+  .live-tip-bubble {
+    left: auto; right: -8px; top: calc(100% + 10px);
+    max-width: calc(100vw - 32px); width: min(20rem, calc(100vw - 32px));
+    transform: translateY(-4px);
+  }
+  .live-tip:hover .live-tip-bubble, .live-tip:focus-within .live-tip-bubble { transform: translateY(0); }
+  .live-tip-bubble::before { left: auto; right: 24px; top: -11px; transform: none; border-width: 0 8px 11px 8px; border-color: transparent transparent #2E3A46 transparent; }
+  .live-tip-bubble::after { left: auto; right: 25px; top: -8px; transform: none; border-width: 0 7px 9px 7px; border-color: transparent transparent #FFFFFF transparent; }
+}
+.live-tip-bubble { white-space: pre-line; }
+.result .result-body { color: #2E3A46 !important; font-weight: 500 !important; }
+
+/* "Can't find it?" panel: the question is the heading, one colour; plain body; a button without an arrow */
+.ask-panel .ask-title { margin: 0 !important; font: 600 clamp(1.6rem, 2.6vw, 2.1rem)/1.25 var(--display) !important; color: #2E3A46 !important; }
+.ask-panel .ask-body { margin: 12px 0 0 !important; max-width: 30rem; font: 400 16px/1.65 var(--font) !important; color: #4A535A !important; }
+.ask-panel .ask-cta { margin-top: 24px !important; }
+.ask-panel .ask-body { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: keep-all; }
+.ask-stamp .ask-sub { display: block; margin-top: 4px; font: 400 13px/1.45 var(--font); color: #6B747B; text-align: center; word-break: keep-all; }
+.ask-stamp .ask-text { display: grid; gap: 4px; justify-items: center; min-width: 0; }
+@media (max-width: 760px) {
+  .ask-stamp .ask-text { justify-items: start; }
+  .ask-stamp .ask-sub { text-align: left; }
+  .ask-stamp .ask-text p { white-space: nowrap; }
+}
+/* Step lines in the same face and size as the step labels, regular weight */
+.ask-stamp .ask-sub { font: 400 clamp(14px, 1.5vw, 19px)/1.35 var(--font) !important; color: #4A535A !important; text-wrap: balance; }
+
+/* How-it-works as one journey (after Grabr's numbered steps): numbered stops on a dashed route line,
+   no dividers between the steps */
+.ask-stamp li + li::before { display: none !important; }
+.ask-stamp::after {
+  content: ''; position: absolute; z-index: 0;
+  top: 49px; left: calc(100% / 6); right: calc(100% / 6);
+  border-top: 2px dashed rgb(46 58 70 / 0.35);
+}
+.ask-stamp li { z-index: 1; gap: 10px !important; padding-top: 10px !important; }
+.ask-stamp .ask-n {
+  justify-self: center !important; display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #A85A62; color: #FFFFFF; font: 600 14px/1 var(--font) !important;
+  box-shadow: 0 0 0 5px #E6EAED;
+}
+@media (max-width: 560px) {
+  /* Phones: the route runs down the left through the numbered stops */
+  .ask-stamp::after { top: 52px; bottom: 52px; left: 35px; right: auto; border-top: 0; border-left: 2px dashed rgb(46 58 70 / 0.35); }
+  .ask-stamp li { padding-top: 8px !important; }
+}
+
+/* "Can't find it?" flows on from the products: heading, the journey full width, the button under step 3's row */
+.ask-panel {
+  grid-template-columns: 1fr !important; justify-items: stretch; gap: 20px !important;
+  border-top: 0 !important; background: transparent !important;
+  padding-top: 8px !important;
+}
+.ask-panel .ask-copy { justify-items: start; }
+.ask-panel .ask-cta { justify-self: center; margin-top: 8px !important; }
+/* Button sits right next to the "Can't find it?" heading */
+.ask-panel .ask-copy { display: flex !important; align-items: center; gap: 20px; flex-wrap: wrap; }
+.ask-panel .ask-cta { justify-self: auto; margin-top: 0 !important; }
+.ask-panel .ask-cta { min-height: 40px !important; padding: 8px 20px !important; font-size: 15px !important; }
+
+/* Two linked amount rows (Revolut / Toss 환전 / Google converter): local on top, won below, swap in between */
+.money-pair {
+  display: flex; flex-direction: column;
+  border: 1px solid rgb(46 58 70 / 0.22); border-radius: 12px; background: #FFFFFF; overflow: hidden;
+}
+.money-pair:focus-within { border-color: #2E3A46; box-shadow: 0 0 0 3px rgb(46 58 70 / 0.08); }
+.money-pair .money-row { display: flex; align-items: center; gap: 12px; padding: 4px 6px 4px 16px; }
+.money-pair .is-local { order: 1; }
+.money-pair .money-divider { order: 2; }
+.money-pair .is-won { order: 3; }
+.money-pair.is-won-first .is-won { order: 1; }
+.money-pair.is-won-first .is-local { order: 3; }
+.money-pair .money-code {
+  flex: none; min-width: 44px; font: 600 14px/1 var(--font); letter-spacing: 0.02em; color: #2E3A46;
+}
+.money-pair .money { flex: 1; min-width: 0; border: 0 !important; background: transparent !important; box-shadow: none !important; min-height: 48px; }
+.money-pair .money input { font: 600 18px/1.2 var(--font) !important; font-variant-numeric: tabular-nums; }
+.money-pair .money-divider {
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 0 10px 0 16px; min-height: 30px; background: #F4F4F3;
+  border-top: 1px solid rgb(46 58 70 / 0.1); border-bottom: 1px solid rgb(46 58 70 / 0.1);
+}
+.money-pair .money-rate { font: 500 12.5px/1.3 var(--font); color: #6B747B; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.money-pair .money-swap {
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+  border: 1px solid rgb(46 58 70 / 0.2); border-radius: 50%; background: #FFFFFF; color: #2E3A46; cursor: pointer;
+  transition: transform 160ms var(--s-ease), background-color 160ms var(--s-ease);
+}
+.money-pair .money-swap:hover { background: #EDECEB; }
+.money-pair .money-swap:active { transform: rotate(180deg) scale(0.96); }
+@media (pointer: coarse) { .money-pair .money-swap { width: 36px; height: 36px; } }
+/* One focus outline: the pair's own; nothing inside it */
+.money-pair .money, .money-pair .money:focus-within { border: 0 !important; box-shadow: none !important; outline: 0 !important; }
+.money-pair input:focus, .money-pair input:focus-visible { outline: none !important; box-shadow: none !important; }
+.money-pair:focus-within { outline: 2px solid #A85A62; outline-offset: 2px; }
+
+/* ⓘ next to a field label: the explanation appears only on hover, keyboard focus or tap */
+.field-label { display: inline-flex; align-items: center; gap: 6px; }
+.field-info { position: relative; display: inline-flex; }
+.field-info-btn {
+  display: grid; place-items: center; width: 22px; height: 22px; padding: 0;
+  border: 0; border-radius: 50%; background: none; color: #6B747B; cursor: help;
+}
+.field-info-btn:hover { color: #2E3A46; }
+.field-info-tip {
+  position: absolute; z-index: 20; left: 50%; top: calc(100% + 8px);
+  width: max-content; max-width: min(18rem, calc(100vw - 48px));
+  padding: 10px 12px; border-radius: 10px; background: #2E3A46; color: #FFFFFF;
+  font: 400 13px/1.5 var(--font); white-space: normal; text-wrap: pretty;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translate(-50%, -4px);
+  transition: opacity 150ms var(--s-ease), transform 150ms var(--s-ease), visibility 0s linear 150ms;
+}
+.field-info-tip::before {
+  content: ''; position: absolute; left: 50%; top: -6px; transform: translateX(-50%);
+  border: 6px solid transparent; border-top: 0; border-bottom-color: #2E3A46;
+}
+.field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip {
+  opacity: 1; visibility: visible; transform: translate(-50%, 0);
+  transition: opacity 150ms var(--s-ease), transform 150ms var(--s-ease), visibility 0s;
+}
+@media (max-width: 600px) {
+  .field-info-tip { left: -8px; transform: translateY(-4px); }
+  .field-info-tip::before { left: 15px; transform: none; }
+  .field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip { transform: translateY(0); }
+}
+/* Tooltip anchored to the start of the label, so it opens rightwards inside the form card on every screen */
+.field-label { position: relative; }
+.field-info { position: static; }
+.field-info-tip, .field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip {
+  left: 0 !important; right: auto !important;
+}
+.field-info-tip { transform: translateY(-4px) !important; max-width: min(22rem, calc(100vw - 64px)) !important; }
+.field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip { transform: translateY(0) !important; }
+.field-info-tip::before { display: none; }
+
+/* The whale next to a field label explains it in a speech bubble (hover, focus or tap) */
+.field-info-btn { width: 34px !important; height: 30px !important; cursor: pointer !important; border-radius: 8px !important; }
+.field-info-btn img { width: 30px; height: auto; display: block; transition: transform 150ms var(--s-ease); }
+.field-info-btn:hover img, .field-info.is-open .field-info-btn img { transform: rotate(-8deg); }
+.field-info-tip {
+  background: #FFFFFF !important; color: #2E3A46 !important;
+  border: 1.5px solid #2E3A46; border-radius: 14px !important;
+  font: 500 13.5px/1.55 var(--font) !important; padding: 10px 14px !important;
+  top: calc(100% + 12px) !important;
+}
+.field-info-tip::before, .field-info-tip::after {
+  display: block !important; content: ''; position: absolute; transform: none !important;
+  border-style: solid; border-color: transparent;
+}
+/* tail pointing up at the whale (label text is ~6em wide, the whale sits right after it) */
+.field-info-tip::before { top: -10px; left: var(--tail, 96px); border-width: 0 8px 10px 8px; border-bottom-color: #2E3A46; }
+.field-info-tip::after { top: -7px; left: calc(var(--tail, 96px) + 1px); border-width: 0 7px 9px 7px; border-bottom-color: #FFFFFF; }
+.req-say { margin: 0 0 20px; }
+/* Text fields show focus with their own border; no second (rose) outline inside them */
+input:focus-visible, select:focus-visible, textarea:focus-visible, .money input:focus, .money input:focus-visible {
+  outline: none !important;
+}
+/* Computers: the bubble opens to the right of the whale, tail pointing left at it */
+@media (min-width: 701px) {
+  .field-info-tip, .field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip {
+    left: var(--beside, 140px) !important; top: 50% !important;
+  }
+  .field-info-tip { transform: translate(-4px, -50%) !important; max-width: min(24rem, calc(100vw - 420px)) !important; }
+  .field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip { transform: translate(0, -50%) !important; }
+  .field-info-tip::before { top: 50% !important; left: -10px !important; transform: translateY(-50%) !important; border-width: 8px 10px 8px 0 !important; border-color: transparent #2E3A46 transparent transparent !important; }
+  .field-info-tip::after { top: 50% !important; left: -7px !important; transform: translateY(-50%) !important; border-width: 7px 9px 7px 0 !important; border-color: transparent #FFFFFF transparent transparent !important; }
+}
+@media (min-width: 701px) {
+  /* Bubble starts level with the whale and grows downwards, so it never reaches above the card */
+  .field-info-tip, .field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip { top: -6px !important; }
+  .field-info-tip { transform: translateX(-4px) !important; }
+  .field-info:hover .field-info-tip, .field-info-btn:focus-visible + .field-info-tip, .field-info.is-open .field-info-tip { transform: none !important; }
+  .field-info-tip::before { top: 20px !important; transform: none !important; }
+  .field-info-tip::after { top: 21px !important; transform: none !important; }
+}

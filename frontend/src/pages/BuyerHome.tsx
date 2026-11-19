@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Plane as PlaneIcon, Search as SearchIcon } from '../components/icons';
+import { ArrowRight, Search as SearchIcon } from '../components/icons';
 import HeroLogo from '../components/HeroLogo';
 import { api } from '../api';
 import { OfferCard, ProductCard } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { ErrorBox, Loading, Mascot, SectionHeading, categoryIcon } from '../components/ui';
-import { ALL_COUNTRIES, CATEGORIES, countryName, displayCode } from '../format';
+import { ALL_COUNTRIES, CATEGORIES, countryName } from '../format';
 import { HERO_LANDMARKS } from '../images';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -88,13 +88,16 @@ export default function BuyerHome() {
       <section className="home-section live-section stack">
         <header className="live-head">
           <div className="live-copy">
-            <h2 className="live-title">{t('home.liveTitle')}</h2>
-            <p className="live-body">{t('home.liveBody')}</p>
-          </div>
-          <div className="live-route" aria-hidden>
-            <span className="live-code">{country === ALL_COUNTRIES ? '🌐' : displayCode(country)}</span>
-            <span className="live-path"><span className="live-plane"><PlaneIcon size={20} /></span></span>
-            <span className="live-code">KR</span>
+            <div className="live-title-row">
+              <h2 className="live-title">{t('home.liveTitle')}</h2>
+              {/* Hover, focus or tap the whale to read the booking line in its speech bubble */}
+              <span className="live-tip">
+                <button type="button" className="live-tip-btn" aria-label={t('home.liveTipLabel')} aria-describedby="live-tip-text">
+                  <Mascot mood="happy" size={52} />
+                </button>
+                <span role="tooltip" id="live-tip-text" className="live-say-bubble live-tip-bubble">{t('home.liveBody')}</span>
+              </span>
+            </div>
           </div>
         </header>
         {offers.isLoading && <Loading />}
@@ -126,22 +129,21 @@ export default function BuyerHome() {
 
       <section className="ask-panel">
         <div className="ask-copy">
-          <p className="ask-bubble">{t('home.ctaEyebrow')}</p>
-          <h2 className="ask-title">
-            <span>{t('home.ctaTitleA')}</span> <em>{t('home.ctaTitleB')}</em>
-          </h2>
-          <p className="ask-body">{t('home.askBody')}</p>
+          <h2 className="ask-title">{t('home.requestTitle')}</h2>
           <Link to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`} className="btn btn-primary ask-cta">
-            {t('home.requestCta')} <ArrowRight size={16} aria-hidden />
+            {t('home.requestCta')}
           </Link>
         </div>
         <div className="ask-stamp-wrap">
           <ol className="ask-stamp">
             {(['shop', 'fly', 'unbox'] as const).map((mood, i) => (
               <li key={mood}>
-                <span className="ask-n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="ask-n">{i + 1}</span>
                 <Mascot mood={mood} className="ask-whale" size={150} />
-                <p>{t(`home.how${i + 1}` as 'home.how1')}</p>
+                <div className="ask-text">
+                  <p>{t(`home.how${i + 1}` as 'home.how1')}</p>
+                  {t(`home.how${i + 1}Sub` as 'home.how1Sub') && <span className="ask-sub">{t(`home.how${i + 1}Sub` as 'home.how1Sub')}</span>}
+                </div>
               </li>
             ))}
           </ol>

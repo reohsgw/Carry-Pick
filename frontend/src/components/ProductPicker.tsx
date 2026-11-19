@@ -116,9 +116,7 @@ export default function ProductPicker({ value, productId, country, category, onC
           </span>
           <button type="button" className="text-btn is-muted" onClick={unlink}>{t('pp.change')}</button>
         </p>
-      ) : (
-        <p className="field-hint">{t('pp.hint')}</p>
-      )}
+      ) : null}
 
       {showList && (
         <div className="pp-panel">

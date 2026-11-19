@@ -1,11 +1,11 @@
 import { createPortal } from 'react-dom';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
   Bell, Camera, ClipboardList, Cookie, Headphones, Lamp, MapPinned, Package, Plane, SearchX, Shirt, ShoppingBag,
-  Beauty, UtensilsCrossed, type Icon as LucideIcon,
+  Beauty, SwapVertical, UtensilsCrossed, type Icon as LucideIcon,
 } from './icons';
 import { api, assetUrl, type OrderStatus } from '../api';
-import { STATUS_TONE } from '../format';
+import { STATUS_TONE, rateUnit } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { productPhoto } from '../images';
 // The only whale artwork in the app (replaced the earlier set). Heads and stickers are for small spots.
@@ -18,21 +18,16 @@ import whaleLaptop from '../assets/whale-laptop.webp';
 import whaleBox from '../assets/whale-box.webp';
 import whaleSparkle from '../assets/whale-sparkle.webp';
 import headSleep from '../assets/whale-head-sleep.webp';
-import headSmile from '../assets/whale-head-smile.webp';
-import headLaugh from '../assets/whale-head-laugh.webp';
-import headSurprised from '../assets/whale-head-surprised.webp';
-import headSad from '../assets/whale-head-sad.webp';
+import whaleInfo from '../assets/whale-info.webp';
 import stickerGift from '../assets/sticker-gift.webp';
 import stickerBox from '../assets/sticker-box.webp';
 import stickerPlane from '../assets/sticker-plane.webp';
 import stickerPin from '../assets/sticker-pin.webp';
 
-export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep' | 'stamp'
-  | 'smile' | 'laugh' | 'surprised' | 'sad';
+export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep' | 'stamp' | 'info';
 const MOODS: Record<Mood, string> = {
   fly: whaleFly, happy: whaleWave, question: whaleMap, love: whaleGift, alert: whaleShocked,
-  shop: whaleLaptop, unbox: whaleBox, sleep: headSleep, stamp: whaleSparkle,
-  smile: headSmile, laugh: headLaugh, surprised: headSurprised, sad: headSad,
+  shop: whaleLaptop, unbox: whaleBox, sleep: headSleep, stamp: whaleSparkle, info: whaleInfo,
 };
 /** Small objects from the same set, for decoration next to the whale. */
 export const STICKERS = { gift: stickerGift, box: stickerBox, plane: stickerPlane, pin: stickerPin } as const;
@@ -156,13 +151,40 @@ export function ProductThumb({ src, category, size = 56 }: { src?: string | null
   );
 }
 
-export function Field({ label, hint, optional, error, children }: { label: string; hint?: string; optional?: boolean; error?: boolean; children: ReactNode }) {
+export function Field({ label, hint, info, optional, error, children }: {
+  label: string; hint?: string; optional?: boolean; error?: boolean; children: ReactNode;
+  /** An explanation shown only on demand: hover, keyboard focus or tap on the ⓘ next to the label. */
+  info?: string;
+}) {
   const { t } = useI18n();
+  const [infoOpen, setInfoOpen] = useState(false);
+  const infoId = useId();
+  // Point the bubble's tail at the whale, wherever the label ends.
+  const infoBtn = useRef<HTMLButtonElement>(null);
+  const infoTip = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const b = infoBtn.current, tip = infoTip.current;
+    if (b && tip) {
+      tip.style.setProperty('--tail', `${Math.max(8, b.offsetLeft + b.offsetWidth / 2 - 8)}px`);
+      tip.style.setProperty('--beside', `${b.offsetLeft + b.offsetWidth + 12}px`);
+    }
+  });
   return (
     <label className="field">
       <span className="field-label">
         {label}
         {optional && <span className="field-optional">{t('common.optional')}</span>}
+        {info && (
+          <span className={`field-info${infoOpen ? ' is-open' : ''}`}>
+            <button ref={infoBtn} type="button" className="field-info-btn" aria-label={t('common.whatIsThis')} aria-describedby={infoId}
+              aria-expanded={infoOpen}
+              onClick={(e) => { e.preventDefault(); setInfoOpen((o) => !o); }}
+              onBlur={() => setInfoOpen(false)}>
+              <Mascot mood="info" size={30} />
+            </button>
+            <span ref={infoTip} role="tooltip" id={infoId} className="field-info-tip">{info}</span>
+          </span>
+        )}
       </span>
       {children}
       {hint && <span className={`field-hint${error ? ' is-error' : ''}`} role={error ? 'alert' : undefined}>{hint}</span>}
@@ -402,6 +424,8 @@ export interface DualAmount {
   setLocal: (v: number | '') => void;
   /** Set from a won value (a suggested budget). */
   setWon: (v: number | '') => void;
+  /** The person typed in one of the two rows: that row's currency becomes the one sent. */
+  typeIn: (m: MoneyMode, v: number | '') => void;
 }
 
 /**
@@ -433,27 +457,50 @@ export function useDualAmount(rate: number | undefined | null, decimals: number)
     },
     setLocal: (v) => setState({ v, m: 'local' }),
     setWon: (v) => setState({ v, m: 'won' }),
+    typeIn: (m, v) => {
+      setState({ v, m });
+      if (m !== pref) {
+        setPref(m);
+        try { localStorage.setItem(MONEY_MODE_KEY, m); } catch { /* private mode */ }
+      }
+    },
   };
 }
 
-/** Money box with a JPY / KRW switch on the right. */
-export function DualMoneyInput({ dual, currency, symbol, decimals, required, placeholder, wonPlaceholder, id }: {
+/**
+ * Two linked amount rows, as in Revolut, Toss 환전 or Google's converter: the trip country's currency and
+ * won. Type in either row and the other follows at `rate`; the swap button changes which row is on top;
+ * the rate and where it comes from sit on the divider.
+ */
+export function DualMoneyInput({ dual, currency, symbol, decimals, rate, rateNote, required, placeholder, wonPlaceholder, id }: {
   dual: DualAmount; currency: string; symbol: string; decimals: number;
+  rate?: number | null; rateNote?: string;
   required?: boolean; placeholder?: string; wonPlaceholder?: string; id?: string;
 }) {
   const { t } = useI18n();
+  const [wonFirst, setWonFirst] = useState(() => dual.mode === 'won');
+  const f = 10 ** decimals;
+  const localShown: number | '' = dual.mode === 'local' ? dual.amount : dual.local === '' ? '' : Math.round(Number(dual.local) * f) / f;
+  const wonShown: number | '' = dual.mode === 'won' ? dual.amount : dual.won;
+  const unit = rateUnit(currency);
+  const rateText = rate ? (rate * unit).toLocaleString('ko-KR', { maximumFractionDigits: rate * unit < 1 ? 4 : 2 }) : '';
   return (
-    <div className="money-dual">
-      {dual.mode === 'won'
-        ? <MoneyInput id={id} value={dual.amount} onChange={dual.setAmount} required={required} placeholder={wonPlaceholder} />
-        : <CurrencyInput id={id} value={dual.amount} onChange={dual.setAmount} symbol={symbol} decimals={decimals} required={required} placeholder={placeholder} />}
-      <div className="money-switch" role="radiogroup" aria-label={t('fx.enterIn')}>
-        {(['local', 'won'] as const).map((m) => (
-          <button key={m} type="button" role="radio" aria-checked={dual.mode === m} className={dual.mode === m ? 'is-on' : ''}
-            onClick={() => dual.setMode(m)}>
-            {m === 'won' ? 'KRW' : currency}
-          </button>
-        ))}
+    <div className={`money-pair${wonFirst ? ' is-won-first' : ''}`}>
+      <div className="money-row is-local">
+        <span className="money-code">{currency}</span>
+        <CurrencyInput id={wonFirst ? undefined : id} value={localShown} onChange={(v) => dual.typeIn('local', v)}
+          symbol={symbol} decimals={decimals} required={required && dual.mode === 'local'} placeholder={placeholder} />
+      </div>
+      <div className="money-divider">
+        {rate ? <span className="money-rate">{unit} {currency} = ₩{rateText}{rateNote ? ` · ${rateNote}` : ''}</span> : <span />}
+        <button type="button" className="money-swap" aria-label={t('fx.swap')} onClick={() => setWonFirst((w) => !w)}>
+          <SwapVertical size={16} aria-hidden />
+        </button>
+      </div>
+      <div className="money-row is-won">
+        <span className="money-code">KRW</span>
+        <MoneyInput id={wonFirst ? id : undefined} value={wonShown} onChange={(v) => dual.typeIn('won', v)}
+          required={required && dual.mode === 'won'} placeholder={wonPlaceholder} />
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapPinned, Receipt, ShoppingBag } from '../components/icons';
-import { FxBox } from '../components/FxBox';
 import { api, assetUrl, type ReceiptScan } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { ReceiptCapture } from '../components/receipt';
@@ -280,17 +279,13 @@ export default function OfferForm() {
               hint={local ? t(bought ? 'of.boughtPriceHintLocal' : 'of.priceHintLocal') : bought ? t('of.boughtPriceHint') : t('of.priceHint')}>
               {local
                 ? <DualMoneyInput dual={price} currency={currency} symbol={currencySymbol(currency)} decimals={decimals} required
-                    placeholder="5,000" wonPlaceholder="20,000" />
+                    rate={rate} rateNote={t(rates.data?.live ? 'fx.live' : 'fx.fixed')} placeholder="5,000" wonPlaceholder="20,000" />
                 : <MoneyInput value={price.amount} onChange={price.setAmount} required placeholder="20,000" />}
             </Field>
             {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
-            {local && price.local !== '' && estPrice !== '' && (
-              <FxBox amount={Number(price.local)} currency={currency} won={estPrice} rate={rate ?? 0} typedWon={price.mode === 'won'}
-                source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.offerNote')} />
-            )}
             <div className="two-col">
               <Field label={t('of.reward')} error={rewardOver}
-                hint={estPrice ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct }) : t('reward.rule', { pct })}>
+                hint={rewardOver ? t('reward.over', { amount: krw(rewardCap), pct }) : undefined}>
                 <MoneyInput value={reward} onChange={setReward} />
               </Field>
               <Field label={t('of.qty')}>

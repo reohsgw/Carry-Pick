@@ -7,7 +7,6 @@ import { ReceiptLine, ReceiptStrip, StatusTimeline, firstName, useRoute } from '
 import { Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
 import { ReceiptCapture } from '../components/receipt';
-import { FxBox } from '../components/FxBox';
 import { ActionBar, Avatar, DualMoneyInput, type DualAmount, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge, useDualAmount } from '../components/ui';
 import { currencyDecimals, currencySymbol, krw, money, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
@@ -271,11 +270,8 @@ function TravelerActions({ order: o }: { order: Order }) {
   const over = price !== '' && price > limit;
   const under = price !== '' && price > 0 && price < limit;
   const tagOk = tagPrice !== '' && tagPrice > budgetLimit;
-  const fxBox = (d: DualAmount) => local && d.local !== '' && d.local > 0 && d.won !== '' && (
-    <FxBox amount={Number(d.local)} currency={cur} won={d.won} rate={rate} source="locked" typedWon={d.mode === 'won'} />
-  );
   const priceInput = (d: DualAmount) => (local
-    ? <DualMoneyInput dual={d} currency={cur} symbol={currencySymbol(cur)} decimals={decimals} required />
+    ? <DualMoneyInput dual={d} currency={cur} symbol={currencySymbol(cur)} decimals={decimals} rate={rate} rateNote={t('fx.locked')} required />
     : <MoneyInput value={d.amount} onChange={d.setAmount} required />);
 
   return (
@@ -325,7 +321,6 @@ function TravelerActions({ order: o }: { order: Order }) {
           <Field label={local ? t('buy.priceAny') : t('buy.price')} hint={t('buy.priceHint', { amount: show(limit) })}>
             {priceInput(buy)}
           </Field>
-          {fxBox(buy)}
           {over && <Notice tone="bad">{t(approved ? 'buy.overApproved' : 'buy.over', { amount: show(limit) })}</Notice>}
           {under && <Notice tone="good">{t('buy.under', { amount: show(limit - Number(price)) })}</Notice>}
           {purchase.error && <Notice tone="bad">{errText(purchase.error)}</Notice>}
@@ -342,7 +337,6 @@ function TravelerActions({ order: o }: { order: Order }) {
           <Field label={local ? t('pc.priceAny') : t('pc.price')} hint={t('buy.priceHint', { amount: show(budgetLimit) })}>
             {priceInput(tag)}
           </Field>
-          {fxBox(tag)}
           {tagOk && <Notice tone="warn">{t('pc.extra', { amount: show(Number(tagPrice) - budgetLimit) })}</Notice>}
           {tagPrice !== '' && !tagOk && <Notice>{t('pc.notOver')}</Notice>}
           {priceCheck.error && <Notice tone="bad">{errText(priceCheck.error)}</Notice>}
