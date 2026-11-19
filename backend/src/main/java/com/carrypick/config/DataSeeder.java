@@ -55,8 +55,11 @@ public class DataSeeder implements ApplicationRunner {
         LocalDate today = Today.get();
         String pw = encoder.encode(DEMO_PASSWORD);
 
+        // Minji is the live buyer in the demo: a first-time user with no requests or orders yet.
         User minji = users.save(new User("buyer@carrypick.test", pw, "Minji (Buyer)", Mode.BUYER, true));
         User jun = users.save(new User("buyer2@carrypick.test", pw, "Jun (Buyer)", Mode.BUYER, true));
+        // Another buyer for requests on the board; Minji stays free for the live buyer demo.
+        User seoyeon = users.save(new User("buyer3@carrypick.test", pw, "Seoyeon (Buyer)", Mode.BUYER, true));
         User kenji = users.save(new User("traveler@carrypick.test", pw, "Kenji (Traveler)", Mode.TRAVELER, true));
         User linh = users.save(new User("traveler2@carrypick.test", pw, "Linh (Traveler)", Mode.TRAVELER, true));
         kenji.setPayoutAccount("KB국민은행", "12345678901234", "Kenji");
@@ -111,39 +114,39 @@ public class DataSeeder implements ApplicationRunner {
         offers.save(new Offer(kenji, nyc, "Levi's 501 Original jeans", "Levi's Times Square", "Fashion",
                 "US pricing; tell me waist and length.", "demo:levis-501", 95000, 15000, 2));
 
-        requests.save(new PurchaseRequest(minji, "JP", "Sanrio Hello Kitty Tokyo Limited Edition", null, "demo:hello-kitty-tokyo",
+        requests.save(new PurchaseRequest(seoyeon, "JP", "Sanrio Hello Kitty Tokyo Limited Edition", null, "demo:hello-kitty-tokyo",
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));
         // More Japan requests, so a traveler who adds a Japan trip sees a full request board.
         requests.save(new PurchaseRequest(jun, "JP", "Tokyo Banana (8 pcs)", null, "demo:tokyo-banana",
                 "2 boxes if possible", "For my parents, any flavor is fine", 26000, 5000, today.plusDays(10)));
-        requests.save(new PurchaseRequest(minji, "JP", "Royce' Nama Chocolate", null, "demo:royce",
+        requests.save(new PurchaseRequest(seoyeon, "JP", "Royce' Nama Chocolate", null, "demo:royce",
                 "Original (Au Lait)", "Please keep it cold, it melts easily", 25000, 6000, today.plusDays(12)));
         requests.save(new PurchaseRequest(jun, "JP", "Anessa Perfect UV Sunscreen 60ml", null, "demo:anessa",
                 "Gold bottle, 60ml", "Any drugstore is fine", 30000, 5000, today.plusDays(14)));
         requests.save(new PurchaseRequest(jun, "JP", "Uniqlo Japan-limited graphic T-shirt", null, "demo:uniqlo-tshirt",
                 "Size L, any Tokyo design", null, 30000, 6000, today.plusDays(18)));
-        requests.save(new PurchaseRequest(minji, "JP", "Kit Kat regional flavors set", null, "demo:kitkat",
+        requests.save(new PurchaseRequest(jun, "JP", "Kit Kat regional flavors set", null, "demo:kitkat",
                 "Matcha and sakura flavors", "A mix of regional flavors is great too", 35000, 7000, today.plusDays(20)));
-        requests.save(new PurchaseRequest(minji, "FR", "Le Labo Santal 33 50ml", null, "demo:le-labo-santal33",
+        requests.save(new PurchaseRequest(seoyeon, "FR", "Le Labo Santal 33 50ml", null, "demo:le-labo-santal33",
                 "50ml", "Paris boutique only please", 260000, 20000, today.plusDays(35)));
         requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, "demo:jim-thompson-scarf",
                 "Blue tones", null, 70000, 10000, today.plusDays(20)));
 
         demoOrder(jun, tokyoBanana, 5);
-        demoOrder(minji, tokyoBanana, 3);
+        demoOrder(seoyeon, tokyoBanana, 3);
         demoOrder(jun, royce, 2);
         demoOrder(jun, anessa, 1);
-        demoOrder(minji, laduree, 2);
+        demoOrder(seoyeon, laduree, 2);
         demoOrder(jun, mama, 1);
 
         // Recent bookings on Linh's upcoming Tokyo trip: paid, waiting for her to buy. These keep the
         // Japan ranking current (it counts the last 30 days).
         recentOrder(jun, linhBanana, 3);
-        recentOrder(minji, linhBanana, 2);
+        recentOrder(seoyeon, linhBanana, 2);
         recentOrder(jun, linhRoyce, 2);
-        recentOrder(minji, linhRoyce, 1);
+        recentOrder(seoyeon, linhRoyce, 1);
         recentOrder(jun, linhKitkat, 2);
-        recentOrder(minji, linhAnessa, 1);
+        recentOrder(seoyeon, linhAnessa, 1);
 
         log.info("Demo data created. Log in with buyer@carrypick.test or traveler@carrypick.test / {}", DEMO_PASSWORD);
     }
