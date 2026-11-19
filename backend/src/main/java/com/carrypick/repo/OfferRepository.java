@@ -42,4 +42,8 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
               and o.trip.id in (select t.id from Trip t where t.returnDate < :today)
             """)
     int closeEnded(@Param("today") LocalDate today, @Param("closed") OfferStatus closed);
+
+    boolean existsByTripId(Long tripId);
+
+    List<Offer> findByTripId(Long tripId);
 }

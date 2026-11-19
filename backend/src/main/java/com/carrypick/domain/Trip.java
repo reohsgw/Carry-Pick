@@ -46,4 +46,12 @@ public class Trip {
     public LocalDate getDepartDate() { return departDate; }
     public LocalDate getReturnDate() { return returnDate; }
     public String getLuggageNote() { return luggageNote; }
+
+    public void update(String countryCode, String city, LocalDate departDate, LocalDate returnDate, String luggageNote) {
+        this.countryCode = countryCode;
+        this.city = city;
+        this.departDate = departDate;
+        this.returnDate = returnDate;
+        this.luggageNote = luggageNote;
+    }
 }

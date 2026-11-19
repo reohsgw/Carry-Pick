@@ -43,6 +43,7 @@ export default function App() {
 
         <Route path="/t" element={<Navigate to="/me" replace />} />
         <Route path="/t/trips/new" element={<RequireAuth><NewTrip /></RequireAuth>} />
+        <Route path="/t/trips/:id/edit" element={<RequireAuth><NewTrip /></RequireAuth>} />
         <Route path="/t/offers/new" element={<RequireAuth><OfferForm /></RequireAuth>} />
         <Route path="/t/offers/:id/edit" element={<RequireAuth><OfferForm /></RequireAuth>} />
         <Route path="/t/requests" element={<RequireAuth><RequestBoard /></RequireAuth>} />

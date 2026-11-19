@@ -85,6 +85,10 @@ export default function OfferForm() {
     mutationFn: () => api.closeOffer(editId!),
     onSuccess: () => { qc.invalidateQueries(); navigate('/me', { replace: true }); },
   });
+  const remove = useMutation({
+    mutationFn: () => api.deleteOffer(editId!),
+    onSuccess: () => { qc.invalidateQueries(); navigate('/me', { replace: true }); },
+  });
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -266,12 +270,20 @@ export default function OfferForm() {
           </div>
         </Sheet>
 
-        {(save.error || close.error) && <Notice tone="bad">{errText(save.error ?? close.error)}</Notice>}
-        {editId && existing.data?.status !== 'CLOSED' && (
-          <button type="button" className="link danger center-block"
-            onClick={async () => (await ask({ message: t('of.closeConfirm'), mood: 'alert', danger: true })) && close.mutate()}>
-            {t('of.close')}
-          </button>
+        {(save.error || close.error || remove.error) && <Notice tone="bad">{errText(save.error ?? close.error ?? remove.error)}</Notice>}
+        {editId && (
+          <div className="offer-danger-actions">
+            {existing.data?.status !== 'CLOSED' && (
+              <button type="button" className="link danger"
+                onClick={async () => (await ask({ message: t('of.closeConfirm'), mood: 'alert', danger: true })) && close.mutate()}>
+                {t('of.close')}
+              </button>
+            )}
+            <button type="button" className="link danger" disabled={remove.isPending}
+              onClick={async () => (await ask({ message: t('of.deleteConfirm'), mood: 'alert', okLabel: t('of.delete'), danger: true })) && remove.mutate()}>
+              {t('of.delete')}
+            </button>
+          </div>
         )}
       </DetailLayout>
     </Screen>

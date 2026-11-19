@@ -35,4 +35,15 @@ public class TripController {
     public TripDto create(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody TripForm f) {
         return service.create(me.id(), f);
     }
+
+    @PutMapping("/{id}")
+    public TripDto update(@AuthenticationPrincipal AuthUser me, @PathVariable Long id, @Valid @RequestBody TripForm f) {
+        return service.update(me.id(), id, f);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
+        service.delete(me.id(), id);
+    }
 }

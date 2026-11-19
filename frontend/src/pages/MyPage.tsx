@@ -204,7 +204,12 @@ export default function MyPage() {
                     <p className="kt-meta">{dates(tr.departDate, tr.returnDate)}{tr.luggageNote ? ` · ${tr.luggageNote}` : ''}</p>
                     <div className="kt-item-line">
                       <Tag tone={d > 0 ? 'progress' : 'neutral'}>{d > 0 ? t('t.inDays', { n: d }) : t('t.onTrip')}</Tag>
-                      {d > 0 && <Link to={`/t/offers/new?trip=${tr.id}`} className="kt-inline-link">{t('t.offerItem')} <ChevronRight size={14} aria-hidden /></Link>}
+                      {d > 0 && (
+                        <span className="kt-trip-actions">
+                          <Link to={`/t/trips/${tr.id}/edit`} className="kt-inline-link is-quiet">{t('trip.edit')}</Link>
+                          <Link to={`/t/offers/new?trip=${tr.id}`} className="kt-inline-link">{t('t.offerItem')} <ChevronRight size={14} aria-hidden /></Link>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

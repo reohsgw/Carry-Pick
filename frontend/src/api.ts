@@ -210,9 +210,12 @@ export const api = {
   createOffer: (b: OfferInput) => post<Offer>('/api/offers', b),
   updateOffer: (id: number, b: OfferInput) => patch<Offer>(`/api/offers/${id}`, b),
   closeOffer: (id: number) => post<Offer>(`/api/offers/${id}/close`),
+  deleteOffer: (id: number) => del<void>(`/api/offers/${id}`),
 
   myTrips: () => get<Trip[]>('/api/trips/me'),
   createTrip: (b: Omit<Trip, 'id'>) => post<Trip>('/api/trips', b),
+  updateTrip: (id: number, b: Omit<Trip, 'id'>) => http.put<Trip>(`/api/trips/${id}`, b).then((r) => r.data),
+  deleteTrip: (id: number) => del<void>(`/api/trips/${id}`),
 
   createRequest: (b: RequestInput) => post<PurchaseRequest>('/api/requests', b),
   products: (q: string, country?: string) =>

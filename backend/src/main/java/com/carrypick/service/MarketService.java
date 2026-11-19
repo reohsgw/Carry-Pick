@@ -128,6 +128,17 @@ public class MarketService {
         return mapper.offer(o);
     }
 
+    /** The traveler deletes their own product. Once someone has ordered it, it can only be closed. */
+    @Transactional
+    public void deleteOffer(Long userId, Long offerId) {
+        Offer o = findOffer(offerId);
+        if (!o.getTraveler().getId().equals(userId)) throw ApiException.forbidden("This is not your offer");
+        if (orders.existsByOfferIdIn(java.util.List.of(o.getId()))) {
+            throw ApiException.conflict("OFFER_HAS_ORDERS", "Someone has ordered this product, so it can only be closed");
+        }
+        offers.delete(o);
+    }
+
     public Offer findOffer(Long id) {
         return offers.findById(id).orElseThrow(() -> ApiException.notFound("Offer"));
     }

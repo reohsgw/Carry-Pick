@@ -71,6 +71,12 @@ public class MarketController {
         return market.closeOffer(me.id(), id);
     }
 
+    @DeleteMapping("/offers/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOffer(@AuthenticationPrincipal AuthUser me, @PathVariable Long id) {
+        market.deleteOffer(me.id(), id);
+    }
+
     @PostMapping("/requests")
     @ResponseStatus(HttpStatus.CREATED)
     public RequestDto createRequest(@AuthenticationPrincipal AuthUser me, @Valid @RequestBody RequestForm form) {

@@ -44,4 +44,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findFirstByProductIdOrderByCreatedAtDesc(Long productId);
 
     List<Order> findByProductIsNull();
+
+    boolean existsByOfferIdIn(Collection<Long> offerIds);
 }

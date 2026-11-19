@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -32,10 +31,11 @@ public class DataSeeder implements ApplicationRunner {
     private final SettlementRepository settlements;
     private final PasswordEncoder encoder;
     private final PricingService pricing;
+    private final PaymentRepository payments;
 
     public DataSeeder(AppProperties props, UserRepository users, TripRepository trips, OfferRepository offers,
                       RequestRepository requests, OrderRepository orders, SettlementRepository settlements,
-                      PasswordEncoder encoder, PricingService pricing) {
+                      PasswordEncoder encoder, PricingService pricing, PaymentRepository payments) {
         this.props = props;
         this.users = users;
         this.trips = trips;
@@ -45,6 +45,7 @@ public class DataSeeder implements ApplicationRunner {
         this.settlements = settlements;
         this.encoder = encoder;
         this.pricing = pricing;
+        this.payments = payments;
     }
 
     @Override
@@ -63,22 +64,26 @@ public class DataSeeder implements ApplicationRunner {
         users.save(kenji);
         users.save(linh);
 
-        Trip tokyo = trips.save(new Trip(kenji, "JP", "Tokyo", today.plusDays(10), today.plusDays(17),
-                "One spare carry-on, about 7 kg"));
-        Trip osaka = trips.save(new Trip(kenji, "JP", "Osaka", today.plusDays(40), today.plusDays(45),
+        // Kenji's trips for the demo: two finished trips and one he is on right now.
+        Trip osaka = trips.save(new Trip(kenji, "JP", "Osaka", LocalDate.of(2024, 10, 24), LocalDate.of(2024, 10, 30),
                 "Half a suitcase free"));
+        Trip nyc = trips.save(new Trip(kenji, "US", "New York", LocalDate.of(2025, 2, 13), LocalDate.of(2025, 2, 20),
+                "One empty suitcase"));
+        Trip tokyo = trips.save(new Trip(kenji, "JP", "Tokyo", LocalDate.of(2026, 11, 19), LocalDate.of(2026, 11, 21),
+                "One spare carry-on, about 7 kg"));
         Trip paris = trips.save(new Trip(linh, "FR", "Paris", today.plusDays(20), today.plusDays(28),
                 "Small items only, about 3 kg"));
+        // Linh's upcoming Japan trip keeps Japan bookable while Kenji's Japan trips are finished or under way.
+        Trip linhTokyo = trips.save(new Trip(linh, "JP", "Tokyo", today.plusDays(7), today.plusDays(12),
+                "One carry-on, about 6 kg"));
         Trip bangkok = trips.save(new Trip(linh, "TH", "Bangkok", today.plusDays(6), today.plusDays(12),
                 "Plenty of space"));
-        Trip nyc = trips.save(new Trip(kenji, "US", "New York", today.plusDays(25), today.plusDays(33),
-                "One empty suitcase"));
 
-        Offer tokyoBanana = offers.save(new Offer(kenji, tokyo, "Tokyo Banana (8 pcs)", "Haneda Airport shop", "Food",
+        Offer tokyoBanana = offers.save(new Offer(kenji, osaka, "Tokyo Banana (8 pcs)", "Kansai Airport gift shop", "Food",
                 "Classic banana custard sponge cakes. Best before about 7 days after purchase.", "demo:tokyo-banana", 12000, 4000, 6));
-        Offer royce = offers.save(new Offer(kenji, tokyo, "Royce' Nama Chocolate", "Royce' Ginza", "Food",
+        Offer royce = offers.save(new Offer(kenji, osaka, "Royce' Nama Chocolate", "Daimaru Umeda", "Food",
                 "Needs to stay cool; I will carry it in an insulated bag.", "demo:royce", 18000, 5000, 4));
-        Offer anessa = offers.save(new Offer(kenji, tokyo, "Anessa Perfect UV Sunscreen 60ml", "Matsumoto Kiyoshi", "Beauty",
+        Offer anessa = offers.save(new Offer(kenji, osaka, "Anessa Perfect UV Sunscreen 60ml", "Matsumoto Kiyoshi", "Beauty",
                 "Japanese drugstore price.", "demo:anessa", 22000, 5000, 5));
         offers.save(new Offer(kenji, tokyo, "Uniqlo Japan-limited graphic T-shirt", "Uniqlo Ginza", "Fashion",
                 "Tell me the size in the order note after booking.", "demo:uniqlo-tshirt", 20000, 6000, 3));
@@ -90,6 +95,14 @@ public class DataSeeder implements ApplicationRunner {
                 "Paris boutique price.", "demo:diptyque-baies", 98000, 15000, 2));
         offers.save(new Offer(linh, paris, "Bioderma Sensibio H2O 500ml", "Pharmacie Monge", "Beauty",
                 "French pharmacy price, much cheaper than Korea.", "demo:bioderma-sensibio", 16000, 5000, 4));
+        Offer linhBanana = offers.save(new Offer(linh, linhTokyo, "Tokyo Banana (8 pcs)", "Tokyo Station Gransta", "Food",
+                "Fresh box bought the day before I fly back.", "demo:tokyo-banana", 12000, 4000, 10));
+        Offer linhRoyce = offers.save(new Offer(linh, linhTokyo, "Royce' Nama Chocolate", "Royce' Ginza", "Food",
+                "Carried in an insulated bag.", "demo:royce", 18000, 5000, 6));
+        Offer linhKitkat = offers.save(new Offer(linh, linhTokyo, "Kit Kat regional flavors set", "Don Quijote Shibuya", "Food",
+                "Mixed regional flavors.", "demo:kitkat", 25000, 7000, 4));
+        Offer linhAnessa = offers.save(new Offer(linh, linhTokyo, "Anessa Perfect UV Sunscreen 60ml", "Matsumoto Kiyoshi Ginza", "Beauty",
+                "Japanese drugstore price.", "demo:anessa", 22000, 5000, 4));
         Offer mama = offers.save(new Offer(linh, bangkok, "Mama Tom Yum instant noodles (10 pack)", "Big C", "Food",
                 "Family pack.", "demo:mama-tom-yum", 7000, 3000, 8));
         offers.save(new Offer(linh, bangkok, "Naraya cotton bag", "Naraya Siam", "Fashion",
@@ -113,6 +126,15 @@ public class DataSeeder implements ApplicationRunner {
         demoOrder(minji, laduree, 2);
         demoOrder(jun, mama, 1);
 
+        // Recent bookings on Linh's upcoming Tokyo trip: paid, waiting for her to buy. These keep the
+        // Japan ranking current (it counts the last 30 days).
+        recentOrder(jun, linhBanana, 3);
+        recentOrder(minji, linhBanana, 2);
+        recentOrder(jun, linhRoyce, 2);
+        recentOrder(minji, linhRoyce, 1);
+        recentOrder(jun, linhKitkat, 2);
+        recentOrder(minji, linhAnessa, 1);
+
         log.info("Demo data created. Log in with buyer@carrypick.test or traveler@carrypick.test / {}", DEMO_PASSWORD);
     }
 
@@ -121,17 +143,45 @@ public class DataSeeder implements ApplicationRunner {
             Quote q = pricing.quote(offer.getEstPrice(), offer.getReward());
             Order o = new Order(buyer, offer.getTraveler(), offer, null, offer.getProductName(), offer.getCountryCode(),
                     offer.getImageUrl(), 1, q.budget(), q.reward(), q.fee(), q.tax(), offer.getTrip().getReturnDate());
-            Instant when = Instant.now().minus(Duration.ofDays(3 + i * 2L));
-            o.setCreatedAt(when);
-            o.setPaidAt(when);
+            // Booked before the trip, bought during it, handed over and settled after the traveler is back.
+            Trip trip = offer.getTrip();
+            Instant booked = at(trip.getDepartDate().minusDays(3 + i), 10 + i % 8);
+            Instant bought = at(trip.getDepartDate().plusDays(i % 3), 15);
+            Instant handed = at(trip.getReturnDate().plusDays(1 + i % 2), 18);
+            Instant settled = at(trip.getReturnDate().plusDays(2 + i % 3), 11);
+            o.setCreatedAt(booked);
+            o.setPaidAt(booked);
             o.setActualPrice(q.budget());
-            o.setPurchasedAt(when);
-            o.setDeliveredAt(when);
-            o.setCompletedAt(when);
-            o.setSettledAt(when);
+            o.setPurchasedAt(bought);
+            o.setDeliveredAt(handed);
+            o.setCompletedAt(settled);
+            o.setSettledAt(settled);
             o.setStatus(OrderStatus.SETTLED);
             orders.save(o);
             settlements.save(new Settlement(o, q.budget() + q.reward(), 0, q.fee()));
         }
+    }
+
+    private void recentOrder(User buyer, Offer offer, int howMany) {
+        for (int i = 0; i < howMany; i++) {
+            Quote q = pricing.quote(offer.getEstPrice(), offer.getReward());
+            Order o = new Order(buyer, offer.getTraveler(), offer, null, offer.getProductName(), offer.getCountryCode(),
+                    offer.getImageUrl(), 1, q.budget(), q.reward(), q.fee(), q.tax(), offer.getTrip().getReturnDate());
+            Instant when = Instant.now().minus(java.time.Duration.ofHours(6 + 19L * (i + offer.getId())));
+            o.setCreatedAt(when);
+            o.setPaidAt(when);
+            o.setStatus(OrderStatus.PAID);
+            orders.save(o);
+            offer.reserve(1);
+            Payment p = new Payment(o, PaymentType.INITIAL, q.total(), "demo-" + o.getId(), true);
+            p.setPaymentKey("demo_" + o.getId());
+            p.setStatus(PaymentStatus.SUCCESS);
+            p.setCompletedAt(when);
+            payments.save(p);
+        }
+    }
+
+    private static Instant at(LocalDate day, int hour) {
+        return day.atTime(hour, 0).atZone(java.time.ZoneId.of("Asia/Seoul")).toInstant();
     }
 }

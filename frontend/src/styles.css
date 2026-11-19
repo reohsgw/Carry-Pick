@@ -11181,3 +11181,10 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 }
 .rb-grid > .request-card { height: 100%; margin: 0 !important; }
 .rb-grid .request-foot { margin-top: auto; }
+
+/* My page trips: edit + post product links side by side */
+.kt-trip-actions { display: inline-flex; align-items: center; gap: 16px; margin-left: auto; }
+.kt-inline-link.is-quiet { color: rgb(46 58 70 / 0.7); }
+.trip-delete { display: grid; gap: 10px; justify-items: center; margin-top: 8px; }
+.trip-delete .kt-text-btn { padding: 10px 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.offer-danger-actions { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 8px; }

@@ -102,15 +102,10 @@ class OrderFlowTest {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");
 
-        JsonNode trips = body(get("/api/trips/me").header("Authorization", "Bearer " + traveler), 200);
-        long tripId = -1;
-        for (JsonNode tr : trips) {
-            if (java.time.LocalDate.parse(tr.get("departDate").asText()).isAfter(java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")))) {
-                tripId = tr.get("id").asLong();
-                break;
-            }
-        }
-        assertThat(tripId).isPositive();
+        java.time.LocalDate depart = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(10);
+        long tripId = body(post("/api/trips", traveler, """
+                {"countryCode":"JP","city":"Tokyo","departDate":"%s","returnDate":"%s"}
+                """.formatted(depart, depart.plusDays(5))), 201).get("id").asLong();
         JsonNode offer = body(post("/api/offers", traveler, """
                 {"tripId":%d,"productName":"Bought matcha","category":"Snacks","estPrice":12000,"reward":3000,
                  "quantity":1,"receiptUrl":"/uploads/receipt-test.png"}
@@ -291,12 +286,30 @@ class OrderFlowTest {
         return res.get("token").asText();
     }
 
+    /**
+     * A bookable offer in the country. Japan offers are always Kenji's, created fresh for the test, so flows
+     * where the traveler buys and hands over don't depend on how the demo data is arranged.
+     */
     private long firstBookableOffer(String country) throws Exception {
+        if ("JP".equals(country)) return kenjiOffer(null);
         JsonNode list = body(get("/api/offers").param("country", country), 200);
         for (JsonNode o : list) {
             if (o.get("bookable").asBoolean()) return o.get("id").asLong();
         }
         throw new AssertionError("No bookable offer in " + country);
+    }
+
+    /** Kenji posts a new Japan trip and an offer on it; returns the offer id. */
+    private long kenjiOffer(String receiptUrl) throws Exception {
+        String kenji = login("traveler@carrypick.test");
+        java.time.LocalDate depart = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(10);
+        long tripId = body(post("/api/trips", kenji, """
+                {"countryCode":"JP","city":"Tokyo","departDate":"%s","returnDate":"%s"}
+                """.formatted(depart, depart.plusDays(5))), 201).get("id").asLong();
+        return body(post("/api/offers", kenji, """
+                {"tripId":%d,"productName":"Tokyo Banana (8 pcs)","category":"Food","estPrice":12000,"reward":4000,
+                 "quantity":6,"weightGrams":300%s}
+                """.formatted(tripId, receiptUrl == null ? "" : ",\"receiptUrl\":\"" + receiptUrl + "\"")), 201).get("id").asLong();
     }
 
     private void pay(String token, long orderId, String paymentKey) throws Exception {
