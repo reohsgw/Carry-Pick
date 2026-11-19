@@ -123,3 +123,45 @@ export function weight(grams: number | null | undefined): string {
 export function maxReward(config: AppConfig | undefined, itemPrice: number): number {
   return Math.floor(itemPrice * (config?.maxRewardRate ?? 0.5));
 }
+
+/** Currency of a country, e.g. JP → JPY. */
+export function currencyOf(config: AppConfig | undefined, code: string): string {
+  return config?.countries?.find((c) => c.code === code)?.currency ?? 'KRW';
+}
+
+/** Digits after the decimal point for a currency: 0 for JPY/KRW/VND/IDR, 2 for USD/EUR/GBP. */
+export function currencyDecimals(currency: string): number {
+  if (['TWD', 'IDR', 'VND', 'JPY', 'KRW'].includes(currency)) return 0;
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? 2;
+  } catch { return 2; }
+}
+
+/** Amount in a foreign currency, e.g. "¥3,000", "$25.50", "฿300". */
+export function money(amount: number, currency: string): string {
+  if (currency === 'KRW') return `₩${Math.round(amount).toLocaleString('ko-KR')}`;
+  const decimals = Number.isInteger(amount) ? 0 : currencyDecimals(currency);
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency', currency, currencyDisplay: 'narrowSymbol', minimumFractionDigits: decimals, maximumFractionDigits: decimals,
+    }).format(amount);
+  } catch {
+    return `${amount.toLocaleString('en-US')} ${currency}`;
+  }
+}
+
+/** Symbol shown before an amount input, e.g. "¥", "$", "₩". */
+export function currencySymbol(currency: string): string {
+  if (currency === 'KRW') return '₩';
+  try {
+    const part = new Intl.NumberFormat('en-US', { style: 'currency', currency, currencyDisplay: 'narrowSymbol' })
+      .formatToParts(0).find((p) => p.type === 'currency');
+    return part?.value ?? currency;
+  } catch { return currency; }
+}
+
+/** A request's budget: in the country's currency with the won value, or just won for older requests. */
+export function budgetText(r: { maxBudget: number; budgetLocal?: number | null; budgetCurrency?: string | null }, lang: Lang): string {
+  if (r.budgetLocal == null || !r.budgetCurrency) return krw(r.maxBudget);
+  return `${money(r.budgetLocal, r.budgetCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(r.maxBudget)})`;
+}

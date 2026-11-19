@@ -60,7 +60,12 @@ export interface PurchaseRequest {
   maxBudget: number; reward: number; deadline: string;
   status: 'OPEN' | 'MATCHED' | 'EXPIRED' | 'CANCELLED'; quote: Quote; createdAt: string; orderId: number | null;
   product: Product | null; weightGrams: number | null;
+  /** The budget as typed in the country's currency, and the won-per-unit rate used. Null for won budgets. */
+  budgetCurrency: string | null; budgetLocal: number | null; fxRate: number | null;
 }
+
+/** Won per one unit of each currency, e.g. { JPY: 9.21 }. live is false when fixed fallback rates are used. */
+export interface FxRates { krwPerUnit: Record<string, number>; live: boolean; updatedAt: string | null }
 
 export interface PaymentRecord {
   id: number; type: 'INITIAL' | 'EXTRA' | 'REFUND'; amount: number;
@@ -219,6 +224,7 @@ export const api = {
   deleteTrip: (id: number) => del<void>(`/api/trips/${id}`),
 
   createRequest: (b: RequestInput) => post<PurchaseRequest>('/api/requests', b),
+  fx: () => get<FxRates>('/api/fx'),
   products: (q: string, country?: string) =>
     get<Product[]>('/api/products', { q, country: country && country !== 'ALL' ? country : undefined }),
   createProduct: (b: ProductInput) => post<Product>('/api/products', b),
@@ -296,7 +302,8 @@ export interface OfferInput {
 
 export interface RequestInput {
   countryCode: string; productName: string; productLink?: string; imageUrl?: string | null;
-  options?: string; note?: string; maxBudget: number; reward: number; deadline: string;
+  options?: string; note?: string; maxBudget?: number; reward: number; deadline: string;
+  budgetLocal?: number; budgetCurrency?: string;
   productId?: number | null;
   weightGrams?: number | null;
 }

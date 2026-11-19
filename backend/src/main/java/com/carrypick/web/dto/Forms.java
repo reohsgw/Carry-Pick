@@ -49,11 +49,15 @@ public final class Forms {
             @Size(max = 500) String imageUrl,
             @Size(max = 200) String options,
             @Size(max = 1000) String note,
-            @Positive long maxBudget,
+            /** Max budget in won. Optional when the budget is given in the country's currency (budgetLocal). */
+            @Positive Long maxBudget,
             @PositiveOrZero long reward,
             @NotNull LocalDate deadline,
             Long productId,
-            @Min(1) @Max(50000) Integer weightGrams) {}
+            @Min(1) @Max(50000) Integer weightGrams,
+            /** Max budget in the currency of the country the item is bought in, e.g. 3000 (JPY). */
+            @Positive @Digits(integer = 13, fraction = 2) java.math.BigDecimal budgetLocal,
+            @Size(max = 3) String budgetCurrency) {}
 
     public record ProductForm(
             @NotBlank @Size(max = 120) String name,

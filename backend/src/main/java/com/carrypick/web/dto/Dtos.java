@@ -52,7 +52,8 @@ public final class Dtos {
     public record RequestDto(Long id, PersonDto buyer, PersonDto traveler, String countryCode, String productName,
                              String productLink, String imageUrl, String options, String note, long maxBudget,
                              long reward, LocalDate deadline, RequestStatus status, Quote quote,
-                             Instant createdAt, Long orderId, ProductDto product, Integer weightGrams) {}
+                             Instant createdAt, Long orderId, ProductDto product, Integer weightGrams,
+                             String budgetCurrency, java.math.BigDecimal budgetLocal, Double fxRate) {}
 
     public record ProductDto(Long id, String name, String nameKo, String nameLocal, String aliases,
                              String category, String countryCode, Integer weightGrams) {

@@ -179,6 +179,44 @@ export function MoneyInput({ value, onChange, placeholder, required, id }: {
   );
 }
 
+/** Amount in a foreign currency: shows its symbol and allows decimals where the currency has them (e.g. $25.50). */
+export function CurrencyInput({ value, onChange, symbol, decimals, placeholder, required, id }: {
+  value: number | ''; onChange: (v: number | '') => void; symbol: string; decimals: number;
+  placeholder?: string; required?: boolean; id?: string;
+}) {
+  const format = (v: number | '') => (v === '' ? '' : v.toLocaleString('en-US', { maximumFractionDigits: decimals }));
+  const [text, setText] = useState(() => format(value));
+  // Follow value changes made from outside (e.g. a converted budget), keeping what the user is typing otherwise.
+  useEffect(() => {
+    const typed = text.replace(/,/g, '');
+    if (value === '' ? typed !== '' : Number(typed) !== value) setText(format(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, decimals]);
+  return (
+    <div className="money">
+      <span className="money-prefix" aria-hidden>{symbol}</span>
+      <input
+        id={id}
+        inputMode={decimals > 0 ? 'decimal' : 'numeric'}
+        required={required}
+        placeholder={placeholder}
+        value={text}
+        onChange={(e) => {
+          let raw = e.target.value.replace(/[^0-9.]/g, '');
+          if (decimals === 0) raw = raw.replace(/\./g, '');
+          const [int = '', frac] = raw.split('.');
+          const intPart = int.replace(/^0+(?=\d)/, '');
+          const cleaned = frac !== undefined ? `${intPart || '0'}.${frac.replace(/\./g, '').slice(0, decimals)}` : intPart;
+          setText(cleaned === '' ? '' : (frac !== undefined
+            ? `${Number(intPart || 0).toLocaleString('en-US')}.${cleaned.split('.')[1]}`
+            : Number(intPart).toLocaleString('en-US')));
+          onChange(cleaned === '' ? '' : Math.min(Number(cleaned), 1_000_000_000));
+        }}
+      />
+    </div>
+  );
+}
+
 const WEIGHT_PRESETS = [100, 300, 500, 1000, 2000];
 
 /** Estimated weight in grams, with quick presets. */

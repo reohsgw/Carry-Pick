@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronRight } from './icons';
 import type { Offer, Order, PurchaseRequest, Quote, Ranking } from '../api';
-import { countryName, dateTime, daysUntil, krw, shortDate, weight } from '../format';
+import { countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { Avatar, Code, ProductPhoto, ProductThumb, StatusBadge, Tag } from './ui';
@@ -117,7 +117,7 @@ export function RequestCard({ request, to }: { request: PurchaseRequest; to: str
           <div className="request-meta">
             <span>{countryName(config, request.countryCode, lang)} → {lang === 'ko' ? '한국' : 'Korea'}</span>
             <span>{t('orders.by', { date: shortDate(request.deadline, lang) })}{request.status === 'OPEN' && left >= 0 ? `, ${t('orders.daysLeft', { n: left })}` : ''}</span>
-            <span>{t('orders.budget', { amount: krw(request.maxBudget) })}</span>
+            <span>{t('orders.budget', { amount: budgetText(request, lang) })}</span>
             {request.weightGrams != null && <span>{t('w.approx', { w: weight(request.weightGrams) })}</span>}
           </div>
         </div>
@@ -171,7 +171,7 @@ export function RequestRow({ request, to }: { request: PurchaseRequest; to: stri
         </div>
       </div>
       <div className="row-end">
-        <strong className="amount">{krw(request.maxBudget)}</strong>
+        <strong className="amount">{budgetText(request, lang)}</strong>
         {request.status === 'OPEN'
           ? <span className="row-sub reward">{t('orders.rewardPlus', { amount: krw(request.reward) })}</span>
           : <Tag tone={request.status === 'MATCHED' ? 'progress' : 'neutral'}>{t(`req.status.${request.status}` as Key)}</Tag>}

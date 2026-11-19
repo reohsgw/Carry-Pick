@@ -5,7 +5,7 @@ import { api, type Order, type PurchaseRequest } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Avatar, Empty, ErrorBox, Loading, ProductThumb, StatusBadge, Tag } from '../components/ui';
-import { krw, shortDate } from '../format';
+import { krw, shortDate, budgetText } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { markOrderSeen, markRequestSeen, useOrderHasNews, useRequestIsNew } from '../seen';
 
@@ -201,7 +201,7 @@ function RequestTicket({ request, isNew }: { request: PurchaseRequest; isNew: bo
         <div className="ob-card-main">
           <div className="ob-title-row">
             <h3><Link to={to}>{request.productName}</Link></h3>
-            <strong className="ob-price">{krw(request.maxBudget)}</strong>
+            <strong className="ob-price">{budgetText(request, lang)}</strong>
           </div>
           <dl className="ob-facts">
             <div>

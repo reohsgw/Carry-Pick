@@ -43,14 +43,20 @@ public class ReceiptScanService {
             """;
 
     private final AppProperties.Ai cfg;
-    private final Map<String, Double> fx;
+    private final ExchangeRateService fx;
     private final ObjectMapper json;
     private final RestClient http = RestClient.create();
 
-    public ReceiptScanService(AppProperties props, ObjectMapper json) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public ReceiptScanService(AppProperties props, ObjectMapper json, ExchangeRateService fx) {
         this.cfg = props.ai();
-        this.fx = props.fx() == null ? Map.of() : props.fx();
+        this.fx = fx;
         this.json = json;
+    }
+
+    /** Fixed rates from config only (tests). */
+    public ReceiptScanService(AppProperties props, ObjectMapper json) {
+        this(props, json, ExchangeRateService.fixedOnly(props.fx()));
     }
 
     public ReceiptScan scan(MultipartFile image) {
@@ -200,7 +206,7 @@ public class ReceiptScanService {
                     cat));
         }
 
-        Double rate = currency == null ? null : fx.get(currency);
+        Double rate = currency == null ? null : fx.krwPerUnit(currency);
         Long totalKrw = (total != null && rate != null) ? Math.round(total * rate) : null;
         String note = text(n, "note");
         if (total != null && rate == null && currency != null) {

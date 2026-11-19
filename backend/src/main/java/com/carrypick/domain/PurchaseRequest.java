@@ -56,7 +56,28 @@ public class PurchaseRequest {
     @Column(length = 1000)
     private String excludedTravelers;
 
+    /** The budget as the buyer typed it, in the country's currency, and the rate used to turn it into won. */
+    @Column(length = 3)
+    private String budgetCurrency;
+    @Column(precision = 15, scale = 2)
+    private java.math.BigDecimal budgetLocal;
+    private Double fxRate;
+
     protected PurchaseRequest() {}
+
+    public void setLocalBudget(String currency, java.math.BigDecimal amount, double krwPerUnit) {
+        this.budgetCurrency = currency;
+        this.budgetLocal = amount;
+        this.fxRate = krwPerUnit;
+    }
+    /** Budget typed in the local currency; the won budget is derived from it at the given rate. */
+    public void useLocalBudget(String currency, java.math.BigDecimal amount, double krwPerUnit) {
+        setLocalBudget(currency, amount, krwPerUnit);
+        this.maxBudget = Math.round(amount.doubleValue() * krwPerUnit);
+    }
+    public String getBudgetCurrency() { return budgetCurrency; }
+    public java.math.BigDecimal getBudgetLocal() { return budgetLocal; }
+    public Double getFxRate() { return fxRate; }
 
     public PurchaseRequest(User buyer, String countryCode, String productName, String productLink, String imageUrl,
                            String options, String note, long maxBudget, long reward, LocalDate deadline) {

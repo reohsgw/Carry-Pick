@@ -32,10 +32,12 @@ public class DataSeeder implements ApplicationRunner {
     private final PasswordEncoder encoder;
     private final PricingService pricing;
     private final PaymentRepository payments;
+    private final com.carrypick.service.ExchangeRateService fx;
 
     public DataSeeder(AppProperties props, UserRepository users, TripRepository trips, OfferRepository offers,
                       RequestRepository requests, OrderRepository orders, SettlementRepository settlements,
-                      PasswordEncoder encoder, PricingService pricing, PaymentRepository payments) {
+                      PasswordEncoder encoder, PricingService pricing, PaymentRepository payments,
+                      com.carrypick.service.ExchangeRateService fx) {
         this.props = props;
         this.users = users;
         this.trips = trips;
@@ -46,6 +48,7 @@ public class DataSeeder implements ApplicationRunner {
         this.encoder = encoder;
         this.pricing = pricing;
         this.payments = payments;
+        this.fx = fx;
     }
 
     @Override
@@ -132,6 +135,8 @@ public class DataSeeder implements ApplicationRunner {
         requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, "demo:jim-thompson-scarf",
                 "Blue tones", null, 70000, 10000, today.plusDays(20)));
 
+        localBudgets();
+
         demoOrder(jun, tokyoBanana, 5);
         demoOrder(seoyeon, tokyoBanana, 3);
         demoOrder(jun, royce, 2);
@@ -191,6 +196,26 @@ public class DataSeeder implements ApplicationRunner {
             p.setStatus(PaymentStatus.SUCCESS);
             p.setCompletedAt(when);
             payments.save(p);
+        }
+    }
+
+    /**
+     * Demo requests show their budget the way a buyer types it now: a round amount in the country's currency
+     * (e.g. ¥3,100), converted to won at the current rate.
+     */
+    private void localBudgets() {
+        for (PurchaseRequest r : requests.findAll()) {
+            String currency = Countries.find(r.getCountryCode()).map(Countries.Country::currency).orElse(null);
+            Double rate = currency == null ? null : fx.krwPerUnit(currency);
+            if (rate == null || "KRW".equals(currency)) continue;
+            double step = switch (currency) {
+                case "JPY", "TWD" -> 100;
+                case "THB" -> 10;
+                case "VND", "IDR" -> 1000;
+                default -> 1;
+            };
+            double local = Math.max(step, Math.round(r.getMaxBudget() / rate / step) * step);
+            r.useLocalBudget(currency, java.math.BigDecimal.valueOf(local).stripTrailingZeros(), rate);
         }
     }
 

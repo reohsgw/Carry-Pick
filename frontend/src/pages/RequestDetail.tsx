@@ -6,7 +6,7 @@ import { api } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { ErrorBox, Field, KV, Loading, Notice, ProductThumb, Sheet, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, shortDate, weight } from '../format';
+import { countryName, daysUntil, krw, shortDate, weight, budgetText } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { PayoutRequired } from '../components/payout';
@@ -95,7 +95,7 @@ export default function RequestDetail() {
                       </select>
                     </Field>
                   )}
-                  <p className="fine">{t('rd.rules', { budget: krw(r.maxBudget), reward: krw(r.reward) })}</p>
+                  <p className="fine">{t('rd.rules', { budget: budgetText(r, lang), reward: krw(r.reward) })}</p>
                 </Sheet>
               )
             )}
@@ -123,7 +123,7 @@ export default function RequestDetail() {
               <a href={r.productLink} target="_blank" rel="noreferrer" className="link">{t('rd.open')} <ExternalLink size={14} aria-hidden /></a>
             </KV>
           )}
-          <KV label={t('rd.budget')}><strong className="amount">{krw(r.maxBudget)}</strong></KV>
+          <KV label={t('rd.budget')}><strong className="amount">{budgetText(r, lang)}</strong></KV>
           <KV label={t('rd.reward')}><strong className="amount reward">{krw(r.reward)}</strong></KV>
         </Sheet>
         {r.note && <p className="quote">{r.note}</p>}

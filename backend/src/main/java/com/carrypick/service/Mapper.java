@@ -41,7 +41,8 @@ public class Mapper {
         return new RequestDto(r.getId(), PersonDto.of(r.getBuyer()), PersonDto.of(r.getTraveler()),
                 r.getCountryCode(), r.getProductName(), r.getProductLink(), r.getImageUrl(), r.getOptions(),
                 r.getNote(), r.getMaxBudget(), r.getReward(), r.getDeadline(), r.getStatus(),
-                pricing.quote(r.getMaxBudget(), r.getReward()), r.getCreatedAt(), orderId, ProductDto.of(r.getProduct()), r.getWeightGrams());
+                pricing.quote(r.getMaxBudget(), r.getReward()), r.getCreatedAt(), orderId, ProductDto.of(r.getProduct()), r.getWeightGrams(),
+                r.getBudgetCurrency(), r.getBudgetLocal(), r.getFxRate());
     }
 
     public OrderDto order(Order o, Long viewerId) {

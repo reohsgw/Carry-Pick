@@ -1,12 +1,12 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
-import { isoDay, krw, maxReward, quote } from '../format';
+import { CurrencyInput, Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 import { markRequestSeen } from '../seen';
@@ -29,7 +29,34 @@ export default function NewRequest() {
   const [imageUrl, setImage] = useState<string | null>(() => params.get('img'));
   const [options, setOptions] = useState('');
   const [note, setNote] = useState('');
-  const [maxBudget, setBudget] = useState<number | ''>(() => Number(params.get('budget')) || '');
+  // The budget is entered in the currency of the country the item is bought in; won is shown alongside.
+  const [budgetLocal, setBudgetLocal] = useState<number | ''>('');
+  const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
+  const currency = currencyOf(config, countryCode);
+  const decimals = currencyDecimals(currency);
+  const rate = currency === 'KRW' ? 1 : rates.data?.krwPerUnit[currency];
+  const toLocal = (won: number, r: number) => {
+    const f = 10 ** decimals;
+    return Math.max(1 / f, Math.round((won / r) * f) / f);
+  };
+  // A budget suggested in won (from the ranking) is shown in the local currency once rates arrive.
+  const suggestedWon = useRef(Number(params.get('budget')) || 0);
+  useEffect(() => {
+    if (suggestedWon.current && rate) { setBudgetLocal(toLocal(suggestedWon.current, rate)); suggestedWon.current = 0; }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rate]);
+  // Changing the country keeps the same won value, now in the new currency.
+  const lastCountry = useRef(countryCode);
+  const lastRate = useRef<number | undefined>(rate);
+  useEffect(() => {
+    if (lastCountry.current !== countryCode && budgetLocal !== '' && lastRate.current && rate) {
+      setBudgetLocal(toLocal(Number(budgetLocal) * lastRate.current, rate));
+    }
+    lastCountry.current = countryCode;
+    lastRate.current = rate;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countryCode, rate]);
+  const maxBudget: number | '' = budgetLocal === '' || !rate ? '' : Math.round(Number(budgetLocal) * rate);
   const [reward, setReward] = useState<number | ''>(5000);
   const [deadline, setDeadline] = useState(isoDay(30));
   const [weightGrams, setWeight] = useState<number | ''>(() => Number(params.get('weight')) || '');
@@ -39,7 +66,10 @@ export default function NewRequest() {
     mutationFn: () =>
       api.createRequest({
         countryCode, productName, productLink, imageUrl, options, note,
-        maxBudget: Number(maxBudget), reward: Number(reward || 0), deadline, productId,
+        ...(currency === 'KRW'
+          ? { maxBudget: Number(maxBudget) }
+          : { budgetLocal: Number(budgetLocal), budgetCurrency: currency }),
+        reward: Number(reward || 0), deadline, productId,
         weightGrams: weightGrams === '' ? null : weightGrams,
       }),
     onSuccess: (r) => {
@@ -128,9 +158,16 @@ export default function NewRequest() {
 
         <Sheet title={t('req.secPrice')}>
           <div className="stack">
-            <Field label={t('req.budget')} hint={t('req.budgetHint')}>
-              <MoneyInput value={maxBudget} onChange={setBudget} required placeholder="50,000" />
+            <Field label={currency === 'KRW' ? t('req.budget') : t('req.budgetIn', { cur: currency })}
+              hint={maxBudget !== '' && currency !== 'KRW' && rate
+                ? t('req.budgetKrw', { amount: krw(maxBudget), cur: currency, rate: rate.toLocaleString('ko-KR', { maximumFractionDigits: rate < 1 ? 4 : 2 }), source: t(rates.data?.live ? 'fx.live' : 'fx.fixed') })
+                : t('req.budgetHint')}>
+              {currency === 'KRW'
+                ? <MoneyInput value={budgetLocal} onChange={setBudgetLocal} required placeholder="50,000" />
+                : <CurrencyInput value={budgetLocal} onChange={setBudgetLocal} symbol={currencySymbol(currency)} decimals={decimals} required
+                    placeholder={decimals > 0 ? '30.00' : (rate ? toLocal(50000, rate) : 5000).toLocaleString('en-US', { maximumFractionDigits: 0 })} />}
             </Field>
+            {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
             <Field label={t('req.reward')} error={rewardOver}
               hint={maxBudget ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : t('reward.rule', { pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) })}>
               <MoneyInput value={reward} onChange={setReward} placeholder="5,000" />

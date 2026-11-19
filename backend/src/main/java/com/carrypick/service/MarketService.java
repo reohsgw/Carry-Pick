@@ -39,10 +39,12 @@ public class MarketService {
     private final Mapper mapper;
     private final ProductService catalog;
     private final PricingService pricing;
+    private final ExchangeRateService fx;
 
     public MarketService(TripRepository trips, OfferRepository offers, RequestRepository requests,
                          OrderRepository orders, AuthService auth, Mapper mapper, ProductService catalog,
-                         PricingService pricing) {
+                         PricingService pricing, ExchangeRateService fx) {
+        this.fx = fx;
         this.trips = trips;
         this.offers = offers;
         this.requests = requests;
@@ -151,10 +153,29 @@ public class MarketService {
         if (f.deadline().isBefore(Today.get().plusDays(1))) {
             throw ApiException.badRequest("DEADLINE", "Deadline must be at least tomorrow");
         }
-        pricing.checkReward(f.maxBudget(), f.reward());
-        PurchaseRequest r = requests.save(new PurchaseRequest(me, f.countryCode().toUpperCase(),
+        // The buyer gives the budget in the country's currency; the server converts it at today's rate.
+        String currency = Countries.find(f.countryCode()).map(Countries.Country::currency).orElse("KRW");
+        Double rate = null;
+        long maxBudget;
+        if (f.budgetLocal() != null) {
+            if (f.budgetCurrency() != null && !f.budgetCurrency().equalsIgnoreCase(currency)) {
+                throw ApiException.badRequest("BUDGET_CURRENCY", "The budget must be in " + currency);
+            }
+            rate = fx.krwPerUnit(currency);
+            if (rate == null) throw ApiException.badRequest("FX_UNAVAILABLE", "No exchange rate for " + currency);
+            maxBudget = Math.round(f.budgetLocal().doubleValue() * rate);
+        } else if (f.maxBudget() != null) {
+            maxBudget = f.maxBudget();
+        } else {
+            throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
+        }
+        if (maxBudget <= 0) throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
+        pricing.checkReward(maxBudget, f.reward());
+        PurchaseRequest r = new PurchaseRequest(me, f.countryCode().toUpperCase(),
                 f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
-                blankToNull(f.options()), blankToNull(f.note()), f.maxBudget(), f.reward(), f.deadline()));
+                blankToNull(f.options()), blankToNull(f.note()), maxBudget, f.reward(), f.deadline());
+        if (rate != null) r.setLocalBudget(currency, f.budgetLocal(), rate);
+        r = requests.save(r);
         r.setProduct(catalog.resolve(f.productId(), r.getProductName(), null, r.getCountryCode()));
         r.setWeightGrams(weightOr(f.weightGrams(), r.getProduct()));
         learnWeight(r.getProduct(), f.weightGrams());
