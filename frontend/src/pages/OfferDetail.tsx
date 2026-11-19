@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ArrowRight, Check, Minus, Plus, ShieldCheck } from '../components/icons';
+import { ArrowRight, Minus, Plane, Plus } from '../components/icons';
 import { api, assetUrl } from '../api';
-import { firstName, ReceiptStrip, useRoute } from '../components/cards';
+import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
-import { Avatar, ErrorBox, KV, Loading, Mascot, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
+import { FxBox } from '../components/FxBox';
+import { Avatar, ErrorBox, Loading, Mascot, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
 import { countryName, daysUntil, krw, quote, shortDate, weight, money, offerPriceText } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -15,9 +16,9 @@ export default function OfferDetail() {
   const { config, user } = useSession();
   const { t, lang } = useI18n();
   const errText = useErrorText();
-  const route = useRoute();
   const navigate = useNavigate();
   const offer = useQuery({ queryKey: ['offer', id], queryFn: () => api.offer(id) });
+  const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
   const [qty, setQty] = useState(1);
   const location = useLocation();
   // Just posted from the offer form: celebrate once, then drop the flag so a refresh doesn't show it again.
@@ -37,6 +38,9 @@ export default function OfferDetail() {
   const o = offer.data;
   const mine = user?.id === o.traveler.id;
   const q = quote(config, o.estPrice * qty, o.reward * qty);
+  // Priced in the trip country's currency: show that amount and its won value for the chosen quantity.
+  const local = o.priceLocal != null && o.priceCurrency && o.priceCurrency !== 'KRW' ? { amount: Number(o.priceLocal), currency: o.priceCurrency } : null;
+  const fxRate = local ? (rates.data?.krwPerUnit[local.currency] ?? o.estPrice / local.amount) : 0;
   const closesIn = daysUntil(o.trip.returnDate) - 1; // last booking day is the day before they return
   const country = countryName(config, o.countryCode, lang);
   const cat = o.category ? t(`cat.${o.category}` as Key) : '';
@@ -68,7 +72,12 @@ export default function OfferDetail() {
                   </div>
                 )}
               </div>
-              <ReceiptStrip quote={q} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: offerPriceText(o, lang) })} />
+              {local && (
+                <FxBox amount={local.amount * qty} currency={local.currency} won={o.estPrice * qty} rate={fxRate}
+                  source={rates.data?.live ? 'live' : 'fixed'} fromLabel={o.receiptUrl ? 'fx.boughtPrice' : 'fx.itemPrice'}
+                  note={o.receiptUrl ? undefined : t('fx.bookNote')} />
+              )}
+              <ReceiptStrip quote={q} budgetLabel={local ? `${t(o.receiptUrl ? 'price.itemPaid' : 'price.itemEstimate')} · ${money(local.amount * qty, local.currency)}` : undefined} note={o.receiptUrl ? t('offer.boughtNote') : t('offer.costNote', { price: offerPriceText(o, lang) })} />
               <div className="od-tip">
                 <Mascot mood="love" size={52} />
                 <p>{o.bookable ? t('offer.tipBook', { date: shortDate(o.trip.returnDate, lang) }) : t('offer.tipClosed')}</p>
@@ -92,40 +101,46 @@ export default function OfferDetail() {
           </div>
         </div>
 
-        <div className="od-facts">
-          <div>
-            <span>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</span>
+        {/* One boarding pass: who is carrying it, where from, when it lands, and the price stub. */}
+        <section className="od-pass" aria-label={t('offer.trip')}>
+          <div className="od-pass-main">
+            <div className="od-pass-head">
+              <Avatar name={o.traveler.name} src={o.traveler.avatarUrl} />
+              <div className="od-pass-who">
+                <small>{t('pass.carrier')}</small>
+                <p>{firstName(o.traveler.name)}</p>
+              </div>
+              <div className="od-pass-tags">
+                {o.receiptUrl && <Tag tone="good">{t('offer.bought')}</Tag>}
+                {!o.bookable && <Tag>{o.status === 'SOLD_OUT' ? t('offer.soldOut') : t('offer.closed')}</Tag>}
+                {o.bookable && closesIn <= 7 && <Tag tone="action">{closesIn <= 0 ? t('offer.closesToday') : t('offer.closesIn', { n: closesIn })}</Tag>}
+              </div>
+            </div>
+            <div className="od-pass-route">
+              <div>
+                <small>{t('pass.from')}</small>
+                <strong>{o.trip.city ?? country}</strong>
+                <span>{shortDate(o.trip.departDate, lang)} – {shortDate(o.trip.returnDate, lang)}</span>
+              </div>
+              <div className="od-pass-line" aria-hidden><Plane size={18} /></div>
+              <div className="is-to">
+                <small>{t('pass.to')}</small>
+                <strong>{lang === 'ko' ? '서울' : 'Seoul'}</strong>
+                <span>{t('offer.deliveryValue', { date: shortDate(o.trip.returnDate, lang) })}</span>
+              </div>
+            </div>
+            <dl className="od-pass-fields">
+              <div><dt>{t('card.reward')}</dt><dd className="is-reward">{krw(o.reward)}</dd></div>
+              <div><dt>{t('offer.leftLabel')}</dt><dd>{o.quantity}</dd></div>
+              {o.weightGrams != null && <div><dt>{t('w.label')}</dt><dd>{weight(o.weightGrams)}</dd></div>}
+              {o.trip.luggageNote && <div className="is-wide"><dt>{t('offer.luggage')}</dt><dd>{o.trip.luggageNote}</dd></div>}
+            </dl>
+          </div>
+          <div className="od-pass-stub">
+            <small>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</small>
             <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
-            {o.priceLocal != null && o.priceCurrency && <small className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</small>}
+            {o.priceLocal != null && o.priceCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</span>}
           </div>
-          <div><span>{t('card.reward')}</span><strong>{krw(o.reward)}</strong></div>
-          <div><span>{t('offer.leftLabel')}</span><strong>{o.quantity}</strong></div>
-          {o.weightGrams != null && <div><span>{t('w.label')}</span><strong>{weight(o.weightGrams)}</strong></div>}
-        </div>
-
-        <div className="trust-row">
-          <span><ShieldCheck size={16} /> {t('offer.trust2')}</span>
-          <span><Check size={16} /> {t('offer.trust1')}</span>
-          {o.receiptUrl && <Tag tone="good">{t('offer.bought')}</Tag>}
-          {!o.bookable && <Tag>{o.status === 'SOLD_OUT' ? t('offer.soldOut') : t('offer.closed')}</Tag>}
-          {o.bookable && closesIn <= 7 && <Tag tone="action">{closesIn <= 0 ? t('offer.closesToday') : t('offer.closesIn', { n: closesIn })}</Tag>}
-        </div>
-
-        <section className="card od-traveler">
-          <div className="person" style={{ marginBottom: 14 }}>
-            <Avatar name={o.traveler.name} src={o.traveler.avatarUrl} />
-            <div>
-              <p>{firstName(o.traveler.name)}</p>
-              <small>{route(o.trip.city, o.countryCode)}</small>
-            </div>
-            <div className="od-traveler-say">
-              <Mascot mood="shop" size={64} />
-              <p>{t('offer.whaleSay', { name: firstName(o.traveler.name), city: o.trip.city ?? country })}</p>
-            </div>
-          </div>
-          <KV label={t('offer.trip')}>{o.trip.city ?? country}, {shortDate(o.trip.departDate, lang)} – {shortDate(o.trip.returnDate, lang)}</KV>
-          <KV label={t('offer.delivery')}>{t('offer.deliveryValue', { date: shortDate(o.trip.returnDate, lang) })}</KV>
-          {o.trip.luggageNote && <KV label={t('offer.luggage')}>{o.trip.luggageNote}</KV>}
         </section>
 
         {book.error && <Notice tone="bad">{errText(book.error)}</Notice>}

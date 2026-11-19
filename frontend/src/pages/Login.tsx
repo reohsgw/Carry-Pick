@@ -1,19 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight, Plane, ShoppingBag } from '../components/icons';
+import { ArrowRight } from '../components/icons';
 import { api } from '../api';
 import { Wordmark } from '../components/Layout';
 import { Field, Notice } from '../components/ui';
 import { LangToggle, useErrorText, useI18n } from '../i18n';
-import taipei from '../assets/login-taipei.webp';
-import newyork from '../assets/login-newyork.webp';
-import bali from '../assets/login-bali.webp';
-import bangkok from '../assets/login-bangkok.webp';
-import hoian from '../assets/login-hoian.webp';
-import paris from '../assets/login-paris.webp';
-import london from '../assets/login-london.webp';
-import tokyo from '../assets/login-tokyo.webp';
-import { HERO_LANDMARKS } from '../images';
 import { useSession } from '../session';
 
 const DEMO_PASSWORD = 'carrypick123';
@@ -53,10 +44,7 @@ export default function Login() {
   const signup = tab === 'signup';
 
   return (
-    <div className="auth">
-      <div className="auth-photo">
-        <CitySlides />
-      </div>
+    <div className="auth auth--solo">
 
       <div className="auth-body lg-form">
         <div className="lg-lang lg-brand"><Wordmark /><LangToggle /></div>
@@ -93,68 +81,18 @@ export default function Login() {
         </form>
 
         {!signup && (
-          <div className="lg-demo">
-            <p className="lg-or"><span>{t('login.demo')}</span></p>
-            <div className="lg-demo-row">
-              <button type="button" disabled={busy}
-                onClick={() => submit(undefined, { email: 'buyer@carrypick.test', password: DEMO_PASSWORD })}>
-                <span className="lg-demo-icon"><ShoppingBag size={18} aria-hidden /></span>
-                <span><b>{t('login.demoBuyer')}</b><small>{t('login.demoBuyerSub')}</small></span>
-              </button>
-              <button type="button" disabled={busy}
-                onClick={() => submit(undefined, { email: 'traveler@carrypick.test', password: DEMO_PASSWORD })}>
-                <span className="lg-demo-icon"><Plane size={18} aria-hidden /></span>
-                <span><b>{t('login.demoTraveler')}</b><small>{t('login.demoTravelerSub')}</small></span>
-              </button>
-            </div>
-          </div>
+          <p className="lg-try">
+            <span>{t('login.tryAs')}</span>
+            <button type="button" disabled={busy}
+              onClick={() => submit(undefined, { email: 'buyer@carrypick.test', password: DEMO_PASSWORD })}>{t('login.asMinji')}</button>
+            <span aria-hidden>·</span>
+            <button type="button" disabled={busy}
+              onClick={() => submit(undefined, { email: 'traveler@carrypick.test', password: DEMO_PASSWORD })}>{t('login.asKenji')}</button>
+          </p>
         )}
 
         <p className="lg-fine">{t('login.trust2')}</p>
       </div>
     </div>
   );
-}
-
-const SLIDES = [
-  { src: tokyo, city: 'Tokyo', code: 'JP' },
-  { src: paris, city: 'Paris', code: 'FR' },
-  { src: newyork, city: 'New York', code: 'US' },
-  { src: london, city: 'London', code: 'GB' },
-  { src: bangkok, city: 'Bangkok', code: 'TH' },
-  { src: taipei, city: 'Taipei', code: 'TW' },
-  { src: hoian, city: 'Hoi An', code: 'VN' },
-  { src: bali, city: 'Bali', code: 'ID' },
-];
-const SLIDE_MS = 2000;
-
-/** The same three friends walking through a different city every few seconds, cross-fading. */
-function CitySlides() {
-  const { lang } = useI18n();
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const id = window.setInterval(() => setI((n) => (n + 1) % SLIDES.length), SLIDE_MS);
-    return () => window.clearInterval(id);
-  }, []);
-  return (
-    <div className="city-slides" aria-hidden>
-      {SLIDES.map((sl, n) => (
-        <img
-          key={sl.city}
-          src={sl.src}
-          alt=""
-          className={n === i ? 'is-on' : ''}
-          loading={n === 0 ? 'eager' : 'lazy'}
-          decoding="async"
-        />
-      ))}
-      <span className="city-tag">✈ {countryLabel(SLIDES[i].code, lang)}</span>
-    </div>
-  );
-}
-
-function countryLabel(code: string, lang: string): string {
-  const c = HERO_LANDMARKS.find((x) => x.code === code);
-  if (!c) return code;
-  return lang === 'ko' ? c.nameKo : c.name;
 }
