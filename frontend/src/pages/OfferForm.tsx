@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapPinned, Receipt, ShoppingBag } from '../components/icons';
@@ -8,7 +8,7 @@ import { ReceiptStrip } from '../components/cards';
 import { ReceiptCapture } from '../components/receipt';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { CurrencyInput, Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { DualMoneyInput, Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { CATEGORIES, cityCode, currencyDecimals, currencyOf, currencySymbol, daysUntil, krw, maxReward, money, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -38,8 +38,6 @@ export default function OfferForm() {
   const [description, setDescription] = useState('');
   const [imageUrl, setImage] = useState<string | null>(null);
   // Price per item in the trip country's currency (e.g. ¥1,500); its won value follows today's rate.
-  const [price, setPrice] = useState<number | ''>('');
-  const pendingWon = useRef(0);
   const [reward, setReward] = useState<number | ''>(5000);
   const [quantity, setQuantity] = useState(1);
   const [bought, setBought] = useState(false);
@@ -57,7 +55,7 @@ export default function OfferForm() {
     if (!o) return;
     setTripId(o.trip.id); setName(o.productName); setProductId(o.product?.id ?? null); setStore(o.store ?? ''); setCategory(o.category ?? 'Other');
     setDescription(o.description ?? ''); setImage(o.imageUrl); setReward(o.reward);
-    if (o.priceLocal != null) setPrice(Number(o.priceLocal)); else pendingWon.current = o.estPrice;
+    if (o.priceLocal != null) price.setLocal(Number(o.priceLocal)); else price.setWon(o.estPrice);
     setQuantity(Math.max(o.quantity, 1));
     setBought(!!o.receiptUrl); setReceipt(o.receiptUrl); setSavedReceipt(o.receiptUrl);
     setWeight(o.weightGrams ?? '');
@@ -73,13 +71,10 @@ export default function OfferForm() {
   const rate = currency === 'KRW' ? 1 : rates.data?.krwPerUnit[currency];
   const local = currency !== 'KRW' && !!rate;
   const roundLocal = (v: number) => { const f = 10 ** decimals; return Math.round(v * f) / f; };
+  // Price per item, typed in the trip country's currency or in won (switch on the box).
+  const price = useDualAmount(local ? rate : null, decimals);
   // Won price of one item (used for the price summary and the reward cap).
-  const estPrice: number | '' = price === '' ? '' : currency === 'KRW' ? Number(price) : rate ? Math.round(Number(price) * rate) : '';
-  // An older offer priced only in won is shown in the local currency once rates arrive.
-  useEffect(() => {
-    if (pendingWon.current && rate && currency !== 'KRW') { setPrice(roundLocal(pendingWon.current / rate)); pendingWon.current = 0; }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rate, currency]);
+  const estPrice: number | '' = local ? price.won : price.amount;
   useEffect(() => {
     if (tripId === '' && futureTrips.length > 0 && !editId) setTripId(futureTrips[0].id);
   }, [futureTrips, tripId, editId]);
@@ -88,7 +83,8 @@ export default function OfferForm() {
     mutationFn: () => {
       const body = {
         tripId: Number(tripId), productName, store, category, description, imageUrl,
-        ...(local ? { priceLocal: Number(price), priceCurrency: currency } : { estPrice: Number(price) }),
+        // Typed in won → sent in won (the server stores the local price too); typed in ¥ → sent in ¥.
+        ...(local && price.mode === 'local' ? { priceLocal: Number(price.amount), priceCurrency: currency } : { estPrice: Number(estPrice) }),
         reward: Number(reward || 0), quantity,
         receiptUrl: bought ? receiptUrl : null, productId,
         weightGrams: weightGrams === '' ? null : weightGrams,
@@ -122,7 +118,10 @@ export default function OfferForm() {
     ? (local ? (receiptScan.currency === currency ? receiptScan.total : null) : receiptScan.totalKrw)
     : null;
   useEffect(() => {
-    if (bought && receiptTotal != null) setPrice(local ? roundLocal(receiptTotal / Math.max(quantity, 1)) : Math.round(receiptTotal / Math.max(quantity, 1)));
+    if (bought && receiptTotal != null) {
+      if (local) price.setLocal(roundLocal(receiptTotal / Math.max(quantity, 1)));
+      else price.setAmount(Math.round(receiptTotal / Math.max(quantity, 1)));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quantity, receiptTotal, bought]);
 
@@ -145,9 +144,9 @@ export default function OfferForm() {
   // "Already bought" needs an AI-checked receipt. A receipt saved earlier on this offer still counts.
   const receiptChecked = !!receiptScan || (!!receiptUrl && !receiptFile && receiptUrl === savedReceipt);
   const receiptReady = !bought || (!!receiptUrl && receiptChecked && !receiptUploading);
-  const enteredTotal = Number(price || 0) * quantity;
+  const enteredTotal = Number(price.local || 0) * quantity;
   const scanTotal = receiptTotal;
-  const receiptMismatch = bought && scanTotal != null && price !== ''
+  const receiptMismatch = bought && scanTotal != null && price.amount !== ''
     && Math.abs(enteredTotal - scanTotal) > Math.max(local ? 1 : 1000, scanTotal * 0.05);
   const showAmount = (v: number) => (local ? money(v, currency) : krw(v));
   const scanCurrencyOff = bought && local && !!receiptScan && !receiptScan.mock && !!receiptScan.currency && receiptScan.currency !== currency;
@@ -279,15 +278,17 @@ export default function OfferForm() {
               </div>
             )}
             <Field
-              label={local ? t(bought ? 'of.boughtPriceIn' : 'of.priceIn', { cur: currency }) : bought ? t('of.boughtPrice') : t('of.price')}
+              label={bought ? t('of.boughtPrice') : t('of.price')}
               hint={local ? t(bought ? 'of.boughtPriceHintLocal' : 'of.priceHintLocal') : bought ? t('of.boughtPriceHint') : t('of.priceHint')}>
               {local
-                ? <CurrencyInput value={price} onChange={setPrice} symbol={currencySymbol(currency)} decimals={decimals} required placeholder="5,000" />
-                : <MoneyInput value={price} onChange={setPrice} required placeholder="20,000" />}
+                ? <DualMoneyInput dual={price} currency={currency} symbol={currencySymbol(currency)} decimals={decimals} required
+                    placeholder="5,000" wonPlaceholder="20,000" />
+                : <MoneyInput value={price.amount} onChange={price.setAmount} required placeholder="20,000" />}
             </Field>
             {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
-            {local && price !== '' && estPrice !== '' && (
-              <FxBox amount={Number(price)} currency={currency} won={estPrice} rate={rate ?? 0} source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.offerNote')} />
+            {local && price.local !== '' && estPrice !== '' && (
+              <FxBox amount={Number(price.local)} currency={currency} won={estPrice} rate={rate ?? 0} typedWon={price.mode === 'won'}
+                source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.offerNote')} />
             )}
             <div className="two-col">
               <Field label={t('of.reward')} error={rewardOver}

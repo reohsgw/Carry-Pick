@@ -369,3 +369,80 @@ export function Avatar({ name, src, className = '', size }: {
     </span>
   );
 }
+
+/** Which currency a person types amounts in on foreign-currency fields. Remembered across fields and visits. */
+export type MoneyMode = 'local' | 'won';
+const MONEY_MODE_KEY = 'carrypick.moneyMode';
+function readMoneyMode(): MoneyMode {
+  try { return localStorage.getItem(MONEY_MODE_KEY) === 'won' ? 'won' : 'local'; } catch { return 'local'; }
+}
+
+export interface DualAmount {
+  mode: MoneyMode;
+  setMode: (m: MoneyMode) => void;
+  /** What is in the box, in the box's currency. */
+  amount: number | '';
+  setAmount: (v: number | '') => void;
+  /** The amount in the local currency (exact when typed in won; rounded only for display). */
+  local: number | '';
+  won: number | '';
+  /** Set from a local-currency value (a receipt scan, a saved price), whatever the box shows. */
+  setLocal: (v: number | '') => void;
+  /** Set from a won value (a suggested budget). */
+  setWon: (v: number | '') => void;
+}
+
+/**
+ * An amount that can be typed in the trip country's currency or in won. The other one follows from `rate`
+ * (won per unit). Without a rate the box stays in the local currency.
+ */
+export function useDualAmount(rate: number | undefined | null, decimals: number): DualAmount {
+  const [pref, setPref] = useState<MoneyMode>(readMoneyMode);
+  // The amount and the currency it is in. Kept together so a value set before rates arrive is converted later.
+  const [state, setState] = useState<{ v: number | ''; m: MoneyMode }>({ v: '', m: 'local' });
+  const mode: MoneyMode = rate ? pref : 'local';
+  const roundLocal = (v: number) => { const f = 10 ** decimals; return Math.round(v * f) / f; };
+  const convert = (v: number | '', from: MoneyMode, to: MoneyMode) =>
+    v === '' || from === to || !rate ? v : to === 'won' ? Math.round(v * rate) : roundLocal(v / rate);
+  useEffect(() => {
+    if (state.m !== mode && rate) setState((s) => ({ v: convert(s.v, s.m, mode), m: mode }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, rate]);
+  const amount = state.m === mode ? state.v : convert(state.v, state.m, mode);
+  const local = amount === '' ? '' : mode === 'local' ? amount : rate ? amount / rate : '';
+  const won = amount === '' || !rate ? '' : mode === 'won' ? amount : Math.round(amount * rate);
+  return {
+    mode, amount, local, won,
+    setAmount: (v) => setState({ v, m: mode }),
+    setMode: (m) => {
+      if (m === mode) return;
+      setPref(m);
+      try { localStorage.setItem(MONEY_MODE_KEY, m); } catch { /* private mode */ }
+    },
+    setLocal: (v) => setState({ v, m: 'local' }),
+    setWon: (v) => setState({ v, m: 'won' }),
+  };
+}
+
+/** Money box with a JPY / KRW switch on the right. */
+export function DualMoneyInput({ dual, currency, symbol, decimals, required, placeholder, wonPlaceholder, id }: {
+  dual: DualAmount; currency: string; symbol: string; decimals: number;
+  required?: boolean; placeholder?: string; wonPlaceholder?: string; id?: string;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="money-dual">
+      {dual.mode === 'won'
+        ? <MoneyInput id={id} value={dual.amount} onChange={dual.setAmount} required={required} placeholder={wonPlaceholder} />
+        : <CurrencyInput id={id} value={dual.amount} onChange={dual.setAmount} symbol={symbol} decimals={decimals} required={required} placeholder={placeholder} />}
+      <div className="money-switch" role="radiogroup" aria-label={t('fx.enterIn')}>
+        {(['local', 'won'] as const).map((m) => (
+          <button key={m} type="button" role="radio" aria-checked={dual.mode === m} className={dual.mode === m ? 'is-on' : ''}
+            onClick={() => dual.setMode(m)}>
+            {m === 'won' ? 'KRW' : currency}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

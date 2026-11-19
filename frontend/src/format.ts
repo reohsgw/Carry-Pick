@@ -171,3 +171,8 @@ export function offerPriceText(o: { estPrice: number; priceLocal?: number | null
   if (o.priceLocal == null || !o.priceCurrency) return krw(o.estPrice);
   return `${money(Number(o.priceLocal), o.priceCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(o.estPrice)})`;
 }
+
+/** Koreans quote yen, rupiah and dong per 100 units (100엔 = ₩936), everything else per 1. */
+export function rateUnit(currency: string): number {
+  return currency === 'JPY' || currency === 'IDR' || currency === 'VND' ? 100 : 1;
+}

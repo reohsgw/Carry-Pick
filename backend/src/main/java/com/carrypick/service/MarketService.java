@@ -161,6 +161,14 @@ public class MarketService {
             return new PriceIn(Math.round(f.priceLocal().doubleValue() * rate), currency, f.priceLocal(), rate);
         }
         if (f.estPrice() == null) throw ApiException.badRequest("PRICE", "Enter a price");
+        // Typed in won for a foreign trip: stored in the local currency too, so buyers see ¥ and orders lock it.
+        if (!"KRW".equals(currency) && f.estPrice() > 0) {
+            Double rate = fx.krwPerUnit(currency);
+            if (rate != null) {
+                java.math.BigDecimal local = Order.fromWon(f.estPrice(), rate);
+                if (local.signum() > 0) return new PriceIn(f.estPrice(), currency, local, rate);
+            }
+        }
         return new PriceIn(f.estPrice(), null, null, 0);
     }
 
@@ -178,6 +186,7 @@ public class MarketService {
         // The buyer gives the budget in the country's currency; the server converts it at today's rate.
         String currency = Countries.find(f.countryCode()).map(Countries.Country::currency).orElse("KRW");
         Double rate = null;
+        java.math.BigDecimal wonBudgetLocal = null;
         long maxBudget;
         if (f.budgetLocal() != null) {
             if (f.budgetCurrency() != null && !f.budgetCurrency().equalsIgnoreCase(currency)) {
@@ -187,7 +196,12 @@ public class MarketService {
             if (rate == null) throw ApiException.badRequest("FX_UNAVAILABLE", "No exchange rate for " + currency);
             maxBudget = Math.round(f.budgetLocal().doubleValue() * rate);
         } else if (f.maxBudget() != null) {
+            // Typed in won: the won budget stays exact and the local limit is its value at today's rate.
             maxBudget = f.maxBudget();
+            if (!"KRW".equals(currency) && maxBudget > 0) {
+                Double r = fx.krwPerUnit(currency);
+                if (r != null) { rate = r; wonBudgetLocal = Order.fromWon(maxBudget, r); }
+            }
         } else {
             throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
         }
@@ -196,7 +210,7 @@ public class MarketService {
         PurchaseRequest r = new PurchaseRequest(me, f.countryCode().toUpperCase(),
                 f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
                 blankToNull(f.options()), blankToNull(f.note()), maxBudget, f.reward(), f.deadline());
-        if (rate != null) r.setLocalBudget(currency, f.budgetLocal(), rate);
+        if (rate != null) r.setLocalBudget(currency, wonBudgetLocal != null ? wonBudgetLocal : f.budgetLocal(), rate);
         r = requests.save(r);
         r.setProduct(catalog.resolve(f.productId(), r.getProductName(), null, r.getCountryCode()));
         r.setWeightGrams(weightOr(f.weightGrams(), r.getProduct()));

@@ -222,6 +222,15 @@ public class Order {
     /** Won value of a local amount at this order's locked rate. */
     public long toKrw(java.math.BigDecimal local) { return Math.round(local.doubleValue() * fxRate); }
     /** Largest local amount whose won value does not exceed the given won amount at the rate. */
+    /** A won amount typed by the traveler, in this order's currency at its locked rate. */
+    public java.math.BigDecimal wonToLocal(long krw) { return fromWon(krw, fxRate); }
+    /**
+     * A won amount in a local currency, kept to 2 decimals even for yen, so converting it back at the same
+     * rate gives the won that was typed (₩12,000 → ¥1,435.55 → ₩12,000). Screens round it for display.
+     */
+    public static java.math.BigDecimal fromWon(long krw, double krwPerUnit) {
+        return java.math.BigDecimal.valueOf(krw).divide(java.math.BigDecimal.valueOf(krwPerUnit), 2, java.math.RoundingMode.HALF_UP);
+    }
     public static java.math.BigDecimal toLocal(long krw, double krwPerUnit, int decimals) {
         return java.math.BigDecimal.valueOf(krw).divide(java.math.BigDecimal.valueOf(krwPerUnit), decimals, java.math.RoundingMode.FLOOR);
     }

@@ -6,7 +6,7 @@ import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
 import { FxBox } from '../components/FxBox';
-import { CurrencyInput, Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
+import { DualMoneyInput, Field, ImagePicker, Mascot, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -30,34 +30,32 @@ export default function NewRequest() {
   const [imageUrl, setImage] = useState<string | null>(() => params.get('img'));
   const [options, setOptions] = useState('');
   const [note, setNote] = useState('');
-  // The budget is entered in the currency of the country the item is bought in; won is shown alongside.
-  const [budgetLocal, setBudgetLocal] = useState<number | ''>('');
+  // The budget is typed in the country's currency or in won (switch on the box); the other follows today's rate.
   const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
   const currency = currencyOf(config, countryCode);
   const decimals = currencyDecimals(currency);
   const rate = currency === 'KRW' ? 1 : rates.data?.krwPerUnit[currency];
-  const toLocal = (won: number, r: number) => {
-    const f = 10 ** decimals;
-    return Math.max(1 / f, Math.round((won / r) * f) / f);
-  };
-  // A budget suggested in won (from the ranking) is shown in the local currency once rates arrive.
+  const foreign = currency !== 'KRW';
+  const budget = useDualAmount(foreign ? rate : null, decimals);
+  // A budget suggested in won (from the ranking) is filled in once rates arrive.
   const suggestedWon = useRef(Number(params.get('budget')) || 0);
   useEffect(() => {
-    if (suggestedWon.current && rate) { setBudgetLocal(toLocal(suggestedWon.current, rate)); suggestedWon.current = 0; }
+    if (suggestedWon.current && rate) { budget.setWon(suggestedWon.current); suggestedWon.current = 0; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rate]);
-  // Changing the country keeps the same won value, now in the new currency.
+  // Changing the country keeps the same won value: a local amount is redone in the new currency.
   const lastCountry = useRef(countryCode);
   const lastRate = useRef<number | undefined>(rate);
   useEffect(() => {
-    if (lastCountry.current !== countryCode && budgetLocal !== '' && lastRate.current && rate) {
-      setBudgetLocal(toLocal(Number(budgetLocal) * lastRate.current, rate));
+    if (lastCountry.current !== countryCode && budget.amount !== '' && lastRate.current && rate && budget.mode === 'local') {
+      const f = 10 ** decimals;
+      budget.setAmount(Math.max(1 / f, Math.round((Number(budget.amount) * lastRate.current / rate) * f) / f));
     }
     lastCountry.current = countryCode;
     lastRate.current = rate;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryCode, rate]);
-  const maxBudget: number | '' = budgetLocal === '' || !rate ? '' : Math.round(Number(budgetLocal) * rate);
+  const maxBudget: number | '' = foreign ? budget.won : budget.amount;
   const [reward, setReward] = useState<number | ''>(5000);
   const [deadline, setDeadline] = useState(isoDay(30));
   const [weightGrams, setWeight] = useState<number | ''>(() => Number(params.get('weight')) || '');
@@ -67,9 +65,10 @@ export default function NewRequest() {
     mutationFn: () =>
       api.createRequest({
         countryCode, productName, productLink, imageUrl, options, note,
-        ...(currency === 'KRW'
+        // Typed in won → sent in won (the server works out the local limit); typed in ¥ → sent in ¥.
+        ...(!foreign || budget.mode === 'won'
           ? { maxBudget: Number(maxBudget) }
-          : { budgetLocal: Number(budgetLocal), budgetCurrency: currency }),
+          : { budgetLocal: Number(budget.amount), budgetCurrency: currency }),
         reward: Number(reward || 0), deadline, productId,
         weightGrams: weightGrams === '' ? null : weightGrams,
       }),
@@ -159,15 +158,16 @@ export default function NewRequest() {
 
         <Sheet title={t('req.secPrice')}>
           <div className="stack">
-            <Field label={currency === 'KRW' ? t('req.budget') : t('req.budgetIn', { cur: currency })} hint={t('req.budgetHint')}>
-              {currency === 'KRW'
-                ? <MoneyInput value={budgetLocal} onChange={setBudgetLocal} required placeholder="50,000" />
-                : <CurrencyInput value={budgetLocal} onChange={setBudgetLocal} symbol={currencySymbol(currency)} decimals={decimals} required
-                    placeholder="5,000" />}
+            <Field label={t('req.budget')} hint={t('req.budgetHint')}>
+              {!foreign
+                ? <MoneyInput value={budget.amount} onChange={budget.setAmount} required placeholder="50,000" />
+                : <DualMoneyInput dual={budget} currency={currency} symbol={currencySymbol(currency)} decimals={decimals} required
+                    placeholder="5,000" wonPlaceholder="50,000" />}
             </Field>
-            {currency !== 'KRW' && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
-            {currency !== 'KRW' && rate && budgetLocal !== '' && maxBudget !== '' && (
-              <FxBox amount={Number(budgetLocal)} currency={currency} won={maxBudget} rate={rate} source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.note')} />
+            {foreign && !rate && !rates.isLoading && <Notice tone="bad">{t('fx.unavailable')}</Notice>}
+            {foreign && rate && budget.local !== '' && maxBudget !== '' && (
+              <FxBox amount={Number(budget.local)} currency={currency} won={maxBudget} rate={rate} typedWon={budget.mode === 'won'}
+                source={rates.data?.live ? 'live' : 'fixed'} note={t('fx.note')} />
             )}
             <Field label={t('req.reward')} error={rewardOver}
               hint={maxBudget ? t(rewardOver ? 'reward.over' : 'reward.cap', { amount: krw(rewardCap), pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) }) : t('reward.rule', { pct: Math.round((config?.maxRewardRate ?? 0.5) * 100) })}>

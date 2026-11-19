@@ -11365,3 +11365,17 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 .lg-try button:hover { color: #A9533D; text-decoration-color: currentColor; }
 .lg-try button:disabled { opacity: 0.5; cursor: wait; }
 .auth .lg-fine { margin-top: 10px; }
+
+/* Money box with a currency switch: [¥ 2,000      ][JPY|KRW] */
+.money-dual { display: flex; align-items: stretch; gap: 8px; }
+.money-dual > .money { flex: 1; min-width: 0; }
+.money-switch {
+  flex: none; display: flex; padding: 3px; gap: 2px;
+  border: 1px solid rgb(46 58 70 / 0.18); border-radius: 10px; background: rgb(255 255 255 / 0.5);
+}
+.money-switch button {
+  min-width: 48px; padding: 0 10px; border: 0; border-radius: 7px; background: none; cursor: pointer;
+  font: 700 12.5px/1 var(--font); letter-spacing: 0.04em; color: rgb(46 58 70 / 0.55);
+}
+.money-switch button.is-on { background: #2E3A46; color: #FFFBF3; }
+.money-switch button:focus-visible { outline: 2px solid #A9533D; outline-offset: 1px; }

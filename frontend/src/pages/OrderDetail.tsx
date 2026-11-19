@@ -8,7 +8,7 @@ import { Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
 import { ReceiptCapture } from '../components/receipt';
 import { FxBox } from '../components/FxBox';
-import { ActionBar, Avatar, CurrencyInput, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge } from '../components/ui';
+import { ActionBar, Avatar, DualMoneyInput, type DualAmount, ErrorBox, Field, Loading, Modal, MoneyInput, Notice, ProductThumb, Sheet, StatusBadge, useDualAmount } from '../components/ui';
 import { currencyDecimals, currencySymbol, krw, money, shortDate } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useConfirm } from '../components/confirm';
@@ -234,10 +234,8 @@ function TravelerActions({ order: o }: { order: Order }) {
   const errText = useErrorText();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [price, setPrice] = useState<number | ''>('');
   const [file, setFile] = useState<File | null>(null);
   const [checkOpen, setCheckOpen] = useState(false);
-  const [tagPrice, setTagPrice] = useState<number | ''>('');
   const [tagPhoto, setTagPhoto] = useState<File | null>(null);
   const refresh = () => qc.invalidateQueries();
 
@@ -247,6 +245,11 @@ function TravelerActions({ order: o }: { order: Order }) {
   const cur = o.currency ?? 'KRW';
   const rate = o.fxRate ?? 1;
   const decimals = currencyDecimals(cur);
+  // What the traveler paid and the price-tag amount: typed in the order's currency or in won (locked rate).
+  const buy = useDualAmount(local ? rate : null, decimals);
+  const tag = useDualAmount(local ? rate : null, decimals);
+  const price = buy.local;
+  const tagPrice = tag.local;
   const limit = local ? Number(o.limitLocal) : o.itemLimit;
   const budgetLimit = local ? Number(o.limitLocal) : o.budget;
   const won = (v: number) => Math.round(v * rate);
@@ -254,11 +257,11 @@ function TravelerActions({ order: o }: { order: Order }) {
   const [scanCurrency, setScanCurrency] = useState<string | null>(null);
 
   const purchase = useMutation({
-    mutationFn: () => api.purchase(o.id, local ? { actualLocal: Number(price) } : { actualPrice: Number(price) }, file!),
+    mutationFn: () => api.purchase(o.id, local && buy.mode === 'local' ? { actualLocal: Number(buy.amount) } : { actualPrice: Number(local ? buy.won : buy.amount) }, file!),
     onSuccess: () => { setOpen(false); refresh(); },
   });
   const priceCheck = useMutation({
-    mutationFn: () => api.priceCheck(o.id, local ? { priceLocal: Number(tagPrice) } : { price: Number(tagPrice) }, tagPhoto!),
+    mutationFn: () => api.priceCheck(o.id, local && tag.mode === 'local' ? { priceLocal: Number(tag.amount) } : { price: Number(local ? tag.won : tag.amount) }, tagPhoto!),
     onSuccess: () => { setCheckOpen(false); refresh(); },
   });
   const [handOpen, setHandOpen] = useState(false);
@@ -268,12 +271,12 @@ function TravelerActions({ order: o }: { order: Order }) {
   const over = price !== '' && price > limit;
   const under = price !== '' && price > 0 && price < limit;
   const tagOk = tagPrice !== '' && tagPrice > budgetLimit;
-  const fxBox = (v: number | '') => local && v !== '' && v > 0 && (
-    <FxBox amount={Number(v)} currency={cur} won={won(Number(v))} rate={rate} source="locked" />
+  const fxBox = (d: DualAmount) => local && d.local !== '' && d.local > 0 && d.won !== '' && (
+    <FxBox amount={Number(d.local)} currency={cur} won={d.won} rate={rate} source="locked" typedWon={d.mode === 'won'} />
   );
-  const priceInput = (value: number | '', onChange: (v: number | '') => void) => (local
-    ? <CurrencyInput value={value} onChange={onChange} symbol={currencySymbol(cur)} decimals={decimals} required />
-    : <MoneyInput value={value} onChange={onChange} required />);
+  const priceInput = (d: DualAmount) => (local
+    ? <DualMoneyInput dual={d} currency={cur} symbol={currencySymbol(cur)} decimals={decimals} required />
+    : <MoneyInput value={d.amount} onChange={d.setAmount} required />);
 
   return (
     <>
@@ -310,19 +313,19 @@ function TravelerActions({ order: o }: { order: Order }) {
       <Modal open={open} onClose={() => setOpen(false)} title={t('buy.title')} eyebrow={o.productName}>
         <form className="stack" onSubmit={(e) => { e.preventDefault(); purchase.mutate(); }}>
           <ReceiptCapture file={file} onFile={(f) => { setFile(f); setScanCurrency(null); }}
-            onAmount={(krwTotal) => { if (!local) setPrice(krwTotal); }}
+            onAmount={(krwTotal) => { if (!local) buy.setAmount(krwTotal); }}
             onScan={(scan) => {
               setScanCurrency(scan?.currency ?? null);
-              if (local && scan && scan.currency === cur && scan.total != null) setPrice(scan.total);
+              if (local && scan && scan.currency === cur && scan.total != null) buy.setLocal(scan.total);
             }}
             showKrw={!local} />
           {local && scanCurrency && scanCurrency !== cur && (
             <Notice tone="warn">{t('buy.currencyMismatch', { found: scanCurrency, cur })}</Notice>
           )}
-          <Field label={local ? t('buy.priceIn', { cur }) : t('buy.price')} hint={t('buy.priceHint', { amount: show(limit) })}>
-            {priceInput(price, setPrice)}
+          <Field label={local ? t('buy.priceAny') : t('buy.price')} hint={t('buy.priceHint', { amount: show(limit) })}>
+            {priceInput(buy)}
           </Field>
-          {fxBox(price)}
+          {fxBox(buy)}
           {over && <Notice tone="bad">{t(approved ? 'buy.overApproved' : 'buy.over', { amount: show(limit) })}</Notice>}
           {under && <Notice tone="good">{t('buy.under', { amount: show(limit - Number(price)) })}</Notice>}
           {purchase.error && <Notice tone="bad">{errText(purchase.error)}</Notice>}
@@ -336,10 +339,10 @@ function TravelerActions({ order: o }: { order: Order }) {
         <form className="stack" onSubmit={(e) => { e.preventDefault(); priceCheck.mutate(); }}>
           <p className="body-text">{t('pc.body', { amount: show(budgetLimit) })}</p>
           <PhotoPick file={tagPhoto} onFile={setTagPhoto} label={t('pc.photo')} hint={t('pc.photoHint')} />
-          <Field label={local ? t('pc.priceIn', { cur }) : t('pc.price')} hint={t('buy.priceHint', { amount: show(budgetLimit) })}>
-            {priceInput(tagPrice, setTagPrice)}
+          <Field label={local ? t('pc.priceAny') : t('pc.price')} hint={t('buy.priceHint', { amount: show(budgetLimit) })}>
+            {priceInput(tag)}
           </Field>
-          {fxBox(tagPrice)}
+          {fxBox(tag)}
           {tagOk && <Notice tone="warn">{t('pc.extra', { amount: show(Number(tagPrice) - budgetLimit) })}</Notice>}
           {tagPrice !== '' && !tagOk && <Notice>{t('pc.notOver')}</Notice>}
           {priceCheck.error && <Notice tone="bad">{errText(priceCheck.error)}</Notice>}

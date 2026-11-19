@@ -233,6 +233,8 @@ public class OrderService {
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PAID);
         long actualPrice;
+        // Typed in won on a locally priced order: converted at the order's locked rate, then checked in the local currency.
+        if (actualLocal == null && actualPriceKrw != null && actualPriceKrw > 0 && o.hasLocalPrices()) actualLocal = o.wonToLocal(actualPriceKrw);
         if (actualLocal != null && o.hasLocalPrices()) {
             // Compared in the local currency (¥ to ¥); the won value uses the order's locked rate.
             if (actualLocal.signum() <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
@@ -270,6 +272,7 @@ public class OrderService {
             throw ApiException.conflict("ALREADY_APPROVED", "The buyer already approved a higher price for this order");
         }
         long price;
+        if (priceLocal == null && priceKrw != null && priceKrw > 0 && o.hasLocalPrices()) priceLocal = o.wonToLocal(priceKrw);
         if (priceLocal != null && o.hasLocalPrices()) {
             // Over budget in the local currency; the extra is charged at the same locked rate as the first payment.
             if (priceLocal.compareTo(o.getLimitLocal()) <= 0) {
