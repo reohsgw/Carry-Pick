@@ -333,8 +333,19 @@ public class MarketService {
             Long estPrice = active != null ? Long.valueOf(fx.offerPriceKrw(active))
                     : latest != null ? Long.valueOf(latest.getBudget() / Math.max(1, latest.getQuantity())) : null;
             String category = active != null && active.getCategory() != null ? active.getCategory() : p.getCategory();
+            String priceCurrency = null;
+            java.math.BigDecimal priceLocal = null;
+            if (active != null && active.hasLocalPrice()) {
+                priceCurrency = active.getPriceCurrency();
+                priceLocal = active.getPriceLocal();
+            } else if (latest != null && latest.hasLocalPrices()) {
+                priceCurrency = latest.getCurrency();
+                priceLocal = latest.getLimitLocal().divide(java.math.BigDecimal.valueOf(Math.max(1, latest.getQuantity())),
+                        Countries.decimals(latest.getCurrency()), java.math.RoundingMode.HALF_UP);
+            }
             items.add(new RankingItem(rank++, p.getName(), count, active != null ? active.getId() : null,
-                    image, category, p.getId(), p.getNameKo(), estPrice, p.getCountryCode(), p.getWeightGrams()));
+                    image, category, p.getId(), p.getNameKo(), estPrice, p.getCountryCode(), p.getWeightGrams(),
+                    priceCurrency, priceLocal));
         }
         return new RankingDto(c, true, RANKING_DAYS, items);
     }

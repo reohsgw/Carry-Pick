@@ -8,7 +8,7 @@ import { api, type Order } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Avatar, Loading, Mascot, Notice, ProductThumb, Tag } from '../components/ui';
-import { ACTIVE_STATUSES, countryName, daysUntil, krw, yearDate, yearRange } from '../format';
+import { ACTIVE_STATUSES, countryName, daysUntil, krw, money, yearDate, yearRange } from '../format';
 import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { PayoutCard } from '../components/payout';
@@ -241,7 +241,8 @@ export default function MyPage() {
                   <p className="kt-meta">{countryName(config, o.countryCode, lang)} · {t('country.backOn', { date: yearDate(o.trip.returnDate, lang) })}</p>
                   <div className="kt-item-line">
                     {o.status !== 'ACTIVE' && <Tag>{t(`offer.status.${o.status}` as Key)}</Tag>}
-                    <strong>{krw(o.unitQuote.total)}</strong>
+                    <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
+                    {o.priceLocal != null && o.priceCurrency && <small className="kt-won">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</small>}
                   </div>
                 </div>
               </Link>

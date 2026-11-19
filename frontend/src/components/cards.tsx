@@ -47,8 +47,12 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
         <span className="top10-name">{name}</span>
         {item.estPrice != null && (
           <span className="top10-price">
-            <span className="top10-price-label">{t('home.estPrice')}</span> {krw(item.estPrice)}
+            <span className="top10-price-label">{t('home.estPrice')}</span>{' '}
+            {item.priceLocal != null && item.priceCurrency ? money(Number(item.priceLocal), item.priceCurrency) : krw(item.estPrice)}
           </span>
+        )}
+        {item.estPrice != null && item.priceLocal != null && item.priceCurrency && (
+          <span className="top10-won">{lang === 'ko' ? '약 ' : '≈ '}{krw(item.estPrice)}</span>
         )}
         <span className="top10-meta">{orders}</span>
       </span>

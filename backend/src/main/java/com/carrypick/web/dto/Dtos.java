@@ -128,7 +128,9 @@ public final class Dtos {
 
     public record RankingItem(int rank, String productName, long orderCount, Long offerId, String imageUrl,
                               String category, Long productId, String nameKo,
-                              Long estPrice, String countryCode, Integer weightGrams) {}
+                              Long estPrice, String countryCode, Integer weightGrams,
+                              /** The same price in the country's currency, when known (e.g. ¥1,400). */
+                              String priceCurrency, java.math.BigDecimal priceLocal) {}
 
     public record RankingDto(String countryCode, boolean demoData, int days, List<RankingItem> items) {}
 
