@@ -23,10 +23,14 @@ function money(amount: number | null, currency: string | null): string {
   }
 }
 
-export function ReceiptCapture({ file, onFile, onAmount }: {
+export function ReceiptCapture({ file, onFile, onAmount, onScan, autoScan = false }: {
   file: File | null;
   onFile: (f: File | null) => void;
   onAmount: (krw: number) => void;
+  /** Called with the AI result after a check, and with null when the photo changes. */
+  onScan?: (scan: ReceiptScan | null) => void;
+  /** Check the receipt with AI as soon as a photo is chosen. */
+  autoScan?: boolean;
 }) {
   const { t } = useI18n();
   const errText = useErrorText();
@@ -43,6 +47,11 @@ export function ReceiptCapture({ file, onFile, onAmount }: {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  useEffect(() => {
+    if (autoScan && file && file.type.startsWith('image/')) void read();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file, autoScan]);
+
   async function read() {
     if (!file) return;
     setBusy(true);
@@ -50,6 +59,7 @@ export function ReceiptCapture({ file, onFile, onAmount }: {
     try {
       const res = await api.scanReceipt(file);
       setScan(res);
+      onScan?.(res);
       if (res.totalKrw != null) onAmount(res.totalKrw);
     } catch (e) {
       setErr(errText(e));
@@ -79,7 +89,7 @@ export function ReceiptCapture({ file, onFile, onAmount }: {
           accept="image/*,application/pdf"
           aria-label={t('buy.receipt')}
           hidden
-          onChange={(e) => { onFile(e.target.files?.[0] ?? null); setScan(null); setErr(null); }}
+          onChange={(e) => { onFile(e.target.files?.[0] ?? null); setScan(null); onScan?.(null); setErr(null); }}
         />
       </div>
 

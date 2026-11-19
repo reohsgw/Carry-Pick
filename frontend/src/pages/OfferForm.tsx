@@ -2,8 +2,9 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapPinned, Receipt, ShoppingBag } from '../components/icons';
-import { api } from '../api';
+import { api, assetUrl, type ReceiptScan } from '../api';
 import { ReceiptStrip } from '../components/cards';
+import { ReceiptCapture } from '../components/receipt';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
 import { Empty, Field, ImagePicker, Loading, Mascot, MoneyInput, Notice, Sheet, WeightInput } from '../components/ui';
@@ -40,6 +41,12 @@ export default function OfferForm() {
   const [quantity, setQuantity] = useState(1);
   const [bought, setBought] = useState(false);
   const [receiptUrl, setReceipt] = useState<string | null>(null);
+  // AI receipt check for "already bought": the photo, the AI result, and the receipt already saved on the offer.
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptScan, setReceiptScan] = useState<ReceiptScan | null>(null);
+  const [savedReceipt, setSavedReceipt] = useState<string | null>(null);
+  const [receiptUploading, setReceiptUploading] = useState(false);
+  const [receiptUploadErr, setReceiptUploadErr] = useState<unknown>(null);
   const [weightGrams, setWeight] = useState<number | ''>('');
 
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function OfferForm() {
     setTripId(o.trip.id); setName(o.productName); setProductId(o.product?.id ?? null); setStore(o.store ?? ''); setCategory(o.category ?? 'Other');
     setDescription(o.description ?? ''); setImage(o.imageUrl); setPrice(o.estPrice); setReward(o.reward);
     setQuantity(Math.max(o.quantity, 1));
-    setBought(!!o.receiptUrl); setReceipt(o.receiptUrl);
+    setBought(!!o.receiptUrl); setReceipt(o.receiptUrl); setSavedReceipt(o.receiptUrl);
     setWeight(o.weightGrams ?? '');
   }, [existing.data]);
 
@@ -84,6 +91,12 @@ export default function OfferForm() {
     save.mutate();
   }
 
+  // The receipt total covers every unit, so the per-item price follows the quantity.
+  const receiptTotalKrw = receiptScan && !receiptScan.mock ? receiptScan.totalKrw : null;
+  useEffect(() => {
+    if (bought && receiptTotalKrw != null) setPrice(Math.round(receiptTotalKrw / Math.max(quantity, 1)));
+  }, [quantity, receiptTotalKrw, bought]);
+
   if (trips.isLoading || (editId && existing.isLoading)) return <Screen back title={t('of.new')}><Loading /></Screen>;
   if (!editId && futureTrips.length === 0) {
     return (
@@ -100,8 +113,38 @@ export default function OfferForm() {
   const rewardCap = maxReward(config, Number(estPrice || 0));
   const rewardOver = !!estPrice && Number(reward || 0) > rewardCap;
 
+  // "Already bought" needs an AI-checked receipt. A receipt saved earlier on this offer still counts.
+  const receiptChecked = !!receiptScan || (!!receiptUrl && !receiptFile && receiptUrl === savedReceipt);
+  const receiptReady = !bought || (!!receiptUrl && receiptChecked && !receiptUploading);
+  const enteredTotal = Number(estPrice || 0) * quantity;
+  const scanTotal = receiptTotalKrw;
+  const receiptMismatch = bought && scanTotal != null && !!estPrice
+    && Math.abs(enteredTotal - scanTotal) > Math.max(1000, scanTotal * 0.05);
+
+  async function pickReceipt(file: File | null) {
+    setReceiptFile(file);
+    setReceiptScan(null);
+    setReceiptUploadErr(null);
+    if (!file) { setReceipt(null); return; }
+    setReceiptUploading(true);
+    try {
+      setReceipt((await api.upload(file)).url);
+    } catch (e) {
+      setReceipt(null);
+      setReceiptUploadErr(e);
+    } finally {
+      setReceiptUploading(false);
+    }
+  }
+
+  function onReceiptScan(scan: ReceiptScan | null) {
+    setReceiptScan(scan);
+    // Fill the per-item price from the receipt total (not from the sample result in mock mode).
+    if (scan && !scan.mock && scan.totalKrw != null) setPrice(Math.round(scan.totalKrw / Math.max(quantity, 1)));
+  }
+
   const submitButton = (
-    <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || needsPayout || !estPrice || !weightGrams || rewardOver || tripId === '' || (bought && !receiptUrl)}>
+    <button form="offer-form" className="btn btn-primary btn-block" disabled={save.isPending || needsPayout || !estPrice || !weightGrams || rewardOver || tripId === '' || !receiptReady}>
       {save.isPending ? t('order.saving') : editId ? t('of.saveChanges') : t('of.publish')}
     </button>
   );
@@ -189,9 +232,21 @@ export default function OfferForm() {
               </button>
             </div>
             {bought && (
-              <Field label={t('buy.receipt')} hint={t('of.receiptHint')}>
-                <ImagePicker value={receiptUrl} onChange={setReceipt} />
-              </Field>
+              <div className="stack">
+                {savedReceipt && !receiptFile && receiptUrl === savedReceipt && (
+                  <Field label={t('of.currentReceipt')}>
+                    <img className="receipt-small" src={assetUrl(savedReceipt) ?? ''} alt={t('of.currentReceipt')} />
+                  </Field>
+                )}
+                <ReceiptCapture file={receiptFile} onFile={pickReceipt} onAmount={() => {}} onScan={onReceiptScan} autoScan />
+                <p className="field-hint">{t('of.receiptHint')}</p>
+                {receiptUploadErr != null && <Notice tone="bad">{errText(receiptUploadErr)}</Notice>}
+                {receiptFile && !receiptScan && !receiptUploading && <Notice tone="warn">{t('of.scanRequired')}</Notice>}
+                {receiptScan && !receiptMismatch && <Notice tone="good">{t('of.scanOk')}</Notice>}
+                {receiptMismatch && (
+                  <Notice tone="bad">{t('of.scanMismatch', { amount: krw(scanTotal ?? 0), entered: krw(enteredTotal) })}</Notice>
+                )}
+              </div>
             )}
             <Field label={bought ? t('of.boughtPrice') : t('of.price')} hint={bought ? t('of.boughtPriceHint') : t('of.priceHint')}>
               <MoneyInput value={estPrice} onChange={setPrice} required placeholder="20,000" />
