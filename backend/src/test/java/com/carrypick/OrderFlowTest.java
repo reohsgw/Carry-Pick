@@ -56,6 +56,7 @@ class OrderFlowTest {
     void flowB_requestAccepted_priceCheckApprovedBeforePurchase() throws Exception {
         String buyer = login("buyer@carrypick.test");
         String traveler = login("traveler@carrypick.test");
+        kenjiJapanTrip(traveler);
 
         String deadline = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(30).toString();
         JsonNode req = body(post("/api/requests", buyer, """
@@ -176,6 +177,7 @@ class OrderFlowTest {
         String kenji = login("traveler@carrypick.test");
         String linh = login("traveler2@carrypick.test");
         java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        kenjiJapanTrip(kenji);
         body(post("/api/trips", linh, """
                 {"countryCode":"JP","city":"Kyoto","departDate":"%s","returnDate":"%s"}
                 """.formatted(today.plusDays(3), today.plusDays(9))), 201);
@@ -297,6 +299,14 @@ class OrderFlowTest {
             if (o.get("bookable").asBoolean()) return o.get("id").asLong();
         }
         throw new AssertionError("No bookable offer in " + country);
+    }
+
+    /** Kenji adds an upcoming Japan trip (the demo data has none), so he can accept Japan requests. */
+    private void kenjiJapanTrip(String kenji) throws Exception {
+        java.time.LocalDate depart = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(5);
+        body(post("/api/trips", kenji, """
+                {"countryCode":"JP","city":"Tokyo","departDate":"%s","returnDate":"%s"}
+                """.formatted(depart, depart.plusDays(5))), 201);
     }
 
     /** Kenji posts a new Japan trip and an offer on it; returns the offer id. */

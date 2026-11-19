@@ -64,13 +64,12 @@ public class DataSeeder implements ApplicationRunner {
         users.save(kenji);
         users.save(linh);
 
-        // Kenji's trips for the demo: two finished trips and one he is on right now.
+        // Kenji's trips for the demo: two finished trips. His current Tokyo trip is added live in the demo.
         Trip osaka = trips.save(new Trip(kenji, "JP", "Osaka", LocalDate.of(2024, 10, 24), LocalDate.of(2024, 10, 30),
                 "Half a suitcase free"));
         Trip nyc = trips.save(new Trip(kenji, "US", "New York", LocalDate.of(2025, 2, 13), LocalDate.of(2025, 2, 20),
                 "One empty suitcase"));
-        Trip tokyo = trips.save(new Trip(kenji, "JP", "Tokyo", LocalDate.of(2026, 11, 19), LocalDate.of(2026, 11, 21),
-                "One spare carry-on, about 7 kg"));
+
         Trip paris = trips.save(new Trip(linh, "FR", "Paris", today.plusDays(20), today.plusDays(28),
                 "Small items only, about 3 kg"));
         // Linh's upcoming Japan trip keeps Japan bookable while Kenji's Japan trips are finished or under way.
@@ -85,7 +84,7 @@ public class DataSeeder implements ApplicationRunner {
                 "Needs to stay cool; I will carry it in an insulated bag.", "demo:royce", 18000, 5000, 4));
         Offer anessa = offers.save(new Offer(kenji, osaka, "Anessa Perfect UV Sunscreen 60ml", "Matsumoto Kiyoshi", "Beauty",
                 "Japanese drugstore price.", "demo:anessa", 22000, 5000, 5));
-        offers.save(new Offer(kenji, tokyo, "Uniqlo Japan-limited graphic T-shirt", "Uniqlo Ginza", "Fashion",
+        offers.save(new Offer(kenji, osaka, "Uniqlo Japan-limited graphic T-shirt", "Uniqlo Shinsaibashi", "Fashion",
                 "Tell me the size in the order note after booking.", "demo:uniqlo-tshirt", 20000, 6000, 3));
         offers.save(new Offer(kenji, osaka, "Kit Kat regional flavors set", "Shin-Osaka station", "Food",
                 "Assorted regional flavors, about 6 boxes.", "demo:kitkat", 25000, 7000, 3));
@@ -114,6 +113,17 @@ public class DataSeeder implements ApplicationRunner {
 
         requests.save(new PurchaseRequest(minji, "JP", "Sanrio Hello Kitty Tokyo Limited Edition", null, "demo:hello-kitty-tokyo",
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));
+        // More Japan requests, so a traveler who adds a Japan trip sees a full request board.
+        requests.save(new PurchaseRequest(jun, "JP", "Tokyo Banana (8 pcs)", null, "demo:tokyo-banana",
+                "2 boxes if possible", "For my parents, any flavor is fine", 26000, 5000, today.plusDays(10)));
+        requests.save(new PurchaseRequest(minji, "JP", "Royce' Nama Chocolate", null, "demo:royce",
+                "Original (Au Lait)", "Please keep it cold, it melts easily", 25000, 6000, today.plusDays(12)));
+        requests.save(new PurchaseRequest(jun, "JP", "Anessa Perfect UV Sunscreen 60ml", null, "demo:anessa",
+                "Gold bottle, 60ml", "Any drugstore is fine", 30000, 5000, today.plusDays(14)));
+        requests.save(new PurchaseRequest(jun, "JP", "Uniqlo Japan-limited graphic T-shirt", null, "demo:uniqlo-tshirt",
+                "Size L, any Tokyo design", null, 30000, 6000, today.plusDays(18)));
+        requests.save(new PurchaseRequest(minji, "JP", "Kit Kat regional flavors set", null, "demo:kitkat",
+                "Matcha and sakura flavors", "A mix of regional flavors is great too", 35000, 7000, today.plusDays(20)));
         requests.save(new PurchaseRequest(minji, "FR", "Le Labo Santal 33 50ml", null, "demo:le-labo-santal33",
                 "50ml", "Paris boutique only please", 260000, 20000, today.plusDays(35)));
         requests.save(new PurchaseRequest(jun, "TH", "Jim Thompson silk scarf", null, "demo:jim-thompson-scarf",

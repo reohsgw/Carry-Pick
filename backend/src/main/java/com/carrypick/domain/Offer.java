@@ -70,7 +70,7 @@ public class Offer {
     }
 
     public boolean isBookable(LocalDate today) {
-        return status == OfferStatus.ACTIVE && quantity > 0 && trip.getDepartDate().isAfter(today);
+        return status == OfferStatus.ACTIVE && quantity > 0 && trip.getReturnDate().isAfter(today);
     }
 
     public void reserve(int qty) {

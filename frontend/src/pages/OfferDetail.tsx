@@ -37,7 +37,7 @@ export default function OfferDetail() {
   const o = offer.data;
   const mine = user?.id === o.traveler.id;
   const q = quote(config, o.estPrice * qty, o.reward * qty);
-  const departsIn = daysUntil(o.trip.departDate);
+  const closesIn = daysUntil(o.trip.returnDate) - 1; // last booking day is the day before they return
   const country = countryName(config, o.countryCode, lang);
   const cat = o.category ? t(`cat.${o.category}` as Key) : '';
 
@@ -104,7 +104,7 @@ export default function OfferDetail() {
           <span><Check size={16} /> {t('offer.trust1')}</span>
           {o.receiptUrl && <Tag tone="good">{t('offer.bought')}</Tag>}
           {!o.bookable && <Tag>{o.status === 'SOLD_OUT' ? t('offer.soldOut') : t('offer.closed')}</Tag>}
-          {o.bookable && departsIn <= 7 && <Tag tone="action">{t('offer.departsIn', { n: departsIn })}</Tag>}
+          {o.bookable && closesIn <= 7 && <Tag tone="action">{closesIn <= 0 ? t('offer.closesToday') : t('offer.closesIn', { n: closesIn })}</Tag>}
         </div>
 
         <section className="card od-traveler">

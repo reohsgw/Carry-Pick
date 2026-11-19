@@ -8,7 +8,7 @@ import { api, type Order } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Avatar, Loading, Mascot, Notice, ProductThumb, Tag } from '../components/ui';
-import { ACTIVE_STATUSES, countryName, daysUntil, krw, shortDate } from '../format';
+import { ACTIVE_STATUSES, countryName, daysUntil, krw, yearDate, yearRange } from '../format';
 import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { PayoutCard } from '../components/payout';
@@ -27,7 +27,17 @@ export default function MyPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const trips = useQuery({ queryKey: ['myTrips'], queryFn: api.myTrips });
+  const trips = useQuery({
+    queryKey: ['myTrips', 'withPast'],
+    queryFn: api.myTripsWithPast,
+    // Current and upcoming trips first (soonest first), then finished ones (most recent first).
+    select: (list) => {
+      const ended = (tr: (typeof list)[number]) => daysUntil(tr.returnDate) < 0;
+      const live = list.filter((tr) => !ended(tr)).sort((a, b) => a.departDate.localeCompare(b.departDate));
+      const past = list.filter(ended).sort((a, b) => b.departDate.localeCompare(a.departDate));
+      return [...live, ...past];
+    },
+  });
   const offers = useQuery({ queryKey: ['myOffers'], queryFn: api.myOffers });
   const carrying = useQuery({ queryKey: ['myOrders', 'traveler'], queryFn: () => api.myOrders('traveler') });
   const buying = useQuery({ queryKey: ['myOrders', 'buyer'], queryFn: () => api.myOrders('buyer') });
@@ -47,8 +57,9 @@ export default function MyPage() {
   const buyNews = (buying.data ?? []).filter(hasNews).length;
   const carryNews = (carrying.data ?? []).filter(hasNews).length;
   const newRequests = (requests.data ?? []).filter(isNew).length;
-  const next = trips.data?.[0];
-  const dates = (a: string, b: string) => `${shortDate(a, lang)} – ${shortDate(b, lang)}`;
+  // The trip new products go on: the first one still open for booking (closes the day before return).
+  const next = trips.data?.find((tr) => daysUntil(tr.returnDate) > 0);
+  const dates = (a: string, b: string) => yearRange(a, b, lang);
 
   async function changePhoto(file: File | undefined) {
     if (!file) return;
@@ -196,15 +207,17 @@ export default function MyPage() {
             )}
             {trips.data?.map((tr) => {
               const d = daysUntil(tr.departDate);
+              const open = daysUntil(tr.returnDate) > 0; // bookings close the day before they return
+              const ended = daysUntil(tr.returnDate) < 0;
               return (
-                <div key={tr.id} className="kt-item kt-trip">
+                <div key={tr.id} className={`kt-item kt-trip${ended ? ' is-past' : ''}`}>
                   <span className="kt-trip-icon"><MapPinned size={22} aria-hidden /></span>
                   <div className="kt-item-body">
                     <h3>{route(tr.city, tr.countryCode)}</h3>
                     <p className="kt-meta">{dates(tr.departDate, tr.returnDate)}{tr.luggageNote ? ` · ${tr.luggageNote}` : ''}</p>
                     <div className="kt-item-line">
-                      <Tag tone={d > 0 ? 'progress' : 'neutral'}>{d > 0 ? t('t.inDays', { n: d }) : t('t.onTrip')}</Tag>
-                      {d > 0 && (
+                      <Tag tone={ended ? 'neutral' : d > 0 ? 'progress' : 'action'}>{ended ? t('t.done') : d > 0 ? t('t.inDays', { n: d }) : t('t.onTrip')}</Tag>
+                      {open && (
                         <span className="kt-trip-actions">
                           <Link to={`/t/trips/${tr.id}/edit`} className="kt-inline-link is-quiet">{t('trip.edit')}</Link>
                           <Link to={`/t/offers/new?trip=${tr.id}`} className="kt-inline-link">{t('t.offerItem')} <ChevronRight size={14} aria-hidden /></Link>
@@ -225,7 +238,7 @@ export default function MyPage() {
                 <ProductThumb src={o.imageUrl} category={o.category} size={96} />
                 <div className="kt-item-body">
                   <h3>{o.productName}</h3>
-                  <p className="kt-meta">{countryName(config, o.countryCode, lang)} · {t('country.backOn', { date: shortDate(o.trip.returnDate, lang) })}</p>
+                  <p className="kt-meta">{countryName(config, o.countryCode, lang)} · {t('country.backOn', { date: yearDate(o.trip.returnDate, lang) })}</p>
                   <div className="kt-item-line">
                     {o.status !== 'ACTIVE' && <Tag>{t(`offer.status.${o.status}` as Key)}</Tag>}
                     <strong>{krw(o.unitQuote.total)}</strong>
@@ -237,9 +250,6 @@ export default function MyPage() {
         </div>
       </div>
 
-      <p className="fine center kt-footer">
-        {t('me.footer', { mode: config?.paymentMode === 'toss' ? t('me.modeToss') : t('me.modeMock') })}
-      </p>
     </Screen>
   );
 }

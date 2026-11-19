@@ -51,13 +51,13 @@ public class TripService {
         return TripDto.of(t);
     }
 
-    /** The traveler edits their own upcoming trip. The country is fixed once products are posted on it. */
+    /** The traveler edits their own trip until bookings close (the day before they return). The country is fixed once products are posted on it. */
     @Transactional
     public TripDto update(Long userId, Long tripId, TripForm f) {
         Trip t = trips.findById(tripId).orElseThrow(() -> ApiException.notFound("Trip"));
         if (!t.getTraveler().getId().equals(userId)) throw ApiException.forbidden("Only the traveler can edit this trip");
-        if (!t.getDepartDate().isAfter(Today.get())) {
-            throw ApiException.conflict("TRIP_STARTED", "This trip has already started, so it can't be edited");
+        if (!t.getReturnDate().isAfter(Today.get())) {
+            throw ApiException.conflict("TRIP_ENDED", "Bookings for this trip have closed, so it can't be edited");
         }
         validate(f);
         String country = f.countryCode().toUpperCase();
@@ -86,8 +86,8 @@ public class TripService {
 
     private static void validate(TripForm f) {
         if (!Countries.exists(f.countryCode())) throw ApiException.badRequest("COUNTRY", "Unsupported country");
-        if (!f.departDate().isAfter(Today.get())) {
-            throw ApiException.badRequest("TRIP_DATE", "Departure date must be in the future");
+        if (f.departDate().isBefore(Today.get())) {
+            throw ApiException.badRequest("TRIP_DATE", "Departure date can't be in the past");
         }
         if (f.returnDate().isBefore(f.departDate())) {
             throw ApiException.badRequest("TRIP_DATE", "Return date must be on or after the departure date");

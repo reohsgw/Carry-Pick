@@ -101,6 +101,26 @@ class TripEditTest {
         assertThat(refused.get("code").asText()).isEqualTo("OFFER_HAS_ORDERS");
     }
 
+    @Test
+    void tripCanDepartToday_bookingClosesTheDayBeforeReturn() throws Exception {
+        String kenji = login("traveler@carrypick.test");
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        String offer = "{\"tripId\":%d,\"productName\":\"Matcha\",\"estPrice\":20000,\"reward\":3000,\"quantity\":2,\"weightGrams\":300}";
+
+        // Departing today is allowed, and its products can still be booked until the day before return.
+        long leavingToday = body(send(post("/api/trips"), kenji, trip("JP", "Tokyo", today, today.plusDays(3), null)), 201).get("id").asLong();
+        JsonNode posted = body(send(post("/api/offers"), kenji, offer.formatted(leavingToday)), 201);
+        assertThat(posted.get("bookable").asBoolean()).isTrue();
+
+        // Yesterday is still refused.
+        body(send(post("/api/trips"), kenji, trip("JP", "Tokyo", today.minusDays(1), today.plusDays(3), null)), 400);
+
+        // Returning today: bookings have closed, so no new products.
+        long backToday = body(send(post("/api/trips"), kenji, trip("JP", "Osaka", today, today, null)), 201).get("id").asLong();
+        JsonNode closed = body(send(post("/api/offers"), kenji, offer.formatted(backToday)), 400);
+        assertThat(closed.get("code").asText()).isEqualTo("TRIP_ENDED");
+    }
+
     private static String trip(String country, String city, LocalDate depart, LocalDate ret, String note) {
         return "{\"countryCode\":\"" + country + "\",\"city\":\"" + city + "\",\"departDate\":\"" + depart
                 + "\",\"returnDate\":\"" + ret + "\"" + (note == null ? "" : ",\"luggageNote\":\"" + note + "\"") + "}";

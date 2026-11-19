@@ -59,7 +59,8 @@ export default function OfferForm() {
     setWeight(o.weightGrams ?? '');
   }, [existing.data]);
 
-  const futureTrips = (trips.data ?? []).filter((tr) => daysUntil(tr.departDate) > 0);
+  // Products can be posted until the day before the traveler returns.
+  const futureTrips = (trips.data ?? []).filter((tr) => daysUntil(tr.returnDate) > 0);
   useEffect(() => {
     if (tripId === '' && futureTrips.length > 0 && !editId) setTripId(futureTrips[0].id);
   }, [futureTrips, tripId, editId]);

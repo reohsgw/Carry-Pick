@@ -213,6 +213,7 @@ export const api = {
   deleteOffer: (id: number) => del<void>(`/api/offers/${id}`),
 
   myTrips: () => get<Trip[]>('/api/trips/me'),
+  myTripsWithPast: () => get<Trip[]>('/api/trips/me', { includePast: true }),
   createTrip: (b: Omit<Trip, 'id'>) => post<Trip>('/api/trips', b),
   updateTrip: (id: number, b: Omit<Trip, 'id'>) => http.put<Trip>(`/api/trips/${id}`, b).then((r) => r.data),
   deleteTrip: (id: number) => del<void>(`/api/trips/${id}`),

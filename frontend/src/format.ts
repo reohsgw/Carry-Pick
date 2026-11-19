@@ -13,6 +13,18 @@ export function shortDate(iso: string | null | undefined, lang: Lang): string {
   return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
+/** Date with the year, e.g. "2025년 2월 20일" / "Feb 20, 2025". */
+export function yearDate(iso: string | null | undefined, lang: Lang): string {
+  if (!iso) return '-';
+  return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+/** A date range with the year: shown once when both dates are in the same year. */
+export function yearRange(a: string, b: string, lang: Lang): string {
+  const sameYear = toDate(a).getFullYear() === toDate(b).getFullYear();
+  return `${yearDate(a, lang)} – ${sameYear ? shortDate(b, lang) : yearDate(b, lang)}`;
+}
+
 export function boardDate(iso: string): string {
   const d = toDate(iso);
   return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;

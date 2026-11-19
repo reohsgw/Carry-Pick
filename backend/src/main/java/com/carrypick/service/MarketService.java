@@ -91,8 +91,9 @@ public class MarketService {
         auth.requirePayoutAccount(me);
         Trip trip = trips.findById(f.tripId()).orElseThrow(() -> ApiException.notFound("Trip"));
         if (!trip.getTraveler().getId().equals(userId)) throw ApiException.forbidden("This is not your trip");
-        if (!trip.getDepartDate().isAfter(Today.get())) {
-            throw ApiException.badRequest("TRIP_STARTED", "You can only add offers to trips that have not started");
+        // Products can be posted until the day before the traveler leaves the country (booking closes then).
+        if (!trip.getReturnDate().isAfter(Today.get())) {
+            throw ApiException.badRequest("TRIP_ENDED", "Bookings for this trip have closed");
         }
         pricing.checkReward(f.estPrice(), f.reward());
         Offer o = offers.save(new Offer(me, trip, f.productName().trim(), blankToNull(f.store()),

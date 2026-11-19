@@ -82,7 +82,7 @@ export default function NewTrip() {
             </Field>
             <div className="two-col">
               <Field label={t('trip.depart')}>
-                <input type="date" value={departDate} min={isoDay(1)} onChange={(e) => setDepart(e.target.value)} required />
+                <input type="date" value={departDate} min={isoDay(0)} onChange={(e) => setDepart(e.target.value)} required />
               </Field>
               <Field label={t('trip.return')}>
                 <input type="date" value={returnDate} min={departDate} onChange={(e) => setReturn(e.target.value)} required />
