@@ -50,6 +50,29 @@ function isMultiPart(el: HTMLElement) {
 const set = (el: HTMLElement, prop: string, value: string) => el.style.setProperty(prop, value, 'important');
 const FIT_PROPS = ['font-size', 'width', 'max-width', 'white-space', 'display'];
 
+/** Buttons, tabs and chips never wrap by design, so for them overflowing sideways counts too. */
+const NOWRAP_CONTROLS = '.btn, [role="tab"], .chip, .lf-chips button';
+/** Width available for content inside el (its box minus padding). */
+function innerWidth(el: HTMLElement) {
+  const cs = getComputedStyle(el);
+  return el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+}
+
+/**
+ * Width of el's content laid out on one line. Measured from the content itself rather than scrollWidth,
+ * which misses overflow on the left side of centered buttons.
+ */
+function contentWidth(el: HTMLElement) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width;
+}
+
+function needsFit(el: HTMLElement) {
+  if (lineCount(el) > 1) return true;
+  return el.matches(NOWRAP_CONTROLS) && el.clientWidth > 0 && contentWidth(el) > innerWidth(el) + 1;
+}
+
 function fit(el: HTMLElement) {
   const base = parseFloat(getComputedStyle(el).fontSize) || 16;
   const big = el.tagName === 'H1' || el.tagName === 'H2';
@@ -57,20 +80,21 @@ function fit(el: HTMLElement) {
   const avail = el.clientWidth;
   if (!avail) return;
 
-  // Measure the one-line width, then scale the font to the available width.
+  // Measure the one-line width, then scale the font to the space inside the element.
   const clamped = getComputedStyle(el).display === '-webkit-box';
   if (clamped) set(el, 'display', 'block');
   set(el, 'white-space', 'nowrap');
-  const textWidth = el.scrollWidth;
+  const textWidth = Math.max(el.scrollWidth - (avail - innerWidth(el)), contentWidth(el));
   el.style.removeProperty('white-space');
-  let size = Math.max(min, Math.min(base, (base * avail) / textWidth * 0.97));
+  const space = innerWidth(el);
+  let size = Math.max(min, Math.min(base, (base * space) / Math.max(textWidth, 1) * 0.97));
   el.dataset.fit = '1';
   set(el, 'font-size', `${size}px`);
-  for (let i = 0; i < 8 && size > min && lineCount(el) > 1; i++) {
+  for (let i = 0; i < 8 && size > min && needsFit(el); i++) {
     size = Math.max(min, size * 0.93);
     set(el, 'font-size', `${size}px`);
   }
-  if (lineCount(el) > 1) {
+  if (needsFit(el)) {
     // Smallest readable size still doesn't fit: one line with an ellipsis, held to the width it had.
     set(el, 'width', `${avail}px`);
     set(el, 'max-width', '100%');
@@ -88,7 +112,7 @@ function fitAll() {
   }
   for (const el of els) {
     if (!el.textContent?.trim() || el.closest('[data-fit-skip]')) continue;
-    if (lineCount(el) > 1 && !isMultiPart(el)) fit(el);
+    if (needsFit(el) && !isMultiPart(el)) fit(el);
   }
 }
 

@@ -11201,3 +11201,10 @@ a.nt-row:focus-visible { outline: 2px solid #9E4B37; outline-offset: -2px; }
 .kt-trip .kt-item-line .badge.tone-action { color: #A9533D !important; }
 .kt-trip .kt-item-line .badge.tone-neutral, #kt-offers .kt-item-line .badge { color: #8A7A66 !important; }
 #kt-offers .kt-item-line { gap: 12px; }
+
+/* Bottom action bar: buttons share the width (the main action gets more) and never run off-screen. */
+.action-bar > * { flex: 1 1 0; min-width: 0; }
+.action-bar > .btn-primary { flex-grow: 2 !important; }
+@media (max-width: 599.98px) {
+  .action-bar > .btn { padding-left: 12px !important; padding-right: 12px !important; }
+}
