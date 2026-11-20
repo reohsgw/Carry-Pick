@@ -17,6 +17,31 @@ import biodermaSensibio from './assets/bioderma-sensibio.jpg';
 import helloKittyTokyo from './assets/hello-kitty-tokyo.jpg';
 import leLaboSantal33 from './assets/le-labo-santal33.jpg';
 import jimThompsonScarf from './assets/jim-thompson-scarf.jpg';
+import luPetitBeurre from './assets/lu-petit-beurre.jpg';
+import bonneMamanMadeleines from './assets/bonne-maman-madeleines.jpg';
+import mailleDijon from './assets/maille-dijon.jpg';
+import kusmiTea from './assets/kusmi-tea.jpg';
+import parisKeyring from './assets/paris-keyring.jpg';
+import tjPbCups from './assets/tj-pb-cups.jpg';
+import ghirardelliSquares from './assets/ghirardelli-squares.jpg';
+import foamingHandSoap from './assets/foaming-hand-soap.jpg';
+import beenThereMug from './assets/been-there-mug.jpg';
+import coachWristlet from './assets/coach-wristlet.jpg';
+import walkersShortbread from './assets/walkers-shortbread.jpg';
+import fortnumRoyalBlend from './assets/fortnum-royal-blend.jpg';
+import cadburyDairyMilk from './assets/cadbury-dairy-milk.jpg';
+import whittardHotChocolate from './assets/whittard-hot-chocolate.jpg';
+import paddingtonKeyring from './assets/paddington-keyring.jpg';
+import bentoSquid from './assets/bento-squid.jpg';
+import kohKaePeanuts from './assets/koh-kae-peanuts.jpg';
+import chatramueThaiTea from './assets/chatramue-thai-tea.jpg';
+import narayaPouch from './assets/naraya-pouch.jpg';
+import poySianInhaler from './assets/poy-sian-inhaler.jpg';
+import indomieGoreng from './assets/indomie-goreng.jpg';
+import kopiLuwak from './assets/kopi-luwak.jpg';
+import pieSusuBali from './assets/pie-susu-bali.jpg';
+import ellipsHairVitamin from './assets/ellips-hair-vitamin.jpg';
+import batikPouch from './assets/batik-pouch.jpg';
 import { assetUrl } from './api';
 
 export const IMAGES = { hero, keychain, skincare, snacks };
@@ -37,6 +62,31 @@ const DEMO_PHOTOS: Record<string, string> = {
   'hello-kitty-tokyo': helloKittyTokyo,
   'le-labo-santal33': leLaboSantal33,
   'jim-thompson-scarf': jimThompsonScarf,
+  'lu-petit-beurre': luPetitBeurre,
+  'bonne-maman-madeleines': bonneMamanMadeleines,
+  'maille-dijon': mailleDijon,
+  'kusmi-tea': kusmiTea,
+  'paris-keyring': parisKeyring,
+  'tj-pb-cups': tjPbCups,
+  'ghirardelli-squares': ghirardelliSquares,
+  'foaming-hand-soap': foamingHandSoap,
+  'been-there-mug': beenThereMug,
+  'coach-wristlet': coachWristlet,
+  'walkers-shortbread': walkersShortbread,
+  'fortnum-royal-blend': fortnumRoyalBlend,
+  'cadbury-dairy-milk': cadburyDairyMilk,
+  'whittard-hot-chocolate': whittardHotChocolate,
+  'paddington-keyring': paddingtonKeyring,
+  'bento-squid': bentoSquid,
+  'koh-kae-peanuts': kohKaePeanuts,
+  'chatramue-thai-tea': chatramueThaiTea,
+  'naraya-pouch': narayaPouch,
+  'poy-sian-inhaler': poySianInhaler,
+  'indomie-goreng': indomieGoreng,
+  'kopi-luwak': kopiLuwak,
+  'pie-susu-bali': pieSusuBali,
+  'ellips-hair-vitamin': ellipsHairVitamin,
+  'batik-pouch': batikPouch,
 };
 
 export function productPhoto(imageUrl: string | null | undefined, category: string | null | undefined): string | null {

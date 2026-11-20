@@ -57,7 +57,7 @@ export default function Search() {
   const countryLabel = config?.countries.find((c) => c.code === country);
 
   return (
-    <Screen title={t('search.title')} wide>
+    <Screen wide>
       <div className="search-layout">
       <aside className="search-filters" aria-label={t('search.f.title')}>
         <h2 className="search-side-title">{t('search.f.title')}</h2>

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { FxBox } from '../components/FxBox';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink } from '../components/icons';
@@ -7,7 +6,7 @@ import { api } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { ErrorBox, Field, KV, Loading, Notice, ProductThumb, Sheet, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, shortDate, weight, budgetText } from '../format';
+import { countryName, daysUntil, krw, money, rateUnit, shortDate, weight, budgetText } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { PayoutRequired } from '../components/payout';
@@ -124,11 +123,17 @@ export default function RequestDetail() {
               <a href={r.productLink} target="_blank" rel="noreferrer" className="link">{t('rd.open')} <ExternalLink size={14} aria-hidden /></a>
             </KV>
           )}
-          <KV label={t('rd.budget')}><strong className="amount">{budgetText(r, lang)}</strong></KV>
-          {r.budgetLocal != null && r.budgetCurrency && r.fxRate != null && (
-            <FxBox amount={Number(r.budgetLocal)} currency={r.budgetCurrency} won={r.maxBudget} rate={r.fxRate}
-              source="locked" sourceLabel="fx.requestRate" fromLabel="fx.budget" note={t('fx.requestLocked')} />
-          )}
+          {/* Same as prices elsewhere: the local amount, with its won value and the locked rate in small grey text */}
+          <KV label={t('rd.budget')}>
+            {r.budgetLocal != null && r.budgetCurrency && r.fxRate != null ? (
+              <span className="rd-budget">
+                <strong className="amount">{money(Number(r.budgetLocal), r.budgetCurrency)}</strong>
+                <small>
+                  {lang === 'ko' ? '약 ' : '≈ '}{krw(r.maxBudget)} · {rateUnit(r.budgetCurrency)} {r.budgetCurrency} = ₩{(r.fxRate * rateUnit(r.budgetCurrency)).toLocaleString('ko-KR', { maximumFractionDigits: 2 })} ({t('fx.requestRate')})
+                </small>
+              </span>
+            ) : <strong className="amount">{budgetText(r, lang)}</strong>}
+          </KV>
           <KV label={t('rd.reward')}><strong className="amount reward">{krw(r.reward)}</strong></KV>
         </Sheet>
         {r.note && <p className="quote">{r.note}</p>}

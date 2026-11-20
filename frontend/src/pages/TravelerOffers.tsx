@@ -42,7 +42,6 @@ export default function TravelerOffers() {
   const tripId = params.get('trip') ? Number(params.get('trip')) : null;
   const [maxWeight, setMaxWeight] = useState<number | null>(null);
   const weightLimit = maxWeight != null && maxWeight < 5000 ? maxWeight : null;
-  const [bookableOnly, setBookableOnly] = useState(true);
   const [compare, setCompare] = useState<number[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -57,7 +56,7 @@ export default function TravelerOffers() {
 
   const list = useMemo(() => {
     const items = all.filter((o) =>
-      (!bookableOnly || o.bookable)
+      o.bookable
       && o.reward <= rewardLimit
       && (!cats.length || cats.includes(catOf(o.category)))
       && (!tripId || o.trip.id === tripId)
@@ -71,7 +70,7 @@ export default function TravelerOffers() {
         || a.unitQuote.total - b.unitQuote.total
         || a.trip.returnDate.localeCompare(b.trip.returnDate);
     });
-  }, [all, bookableOnly, rewardLimit, cats, win, arriveBy, sort, tripId, weightLimit]);
+  }, [all, rewardLimit, cats, win, arriveBy, sort, tripId, weightLimit]);
 
   const compared = all.filter((o) => compare.includes(o.id));
   const cheapest = compared.length ? Math.min(...compared.map((o) => o.unitQuote.total)) : 0;
@@ -100,9 +99,12 @@ export default function TravelerOffers() {
         <div className="section-heading">
           <div>
             <h2 className="font-display">{t('to.title')}</h2>
-            <p className="section-copy">{t('to.copy')}</p>
+            {/* The whale says how to use this page, in the same speech bubble as elsewhere */}
+            <div className="live-say to-say">
+              <Mascot mood="question" className="live-say-whale" size={76} />
+              <p className="live-say-bubble">{t('to.copy')}</p>
+            </div>
           </div>
-          <Mascot mood="fly" className="offers-whale" size={170} />
         </div>
 
         <form className="offer-searchbar" onSubmit={apply}>
@@ -181,11 +183,6 @@ export default function TravelerOffers() {
                 ))}
               </>
             )}
-            <hr />
-            <label className="check-row">
-              <input type="checkbox" checked={bookableOnly} onChange={(e) => setBookableOnly(e.target.checked)} />
-              {t('to.availableOnly')}
-            </label>
           </aside>
 
           <div>
@@ -208,13 +205,11 @@ export default function TravelerOffers() {
               </div>
             )}
             {list.length > 0 && (
-              <div className="whale-say">
-                <div className="whale-say-bubble">
-                  <p>{t('country.footer')}</p>
-                  <Link className="btn btn-primary btn-small" to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`}>
-                    {t('home.requestCta')} <ArrowRight size={15} aria-hidden />
-                  </Link>
-                </div>
+              <div className="offers-more">
+                <p>{t('country.footer')}</p>
+                <Link className="btn btn-primary btn-small" to={`/requests/new?country=${country === ALL_COUNTRIES ? 'JP' : country}`}>
+                  {t('home.requestCta')}
+                </Link>
               </div>
             )}
           </div>

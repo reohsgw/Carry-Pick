@@ -11827,3 +11827,26 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
   padding: 6px 2px !important; margin: 0 !important; box-sizing: border-box;
 }
 .mobile-nav-item.active { border-radius: 10px !important; }
+.to-say { margin-top: 14px; }
+/* Postmark next to a lone section title: its centre on the title's line */
+@media (min-width: 900px) {
+  .section-heading:not(:has(> :nth-child(2)))::before { top: -17px !important; }
+}
+@media (min-width: 900px) {
+  .section-heading:not(:has(> :nth-child(2)))::before { top: 4px !important; }
+}
+@media (min-width: 900px) {
+  .section-heading:not(:has(> :nth-child(2)))::before { top: 28px !important; }
+}
+/* Traveler offers card: the detail rows without the dashed box around them */
+.ticket-card .offer-ticket { border: 0 !important; outline: 0 !important; box-shadow: none !important; background: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+.ticket-card .offer-ticket::before, .ticket-card .offer-ticket::after { display: none !important; }
+
+/* End of the offers list: "Not here? …" and the request button on one centred row */
+.offers-more {
+  display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;
+  margin: 32px 0 8px; padding-top: 24px; border-top: 1px dashed rgb(46 58 70 / 0.18); text-align: center;
+}
+.offers-more p { margin: 0; font: 500 16px/1.5 var(--font); color: #4A535A; }
+.rd-budget { display: inline-grid; justify-items: end; gap: 2px; text-align: right; }
+.rd-budget small { font: 400 12.5px/1.4 var(--font); color: #6B747B; }

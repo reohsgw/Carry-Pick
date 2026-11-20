@@ -117,6 +117,78 @@ public class DataSeeder implements ApplicationRunner {
         offers.save(new Offer(kenji, nyc, "Levi's 501 Original jeans", "Levi's Times Square", "Fashion",
                 "US pricing; tell me waist and length.", "demo:levis-501", 95000, 15000, 2));
 
+        // More travelers, one upcoming trip each, so every country has its own person and products.
+        User sophie = traveler("traveler3@carrypick.test", pw, "Sophie (Traveler)", "하나은행", "21091001234567");
+        User daniel = traveler("traveler4@carrypick.test", pw, "Daniel (Traveler)", "우리은행", "1002345678901");
+        User olivia = traveler("traveler5@carrypick.test", pw, "Olivia (Traveler)", "카카오뱅크", "3333012345678");
+        User mai = traveler("traveler6@carrypick.test", pw, "Mai (Traveler)", "토스뱅크", "100012345678");
+        User arif = traveler("traveler7@carrypick.test", pw, "Arif (Traveler)", "NH농협은행", "3020123456781");
+        Trip sophieParis = trips.save(new Trip(sophie, "FR", "Paris", today.plusDays(9), today.plusDays(15),
+                "Half a suitcase, nothing liquid over 100ml"));
+        Trip danielLa = trips.save(new Trip(daniel, "US", "Los Angeles", today.plusDays(5), today.plusDays(11),
+                "One checked bag with room"));
+        Trip oliviaLondon = trips.save(new Trip(olivia, "GB", "London", today.plusDays(12), today.plusDays(18),
+                "Carry-on plus a small tote"));
+        Trip maiBangkok = trips.save(new Trip(mai, "TH", "Bangkok", today.plusDays(4), today.plusDays(10),
+                "Lots of space for snacks"));
+        Trip arifBali = trips.save(new Trip(arif, "ID", "Bali", today.plusDays(8), today.plusDays(14),
+                "About 5 kg free"));
+
+        offers.save(new Offer(sophie, sophieParis, "LU Véritable Petit Beurre", "Monoprix", "Food",
+                "The classic French butter biscuit.", "demo:lu-petit-beurre", 5000, 2000, 6));
+        offers.save(new Offer(sophie, sophieParis, "Bonne Maman Madeleines", "Carrefour City", "Food",
+                "Individually wrapped, travels well.", "demo:bonne-maman-madeleines", 5000, 2000, 6));
+        offers.save(new Offer(sophie, sophieParis, "Maille Dijon Mustard", "Maille boutique, Place de la Madeleine", "Food",
+                "Original Dijon, sealed jar.", "demo:maille-dijon", 8000, 3000, 4));
+        offers.save(new Offer(sophie, sophieParis, "Kusmi Tea Paris Tin", "Kusmi Tea Champs-Élysées", "Food",
+                "Tell me the blend you want in the order note.", "demo:kusmi-tea", 27000, 7000, 3));
+        offers.save(new Offer(sophie, sophieParis, "Eiffel Tower Keyring & Magnet", "Trocadéro souvenir shop", "Other",
+                "Keyring or magnet, your choice.", "demo:paris-keyring", 7000, 3000, 8));
+
+        offers.save(new Offer(daniel, danielLa, "Trader Joe's Dark Chocolate Peanut Butter Cups", "Trader Joe's Silver Lake", "Food",
+                "A favourite, sells out fast.", "demo:tj-pb-cups", 8000, 3000, 5));
+        offers.save(new Offer(daniel, danielLa, "Ghirardelli Chocolate Squares", "Target", "Food",
+                "Premium assortment bag.", "demo:ghirardelli-squares", 21000, 6000, 4));
+        offers.save(new Offer(daniel, danielLa, "Gentle Foaming Hand Soap", "Bath & Body Works", "Beauty",
+                "Pick a scent in the order note.", "demo:foaming-hand-soap", 10000, 4000, 4));
+        offers.save(new Offer(daniel, danielLa, "Been There Series Mug", "Starbucks Hollywood", "Home",
+                "Los Angeles edition, boxed.", "demo:been-there-mug", 22000, 6000, 3));
+        offers.save(new Offer(daniel, danielLa, "Coach Corner Zip Wristlet", "Coach outlet", "Fashion",
+                "US outlet price.", "demo:coach-wristlet", 47000, 10000, 2));
+
+        offers.save(new Offer(olivia, oliviaLondon, "Walkers Pure Butter Shortbread", "Tesco", "Food",
+                "Classic red tartan box.", "demo:walkers-shortbread", 5000, 2000, 6));
+        offers.save(new Offer(olivia, oliviaLondon, "Fortnum & Mason Royal Blend Tea Tin", "Fortnum & Mason Piccadilly", "Food",
+                "From the Piccadilly store.", "demo:fortnum-royal-blend", 20000, 6000, 4));
+        offers.save(new Offer(olivia, oliviaLondon, "Cadbury Dairy Milk Bar", "Sainsbury's", "Food",
+                "UK recipe.", "demo:cadbury-dairy-milk", 3500, 1500, 8));
+        offers.save(new Offer(olivia, oliviaLondon, "Whittard Luxury Hot Chocolate Tin", "Whittard Covent Garden", "Food",
+                "Clip-top tin.", "demo:whittard-hot-chocolate", 26000, 7000, 3));
+        offers.save(new Offer(olivia, oliviaLondon, "Paddington Bear Keyring", "Paddington Station shop", "Other",
+                "Official Paddington keyring.", "demo:paddington-keyring", 15000, 5000, 4));
+
+        offers.save(new Offer(mai, maiBangkok, "Bento Squid Seafood Snack", "7-Eleven", "Food",
+                "Spicy, the Thai favourite.", "demo:bento-squid", 1000, 500, 10));
+        offers.save(new Offer(mai, maiBangkok, "Koh-Kae Coated Peanuts", "Big C", "Food",
+                "Thai sweet chilli flavour.", "demo:koh-kae-peanuts", 2000, 1000, 8));
+        offers.save(new Offer(mai, maiBangkok, "ChaTraMue Thai Tea Mix", "ChaTraMue, Siam Paragon", "Food",
+                "Original red label tin.", "demo:chatramue-thai-tea", 5000, 2000, 6));
+        offers.save(new Offer(mai, maiBangkok, "NaRaYa Ribbon Pouch", "Naraya Central World", "Fashion",
+                "Choose color in the order note.", "demo:naraya-pouch", 5000, 2000, 6));
+        offers.save(new Offer(mai, maiBangkok, "Poy-Sian Mark II Nasal Inhaler", "Boots", "Beauty",
+                "Pack of 6, mixed colours.", "demo:poy-sian-inhaler", 6000, 2000, 8));
+
+        offers.save(new Offer(arif, arifBali, "Indomie Mi Goreng (5 pack)", "Indomaret", "Food",
+                "Original flavour.", "demo:indomie-goreng", 2000, 1000, 8));
+        offers.save(new Offer(arif, arifBali, "Kopi Luwak Coffee 100g", "Ubud coffee plantation", "Food",
+                "Sealed gift tin.", "demo:kopi-luwak", 58000, 12000, 2));
+        offers.save(new Offer(arif, arifBali, "Pie Susu Bali", "Krisna Oleh-Oleh", "Food",
+                "Box of 10, best eaten within a week.", "demo:pie-susu-bali", 3000, 1500, 6));
+        offers.save(new Offer(arif, arifBali, "Ellips Hair Vitamin", "Guardian", "Beauty",
+                "6-capsule blister.", "demo:ellips-hair-vitamin", 2000, 1000, 10));
+        offers.save(new Offer(arif, arifBali, "Batik Pouch", "Seminyak market", "Fashion",
+                "Handmade, every pattern is a little different.", "demo:batik-pouch", 10000, 4000, 4));
+
         requests.save(new PurchaseRequest(seoyeon, "JP", "Sanrio Hello Kitty Tokyo Limited Edition", null, "demo:hello-kitty-tokyo",
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));
         // More Japan requests, so a traveler who adds a Japan trip sees a full request board.
@@ -155,6 +227,13 @@ public class DataSeeder implements ApplicationRunner {
         recentOrder(seoyeon, linhAnessa, 1);
 
         log.info("Demo data created. Log in with buyer@carrypick.test or traveler@carrypick.test / {}", DEMO_PASSWORD);
+    }
+
+    /** A demo traveler with a payout account, ready to post products. */
+    private User traveler(String email, String pw, String name, String bank, String account) {
+        User u = users.save(new User(email, pw, name, Mode.TRAVELER, true));
+        u.setPayoutAccount(bank, account, name.replace(" (Traveler)", ""));
+        return users.save(u);
     }
 
     private void demoOrder(User buyer, Offer offer, int howMany) {
