@@ -1,4 +1,3 @@
-//just for demo 
 package com.carrypick.config;
 
 import com.carrypick.domain.*;
@@ -65,7 +64,6 @@ public class CatalogInitializer implements ApplicationRunner {
             {"Batik Pouch", "바틱 파우치", "Batik Pouch", "바틱, 파우치, 스카프, batik", "Fashion", "ID"},
     };
 
-    /** Demo offers that got a bundled photo after the first seed; older databases still hold null. */
     private static final Map<String, String> DEMO_PHOTOS = Map.ofEntries(
             Map.entry("Tokyo Banana (8 pcs)", "demo:tokyo-banana"),
             Map.entry("Royce' Nama Chocolate", "demo:royce"),
@@ -83,7 +81,6 @@ public class CatalogInitializer implements ApplicationRunner {
             Map.entry("Le Labo Santal 33 50ml", "demo:le-labo-santal33"),
             Map.entry("Jim Thompson silk scarf", "demo:jim-thompson-scarf"));
 
-    /** Estimated packed weight (grams) for the starter catalog. */
     private static final Map<String, Integer> DEMO_WEIGHTS = Map.ofEntries(
             Map.entry("Tokyo Banana (8 pcs)", 300),
             Map.entry("Royce' Nama Chocolate", 250),
@@ -126,7 +123,6 @@ public class CatalogInitializer implements ApplicationRunner {
             Map.entry("Batik Pouch", 120),
             Map.entry("Levi's 501 Original jeans", 700));
 
-    /** Demo products renamed after the first seed: old name -> new name. */
     private static final Map<String, String> RENAMED = Map.of(
             "Tokyo-limited character plush (medium)", "Sanrio Hello Kitty Tokyo Limited Edition");
 
@@ -171,7 +167,6 @@ public class CatalogInitializer implements ApplicationRunner {
         }
     }
 
-    /** Snacks became part of Food; move any old rows over. */
     private void mergeSnacksIntoFood() {
         for (Product p : products.findAll()) if ("Snacks".equalsIgnoreCase(p.getCategory())) p.setCategory("Food");
         for (Offer o : offers.findAll()) if ("Snacks".equalsIgnoreCase(o.getCategory())) o.setCategory("Food");

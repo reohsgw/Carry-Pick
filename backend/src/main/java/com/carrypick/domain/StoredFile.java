@@ -4,11 +4,9 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
-/** An uploaded image or PDF, kept in the database so it survives redeploys of the server. */
 @Entity
 @Table(name = "stored_files")
 public class StoredFile {
-    /** File name as used in the public URL, e.g. "3f2c….jpg". */
     @Id
     @Column(length = 64)
     private String name;

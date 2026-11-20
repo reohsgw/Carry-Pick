@@ -238,13 +238,10 @@ function TravelerActions({ order: o }: { order: Order }) {
   const [tagPhoto, setTagPhoto] = useState<File | null>(null);
   const refresh = () => qc.invalidateQueries();
 
-  // Orders in a foreign currency: limits and prices are entered and compared in that currency (¥ to ¥),
-  // and turned into won at the rate locked for this order.
   const local = !!(o.currency && o.fxRate && o.limitLocal != null);
   const cur = o.currency ?? 'KRW';
   const rate = o.fxRate ?? 1;
   const decimals = currencyDecimals(cur);
-  // What the traveler paid and the price-tag amount: typed in the order's currency or in won (locked rate).
   const buy = useDualAmount(local ? rate : null, decimals);
   const tag = useDualAmount(local ? rate : null, decimals);
   const price = buy.local;

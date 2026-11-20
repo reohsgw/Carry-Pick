@@ -29,11 +29,6 @@ function loadTossSdk(): Promise<void> {
   });
 }
 
-/**
- * Opens the payment window (Toss, or the test sheet in mock mode). The order can be given up front (the payment
- * page) or when paying (the product page books and pays in one go). `onCancel` runs when the window is closed
- * without paying, e.g. to send the person to the order's payment page so they can retry.
- */
 export function usePayment(orderId?: number, opts?: { onCancel?: (orderId: number) => void }) {
   const navigate = useNavigate();
   const qc = useQueryClient();

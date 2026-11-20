@@ -9,14 +9,12 @@ import { useConfirm } from './confirm';
 import { PhotoPick } from './PhotoPick';
 import { Field, Mascot, Modal, Notice, Sheet } from './ui';
 
-/** Statuses where either side may report a problem (mirrors the server). */
 const REPORTABLE = ['PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED'];
 const REASONS = {
   BUYER: ['NOT_RECEIVED', 'WRONG_OR_DAMAGED', 'OTHER'],
   TRAVELER: ['NOT_CONFIRMING', 'NO_CONTACT', 'OTHER'],
 } as const;
 
-/** Traveler marks the item handed over; a photo of the hand-over or the shipping receipt is required. */
 export function HandoverModal({ order, open, onClose }: { order: Order; open: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const errText = useErrorText();
@@ -61,7 +59,6 @@ export function HandoverModal({ order, open, onClose }: { order: Order; open: bo
   );
 }
 
-/** The hand-over photo or shipping receipt, visible to both sides. */
 export function HandoverProof({ order }: { order: Order }) {
   const { t } = useI18n();
   if (!order.handoverPhotoUrl) return null;
@@ -76,7 +73,6 @@ export function HandoverProof({ order }: { order: Order }) {
   );
 }
 
-/** "Confirmed automatically on …" while the order waits for the buyer. */
 export function AutoConfirmNote({ order }: { order: Order }) {
   const { t, lang } = useI18n();
   if (order.status !== 'DELIVERED' || !order.autoConfirmAt) return null;
@@ -84,7 +80,6 @@ export function AutoConfirmNote({ order }: { order: Order }) {
   return <p className="ac-note">{t(buyer ? 'ac.left' : 'ac.leftTraveler', { date: dateTime(order.autoConfirmAt, lang) })}</p>;
 }
 
-/** "Report a problem" link plus its form. */
 export function ReportProblem({ order }: { order: Order }) {
   const { t } = useI18n();
   const errText = useErrorText();
@@ -130,7 +125,6 @@ export function ReportProblem({ order }: { order: Order }) {
   );
 }
 
-/** Open report: what was reported, and the ways to end it. */
 export function DisputePanel({ order }: { order: Order }) {
   const { t, lang } = useI18n();
   const errText = useErrorText();

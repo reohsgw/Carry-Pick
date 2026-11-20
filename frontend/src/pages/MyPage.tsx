@@ -16,7 +16,6 @@ import { useOrderHasNews, useRequestIsNew } from '../seen';
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
-/** "My" tab, modelled on 당근's 나의 당근: profile, rewards, trade shortcuts, my trips & offers, account menu. */
 export default function MyPage() {
   const { user, logout, unread, config, refreshMe } = useSession();
   const { t, lang } = useI18n();
@@ -30,7 +29,6 @@ export default function MyPage() {
   const trips = useQuery({
     queryKey: ['myTrips', 'withPast'],
     queryFn: api.myTripsWithPast,
-    // Current and upcoming trips first (soonest first), then finished ones (most recent first).
     select: (list) => {
       const ended = (tr: (typeof list)[number]) => daysUntil(tr.returnDate) < 0;
       const live = list.filter((tr) => !ended(tr)).sort((a, b) => a.departDate.localeCompare(b.departDate));
@@ -47,8 +45,6 @@ export default function MyPage() {
   if (!user) return null;
 
   const carryActive = (carrying.data ?? []).filter((o) => ACTIVE_STATUSES.includes(o.status));
-  // What the traveler gets paid back: the item price they paid at the store (receipt amount, or the
-  // approved budget before they've bought it) plus their reward. Same rule as the server's settlement.
   const itemOf = (o: Order) => o.actualPrice ?? o.itemLimit;
   const sumUp = (list: Order[]) => list.reduce(
     (acc, o) => ({ item: acc.item + itemOf(o), reward: acc.reward + o.reward }), { item: 0, reward: 0 });
@@ -57,7 +53,6 @@ export default function MyPage() {
   const buyNews = (buying.data ?? []).filter(hasNews).length;
   const carryNews = (carrying.data ?? []).filter(hasNews).length;
   const newRequests = (requests.data ?? []).filter(isNew).length;
-  // The trip new products go on: the first one still open for booking (closes the day before return).
   const next = trips.data?.find((tr) => daysUntil(tr.returnDate) > 0);
   const dates = (a: string, b: string) => yearRange(a, b, lang);
 
@@ -103,7 +98,6 @@ export default function MyPage() {
     <Screen>
       <div className="kt">
         <div className="kt-aside">
-          {/* Profile */}
           <section className="kt-sheet kt-profile">
             <div className="kt-photo">
               <Avatar size={64} name={user.name} src={user.avatarUrl} />
@@ -136,7 +130,6 @@ export default function MyPage() {
 
           {error && <Notice tone="bad">{error}</Notice>}
 
-          {/* Rewards wallet, like 당근페이 */}
           <section className="kt-sheet kt-wallet">
             <span className="kt-wallet-title"><Ticket size={18} aria-hidden /> {t('kt.wallet')}</span>
             <div className="kt-wallet-sums">
@@ -157,7 +150,6 @@ export default function MyPage() {
 
           <PayoutCard />
 
-          {/* Trade shortcuts, like 나의 거래 */}
           <section className="kt-sheet kt-shortcuts">
             <h2 className="kt-label">{t('kt.myCarry')}</h2>
             <div className="kt-shortcut-row">
@@ -175,7 +167,6 @@ export default function MyPage() {
             </div>
           </section>
 
-          {/* Account menu */}
           <section className="kt-sheet kt-menu">
             <h2 className="kt-label">{t('kt.account')}</h2>
             <div className="kt-menu-row">
@@ -194,7 +185,6 @@ export default function MyPage() {
         </div>
 
         <div className="kt-main">
-          {/* Trips */}
           <KtSection id="kt-trips" title={t('t.trips')} aside={<Link to="/t/trips/new" className="kt-more"><Plus size={15} aria-hidden /> {t('t.addTrip')}</Link>}>
             {trips.isLoading && <Loading />}
             {trips.data?.length === 0 && (
@@ -205,7 +195,7 @@ export default function MyPage() {
             )}
             {trips.data?.map((tr) => {
               const d = daysUntil(tr.departDate);
-              const open = daysUntil(tr.returnDate) > 0; // bookings close the day before they return
+              const open = daysUntil(tr.returnDate) > 0;
               const ended = daysUntil(tr.returnDate) < 0;
               return (
                 <div key={tr.id} className={`kt-item kt-trip${ended ? ' is-past' : ''}`}>
@@ -228,7 +218,6 @@ export default function MyPage() {
             })}
           </KtSection>
 
-          {/* Offers */}
           <KtSection id="kt-offers" title={t('t.offers')} aside={<Link to="/t/offers/new" className="kt-more"><Plus size={15} aria-hidden /> {t('t.newOffer')}</Link>}>
             {offers.data?.length === 0 && <p className="kt-empty">{t('t.noOffers')}</p>}
             {offers.data?.map((o) => (

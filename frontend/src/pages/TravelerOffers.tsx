@@ -16,7 +16,6 @@ const MAX_COMPARE = 5;
 type Sort = 'best' | 'reward' | 'arrival';
 type Window = 'any' | '7' | '14';
 
-/** Snacks were merged into Food; old rows may still say Snacks until the server migrates them. */
 const catOf = (c: string | null | undefined) => (c === 'Snacks' ? 'Food' : c ?? 'Other');
 
 export default function TravelerOffers() {
@@ -26,7 +25,7 @@ export default function TravelerOffers() {
   const [params, setParams] = useSearchParams();
   const { country, setCountry } = useCountry();
   const linked = params.get('country');
-  useEffect(() => { if (linked && linked !== country) setCountry(linked); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (linked && linked !== country) setCountry(linked); }, []);
   const arriveBy = params.get('by') ?? '';
 
   const [draftCountry, setDraftCountry] = useState(linked ?? country);
@@ -99,7 +98,6 @@ export default function TravelerOffers() {
         <div className="section-heading">
           <div>
             <h2 className="font-display">{t('to.title')}</h2>
-            {/* The whale says how to use this page, in the same speech bubble as elsewhere */}
             <div className="live-say to-say">
               <Mascot mood="question" className="live-say-whale" size={76} />
               <p className="live-say-bubble">{t('to.copy')}</p>

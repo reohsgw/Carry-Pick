@@ -18,7 +18,6 @@ export default function NewRequest() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  // /my-requests/:id/edit: the same form, filled in with the buyer's open request.
   const routeId = useParams().id;
   const editId = routeId ? Number(routeId) : null;
   const existing = useQuery({ queryKey: ['request', editId], queryFn: () => api.request(editId!), enabled: !!editId });
@@ -33,20 +32,16 @@ export default function NewRequest() {
   const [imageUrl, setImage] = useState<string | null>(() => params.get('img'));
   const [options, setOptions] = useState('');
   const [note, setNote] = useState('');
-  // The budget is typed in the country's currency or in won (switch on the box); the other follows today's rate.
   const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
   const currency = currencyOf(config, countryCode);
   const decimals = currencyDecimals(currency);
   const rate = currency === 'KRW' ? 1 : rates.data?.krwPerUnit[currency];
   const foreign = currency !== 'KRW';
   const budget = useDualAmount(foreign ? rate : null, decimals);
-  // A budget suggested in won (from the ranking) is filled in once rates arrive.
   const suggestedWon = useRef(Number(params.get('budget')) || 0);
   useEffect(() => {
     if (suggestedWon.current && rate) { budget.setWon(suggestedWon.current); suggestedWon.current = 0; }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rate]);
-  // Changing the country keeps the same won value: a local amount is redone in the new currency.
   const lastCountry = useRef(countryCode);
   const lastRate = useRef<number | undefined>(rate);
   useEffect(() => {
@@ -56,9 +51,7 @@ export default function NewRequest() {
     }
     lastCountry.current = countryCode;
     lastRate.current = rate;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryCode, rate]);
-  // Editing: fill the form once with the saved request.
   const loaded = useRef(false);
   useEffect(() => {
     const r = existing.data;
@@ -76,7 +69,6 @@ export default function NewRequest() {
     setReward(r.reward);
     setDeadline(r.deadline);
     setWeight(r.weightGrams ?? '');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existing.data]);
   const maxBudget: number | '' = foreign ? budget.won : budget.amount;
   const [reward, setReward] = useState<number | ''>(5000);
@@ -84,7 +76,6 @@ export default function NewRequest() {
   const [weightGrams, setWeight] = useState<number | ''>(() => Number(params.get('weight')) || '');
   const fromRanking = params.get('from') === 'ranking';
 
-  // An unchanged budget is sent back exactly as saved, so it keeps the rate fixed when the request was posted.
   const budgetBody = () => {
     const r = existing.data;
     if (r && countryCode === r.countryCode) {
@@ -93,7 +84,6 @@ export default function NewRequest() {
         : Number(maxBudget) === r.maxBudget;
       if (same) return r.budgetLocal != null ? { budgetLocal: Number(r.budgetLocal), budgetCurrency: r.budgetCurrency ?? currency } : { maxBudget: r.maxBudget };
     }
-    // Typed in won → sent in won (the server works out the local limit); typed in ¥ → sent in ¥.
     return !foreign || budget.mode === 'won'
       ? { maxBudget: Number(maxBudget) }
       : { budgetLocal: Number(budget.amount), budgetCurrency: currency };
@@ -128,7 +118,6 @@ export default function NewRequest() {
 
   return (
     <Screen back title={editId ? t('req.edit') : t('req.title')} hideNav wide>
-      {/* The whale says the intro, in the same speech bubble as on the home page */}
       <div className="live-say req-say">
         <Mascot mood="question" className="live-say-whale" size={76} />
         <p className="live-say-bubble">{editId ? t('req.editNote') : t('req.hello')}</p>

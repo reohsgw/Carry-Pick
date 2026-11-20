@@ -54,7 +54,6 @@ public class ReceiptScanService {
         this.json = json;
     }
 
-    /** Fixed rates from config only (tests). */
     public ReceiptScanService(AppProperties props, ObjectMapper json) {
         this(props, json, ExchangeRateService.fixedOnly(props.fx()));
     }
@@ -72,11 +71,6 @@ public class ReceiptScanService {
         return parse(callClaude(image), false, cfg.model());
     }
 
-    /**
-     * Blocks an upload only when the AI is sure the photo is not a receipt. Anything it can't judge
-     * (mock mode, PDFs, photos over 5MB, the AI being down or unreadable) is let through, so travelers
-     * are never stuck because of the AI.
-     */
     public void requireReceipt(MultipartFile image) {
         if (cfg == null || cfg.isMock() || image == null || image.isEmpty()) return;
         if (!IMAGE_TYPES.contains(image.getContentType()) || image.getSize() > MAX_BYTES) return;

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Camera, FileText } from './icons';
 import { useI18n } from '../i18n';
 
-/** Pick one photo (or PDF when allowed) with a small preview. */
 export function PhotoPick({ file, onFile, label, hint, allowPdf, big }: {
   file: File | null; onFile: (f: File | null) => void; label: string; hint?: string; allowPdf?: boolean; big?: boolean;
 }) {

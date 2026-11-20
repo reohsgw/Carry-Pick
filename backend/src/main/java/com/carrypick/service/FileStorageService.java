@@ -16,10 +16,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Uploads are stored in the database, so they survive redeploys on hosts with a throwaway disk.
- * Files saved to the upload directory by older versions are still served from there.
- */
 @Service
 public class FileStorageService {
     private static final Map<String, String> ALLOWED = Map.of(
@@ -62,7 +58,6 @@ public class FileStorageService {
     public Optional<Loaded> load(String name) {
         Optional<Loaded> fromDb = repo.findById(name).map(f -> new Loaded(f.getContentType(), f.getData()));
         if (fromDb.isPresent()) return fromDb;
-        // Older uploads written to disk.
         Path p = root.resolve(name).normalize();
         if (!p.startsWith(root) || !Files.isRegularFile(p)) return Optional.empty();
         try {

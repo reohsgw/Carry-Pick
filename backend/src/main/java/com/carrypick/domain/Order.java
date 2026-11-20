@@ -50,10 +50,6 @@ public class Order {
 
     private long extraItemAmount;
 
-    /**
-     * Prices in the currency of the country the item is bought in, with the won rate locked for the whole order
-     * (set when the order is made, which is what the buyer pays). Null for won-only orders.
-     */
     @Column(length = 3)
     private String currency;
     private Double fxRate;
@@ -81,10 +77,8 @@ public class Order {
     private Instant purchasedAt;
     private Instant deliveredAt;
 
-    /** How the traveler handed it over (IN_PERSON or SHIPPING) and the photo proving it. */
     private String handoverMethod;
     private String handoverPhotoUrl;
-    /** When the buyer's receipt is confirmed automatically if they do nothing. */
     private Instant autoConfirmAt;
 
     private String disputeReason;
@@ -215,19 +209,11 @@ public class Order {
         this.limitLocal = limitLocal;
     }
     public boolean hasLocalPrices() { return currency != null && fxRate != null && limitLocal != null; }
-    /** The local-currency limit the traveler may spend: the original one, or the higher price the buyer approved. */
     public java.math.BigDecimal localLimit() {
         return extraItemAmount > 0 && quotedLocal != null ? quotedLocal : limitLocal;
     }
-    /** Won value of a local amount at this order's locked rate. */
     public long toKrw(java.math.BigDecimal local) { return Math.round(local.doubleValue() * fxRate); }
-    /** Largest local amount whose won value does not exceed the given won amount at the rate. */
-    /** A won amount typed by the traveler, in this order's currency at its locked rate. */
     public java.math.BigDecimal wonToLocal(long krw) { return fromWon(krw, fxRate); }
-    /**
-     * A won amount in a local currency, kept to 2 decimals even for yen, so converting it back at the same
-     * rate gives the won that was typed (₩12,000 → ¥1,435.55 → ₩12,000). Screens round it for display.
-     */
     public static java.math.BigDecimal fromWon(long krw, double krwPerUnit) {
         return java.math.BigDecimal.valueOf(krw).divide(java.math.BigDecimal.valueOf(krwPerUnit), 2, java.math.RoundingMode.HALF_UP);
     }

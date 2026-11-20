@@ -21,13 +21,10 @@ function carbon(C: CarbonIcon, name: string): Icon {
   return CarbonGlyph;
 }
 
-export const AlertCircle = carbon(Carbon.WarningAlt, 'AlertCircle');
 export const Flag = carbon(Carbon.Flag, 'Flag');
 export const Handshake = carbon(Carbon.Partnership, 'Handshake');
 export const Truck = carbon(Carbon.DeliveryTruck, 'Truck');
-export const Idea = carbon(Carbon.Idea, 'Idea');
 export const ArrowRight = carbon(Carbon.ArrowRight, 'ArrowRight');
-export const InfoIcon = carbon(Carbon.Information, 'InfoIcon');
 export const SwapVertical = carbon(Carbon.ArrowsVertical, 'SwapVertical');
 export const Bell = carbon(Carbon.Notification, 'Bell');
 export const Calendar = carbon(Carbon.Calendar, 'Calendar');
@@ -36,7 +33,6 @@ export const Check = carbon(Carbon.Checkmark, 'Check');
 export const ChevronDown = carbon(Carbon.ChevronDown, 'ChevronDown');
 export const ChevronLeft = carbon(Carbon.ChevronLeft, 'ChevronLeft');
 export const ChevronRight = carbon(Carbon.ChevronRight, 'ChevronRight');
-export const CircleAlert = carbon(Carbon.WarningAlt, 'CircleAlert');
 export const CircleCheck = carbon(Carbon.CheckmarkOutline, 'CircleCheck');
 export const ClipboardList = carbon(Carbon.Task, 'ClipboardList');
 export const Cookie = carbon(Carbon.Cookie, 'Cookie');
@@ -59,13 +55,10 @@ export const Search = carbon(Carbon.Search, 'Search');
 export const SearchX = carbon(Carbon.Search, 'SearchX');
 export const SendHorizontal = carbon(Carbon.Send, 'SendHorizontal');
 export const ShieldAlert = carbon(Carbon.ShieldAlert, 'ShieldAlert');
-export const ShieldCheck = carbon(Carbon.Security, 'ShieldCheck');
 export const Shirt = carbon(Carbon.Tag, 'Shirt');
 export const ShoppingBag = carbon(Carbon.ShoppingBag, 'ShoppingBag');
 export const Receipt = carbon(Carbon.Receipt, 'Receipt');
-export const Sparkles = carbon(Carbon.Gem, 'Sparkles');
 
-/** Beauty: a pump bottle with a leaf (Carbon has no cosmetics icon). Drawn on Carbon's 32px grid. */
 export function Beauty({ size = 24, className, style, strokeWidth: _s, ...rest }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={2}
@@ -84,7 +77,6 @@ export const User = carbon(Carbon.User, 'User');
 export const UtensilsCrossed = carbon(Carbon.Restaurant, 'UtensilsCrossed');
 export const X = carbon(Carbon.Close, 'X');
 
-// Notification types
 export const NotifBooked = carbon(Carbon.Calendar, 'NotifBooked');
 export const NotifAccepted = carbon(Carbon.TaskApproved, 'NotifAccepted');
 export const NotifPaid = carbon(Carbon.Purchase, 'NotifPaid');

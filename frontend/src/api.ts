@@ -40,7 +40,6 @@ export interface Offer {
   store: string | null; category: string | null; description: string | null; imageUrl: string | null;
   estPrice: number; reward: number; quantity: number; status: 'ACTIVE' | 'SOLD_OUT' | 'CLOSED';
   bookable: boolean; unitQuote: Quote;
-  /** Price per item in the trip country's currency; estPrice is its won value today. */
   priceCurrency: string | null; priceLocal: number | null;
   receiptUrl: string | null;
   product: Product | null;
@@ -62,11 +61,9 @@ export interface PurchaseRequest {
   maxBudget: number; reward: number; deadline: string;
   status: 'OPEN' | 'MATCHED' | 'EXPIRED' | 'CANCELLED'; quote: Quote; createdAt: string; orderId: number | null;
   product: Product | null; weightGrams: number | null;
-  /** The budget as typed in the country's currency, and the won-per-unit rate used. Null for won budgets. */
   budgetCurrency: string | null; budgetLocal: number | null; fxRate: number | null;
 }
 
-/** Won per one unit of each currency, e.g. { JPY: 9.21 }. live is false when fixed fallback rates are used. */
 export interface FxRates { krwPerUnit: Record<string, number>; live: boolean; updatedAt: string | null }
 
 export interface PaymentRecord {
@@ -75,7 +72,6 @@ export interface PaymentRecord {
 }
 
 export interface Order {
-  /** Prices in the purchase country's currency and the order's locked won rate; null for won-only orders. */
   currency: string | null; fxRate: number | null; limitLocal: number | null; quotedLocal: number | null; actualLocal: number | null;
   id: number; myRole: 'BUYER' | 'TRAVELER'; status: OrderStatus; source: 'OFFER' | 'REQUEST';
   offerId: number | null; requestId: number | null; buyer: Person; traveler: Person;

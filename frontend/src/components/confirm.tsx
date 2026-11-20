@@ -3,13 +3,11 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '../i18n';
 import { Mascot, type Mood } from './ui';
 
-/** `title`: an optional single line above the message (e.g. a product name); it never wraps and shrinks to fit. */
 type Options = { message: string; title?: string; mood?: Mood; okLabel?: string; danger?: boolean };
 type Pending = Options & { resolve: (ok: boolean) => void };
 
 const ConfirmContext = createContext<(o: Options) => Promise<boolean>>(async () => false);
 
-/** In-page replacement for window.confirm: a small square card with the whale. */
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<Pending | null>(null);
   const confirm = useCallback((o: Options) => new Promise<boolean>((resolve) => setPending({ ...o, resolve })), []);

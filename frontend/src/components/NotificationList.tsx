@@ -12,8 +12,6 @@ import { useSession } from '../session';
 import { firstName } from './cards';
 import { Avatar, Empty, ErrorBox, Loading, ProductThumb } from './ui';
 
-/* Instagram-style activity feed: filter chips, time sections, avatar + bold sentence + short time, thumbnail on the right. */
-
 type Filter = 'all' | 'pay' | 'delivery' | 'chat' | 'issues';
 const FILTERS: Record<Exclude<Filter, 'all'>, NotificationKind[]> = {
   pay: ['BOOKED', 'REQUEST_ACCEPTED', 'PAID', 'EXTRA_PAID', 'SETTLED', 'AUTO_CONFIRMED', 'RESOLVED'],
@@ -39,13 +37,11 @@ const KIND_ICON: Record<NotificationKind, { icon: Icon; tone: 'neutral' | 'good'
   AUTO_CONFIRMED: { icon: NotifSettled, tone: 'good' },
 };
 
-/** A feed row: one notification, or several consecutive messages from the same order folded together. */
 type Item = { n: Notification; count: number; unread: boolean };
 
 const A = '\u0001A\u0001';
 const P = '\u0001P\u0001';
 
-/** Builds the sentence with the person's name and the product in bold. */
 function sentence(item: Item, t: T): ReactNode {
   const { n, count } = item;
   if (!n.kind) return n.message;

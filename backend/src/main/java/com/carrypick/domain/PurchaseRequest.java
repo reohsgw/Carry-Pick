@@ -41,7 +41,6 @@ public class PurchaseRequest {
 
     private long reward;
 
-    /** Estimated weight in grams, so travelers can judge whether it fits in their luggage. */
     private Integer weightGrams;
 
     @Column(nullable = false)
@@ -56,7 +55,6 @@ public class PurchaseRequest {
     @Column(length = 1000)
     private String excludedTravelers;
 
-    /** The budget as the buyer typed it, in the country's currency, and the rate used to turn it into won. */
     @Column(length = 3)
     private String budgetCurrency;
     @Column(precision = 15, scale = 2)
@@ -70,7 +68,6 @@ public class PurchaseRequest {
         this.budgetLocal = amount;
         this.fxRate = krwPerUnit;
     }
-    /** Budget typed in the local currency; the won budget is derived from it at the given rate. */
     public void useLocalBudget(String currency, java.math.BigDecimal amount, double krwPerUnit) {
         setLocalBudget(currency, amount, krwPerUnit);
         this.maxBudget = Math.round(amount.doubleValue() * krwPerUnit);
@@ -93,7 +90,6 @@ public class PurchaseRequest {
         this.deadline = deadline;
     }
 
-    /** The buyer edits their open request. Budget and its rate are set separately (setBudget / setLocalBudget). */
     public void update(String countryCode, String productName, String productLink, String imageUrl,
                        String options, String note, long reward, LocalDate deadline) {
         this.countryCode = countryCode;
@@ -105,7 +101,6 @@ public class PurchaseRequest {
         this.reward = reward;
         this.deadline = deadline;
     }
-    /** Won budget, plus its amount in the country's currency and the rate used (all null for won-only budgets). */
     public void setBudget(long maxBudget, String currency, java.math.BigDecimal local, Double krwPerUnit) {
         this.maxBudget = maxBudget;
         this.budgetCurrency = currency;

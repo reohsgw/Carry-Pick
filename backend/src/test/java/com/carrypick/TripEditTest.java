@@ -33,20 +33,16 @@ class TripEditTest {
         long tripId = body(send(post("/api/trips"), kenji, trip("JP", "Tokyo", d.plusDays(10), d.plusDays(15), "5kg")), 201)
                 .get("id").asLong();
 
-        // No products yet: everything can change, including the country.
         JsonNode edited = body(send(put("/api/trips/" + tripId), kenji, trip("FR", "Paris", d.plusDays(12), d.plusDays(20), "One suitcase")), 200);
         assertThat(edited.get("countryCode").asText()).isEqualTo("FR");
         assertThat(edited.get("city").asText()).isEqualTo("Paris");
         assertThat(edited.get("departDate").asText()).isEqualTo(d.plusDays(12).toString());
 
-        // Invalid dates are refused just like on create.
         body(send(put("/api/trips/" + tripId), kenji, trip("FR", "Paris", d.plusDays(12), d.plusDays(5), null)), 400);
 
-        // Someone else's trip can't be edited.
         String minji = login("buyer@carrypick.test");
         body(send(put("/api/trips/" + tripId), minji, trip("FR", "Lyon", d.plusDays(12), d.plusDays(20), null)), 403);
 
-        // After posting a product, the city still changes but the country is locked.
         body(send(post("/api/offers"), kenji,
                 "{\"tripId\":" + tripId + ",\"productName\":\"Macarons\",\"estPrice\":20000,\"reward\":3000,\"quantity\":1,\"weightGrams\":300}"), 201);
         JsonNode city = body(send(put("/api/trips/" + tripId), kenji, trip("FR", "Nice", d.plusDays(12), d.plusDays(20), null)), 200);
@@ -61,7 +57,6 @@ class TripEditTest {
         String minji = login("buyer@carrypick.test");
         LocalDate d = LocalDate.now();
 
-        // A trip with a product nobody ordered: both are deleted.
         long tripA = body(send(post("/api/trips"), kenji, trip("JP", "Tokyo", d.plusDays(10), d.plusDays(15), null)), 201).get("id").asLong();
         long offerA = body(send(post("/api/offers"), kenji,
                 "{\"tripId\":" + tripA + ",\"productName\":\"Matcha\",\"estPrice\":20000,\"reward\":3000,\"quantity\":1,\"weightGrams\":300}"), 201)
@@ -72,7 +67,6 @@ class TripEditTest {
         JsonNode mine = body(get("/api/trips/me").header("Authorization", "Bearer " + kenji), 200);
         mine.forEach(t -> assertThat(t.get("id").asLong()).isNotEqualTo(tripA));
 
-        // A trip someone has ordered from stays.
         long tripB = body(send(post("/api/trips"), kenji, trip("JP", "Osaka", d.plusDays(10), d.plusDays(15), null)), 201).get("id").asLong();
         long offerB = body(send(post("/api/offers"), kenji,
                 "{\"tripId\":" + tripB + ",\"productName\":\"Snacks\",\"estPrice\":20000,\"reward\":3000,\"quantity\":2,\"weightGrams\":300}"), 201)
@@ -107,15 +101,12 @@ class TripEditTest {
         LocalDate today = LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
         String offer = "{\"tripId\":%d,\"productName\":\"Matcha\",\"estPrice\":20000,\"reward\":3000,\"quantity\":2,\"weightGrams\":300}";
 
-        // Departing today is allowed, and its products can still be booked until the day before return.
         long leavingToday = body(send(post("/api/trips"), kenji, trip("JP", "Tokyo", today, today.plusDays(3), null)), 201).get("id").asLong();
         JsonNode posted = body(send(post("/api/offers"), kenji, offer.formatted(leavingToday)), 201);
         assertThat(posted.get("bookable").asBoolean()).isTrue();
 
-        // Yesterday is still refused.
         body(send(post("/api/trips"), kenji, trip("JP", "Tokyo", today.minusDays(1), today.plusDays(3), null)), 400);
 
-        // Returning today: bookings have closed, so no new products.
         long backToday = body(send(post("/api/trips"), kenji, trip("JP", "Osaka", today, today, null)), 201).get("id").asLong();
         JsonNode closed = body(send(post("/api/offers"), kenji, offer.formatted(backToday)), 400);
         assertThat(closed.get("code").asText()).isEqualTo("TRIP_ENDED");

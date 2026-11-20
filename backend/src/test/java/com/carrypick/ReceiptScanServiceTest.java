@@ -40,7 +40,6 @@ class ReceiptScanServiceTest {
         MockMultipartFile pdf = new MockMultipartFile("receipt", "r.pdf", "application/pdf", new byte[] {1});
         assertDoesNotThrow(() -> mockService.requireReceipt(cat));
         assertDoesNotThrow(() -> mockService.requireReceipt(pdf));
-        // Real provider but no reachable API: the AI failing must not block the traveler.
         assertDoesNotThrow(() -> service("anthropic").requireReceipt(cat));
     }
 

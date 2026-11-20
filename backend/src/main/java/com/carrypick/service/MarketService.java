@@ -93,7 +93,6 @@ public class MarketService {
         auth.requirePayoutAccount(me);
         Trip trip = trips.findById(f.tripId()).orElseThrow(() -> ApiException.notFound("Trip"));
         if (!trip.getTraveler().getId().equals(userId)) throw ApiException.forbidden("This is not your trip");
-        // Products can be posted until the day before the traveler leaves the country (booking closes then).
         if (!trip.getReturnDate().isAfter(Today.get())) {
             throw ApiException.badRequest("TRIP_ENDED", "Bookings for this trip have closed");
         }
@@ -136,7 +135,6 @@ public class MarketService {
         return mapper.offer(o);
     }
 
-    /** The traveler deletes their own product. Once someone has ordered it, it can only be closed. */
     @Transactional
     public void deleteOffer(Long userId, Long offerId) {
         Offer o = findOffer(offerId);
@@ -149,7 +147,6 @@ public class MarketService {
 
     private record PriceIn(long krw, String currency, java.math.BigDecimal local, double rate) {}
 
-    /** A product's price: in the trip country's currency (converted at today's rate), or in won. */
     private PriceIn offerPrice(String countryCode, OfferForm f) {
         String currency = Countries.find(countryCode).map(Countries.Country::currency).orElse("KRW");
         if (f.priceLocal() != null) {
@@ -161,7 +158,6 @@ public class MarketService {
             return new PriceIn(Math.round(f.priceLocal().doubleValue() * rate), currency, f.priceLocal(), rate);
         }
         if (f.estPrice() == null) throw ApiException.badRequest("PRICE", "Enter a price");
-        // Typed in won for a foreign trip: stored in the local currency too, so buyers see ¥ and orders lock it.
         if (!"KRW".equals(currency) && f.estPrice() > 0) {
             Double rate = fx.krwPerUnit(currency);
             if (rate != null) {
@@ -198,7 +194,6 @@ public class MarketService {
 
     private record Budget(long krw, String currency, java.math.BigDecimal local, Double rate) {}
 
-    /** A request's budget: in the country's currency (converted at today's rate), or in won. */
     private Budget budget(RequestForm f) {
         String currency = Countries.find(f.countryCode()).map(Countries.Country::currency).orElse("KRW");
         if (f.budgetLocal() != null) {
@@ -212,7 +207,6 @@ public class MarketService {
             return new Budget(krw, currency, f.budgetLocal(), rate);
         }
         if (f.maxBudget() == null || f.maxBudget() <= 0) throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
-        // Typed in won: the won budget stays exact and the local limit is its value at today's rate.
         long krw = f.maxBudget();
         if (!"KRW".equals(currency)) {
             Double r = fx.krwPerUnit(currency);
@@ -221,10 +215,6 @@ public class MarketService {
         return new Budget(krw, null, null, null);
     }
 
-    /**
-     * The buyer edits their request while no traveler has accepted it. An unchanged budget keeps the rate
-     * fixed when it was posted; a new budget is converted at today's rate.
-     */
     @Transactional
     public RequestDto updateRequest(Long userId, Long requestId, RequestForm f) {
         PurchaseRequest r = findRequest(requestId);
@@ -389,12 +379,10 @@ public class MarketService {
         return s == null || s.isBlank() ? null : s.trim();
     }
 
-    /** The weight the user entered, or the catalog's estimate when they left it blank. */
     private static Integer weightOr(Integer entered, Product p) {
         return entered != null ? entered : p == null ? null : p.getWeightGrams();
     }
 
-    /** First weight anyone enters for a catalog product becomes its default estimate. */
     private static void learnWeight(Product p, Integer entered) {
         if (p != null && p.getWeightGrams() == null && entered != null) p.setWeightGrams(entered);
     }

@@ -13,13 +13,11 @@ export function shortDate(iso: string | null | undefined, lang: Lang): string {
   return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
-/** Date with the year, e.g. "2025년 2월 20일" / "Feb 20, 2025". */
 export function yearDate(iso: string | null | undefined, lang: Lang): string {
   if (!iso) return '-';
   return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-/** A date range with the year: shown once when both dates are in the same year. */
 export function yearRange(a: string, b: string, lang: Lang): string {
   return `${yearDate(a, lang)} – ${yearDate(b, lang)}`;
 }
@@ -72,7 +70,6 @@ const CITY_CODES: Record<string, string> = {
   taipei: 'TPE', '타이베이': 'TPE', kaohsiung: 'KHH',
 };
 const COUNTRY_HUB: Record<string, string> = { JP: 'TYO', US: 'NYC', FR: 'PAR', GB: 'LON', TH: 'BKK', VN: 'HAN', ID: 'JKT', TW: 'TPE' };
-export const HOME_CODE = 'SEL';
 
 export function displayCode(code: string): string {
   return code === 'GB' ? 'UK' : code;
@@ -90,7 +87,6 @@ export function quote(config: AppConfig | undefined, budget: number, reward: num
   return { budget, reward, fee, tax, total: budget + reward + fee + tax };
 }
 
-// Snacks were merged into Food; the server turns any old "Snacks" into "Food".
 export const CATEGORIES = ['Food', 'Beauty', 'Fashion', 'Home', 'Electronics', 'Other'] as const;
 
 export type Tone = 'neutral' | 'action' | 'progress' | 'good' | 'bad';
@@ -110,7 +106,6 @@ export const STATUS_TONE: Record<OrderStatus, Tone> = {
 
 export const ACTIVE_STATUSES: OrderStatus[] = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED', 'DISPUTED'];
 
-/** 350 → "350g", 1200 → "1.2kg", 2000 → "2kg". */
 export function weight(grams: number | null | undefined): string {
   if (grams == null) return '';
   if (grams < 1000) return `${grams}g`;
@@ -118,17 +113,14 @@ export function weight(grams: number | null | undefined): string {
   return `${Number.isInteger(kg) ? kg : kg.toFixed(1)}kg`;
 }
 
-/** Highest reward allowed for an item at this price (server rule: a share of the item price). */
 export function maxReward(config: AppConfig | undefined, itemPrice: number): number {
   return Math.floor(itemPrice * (config?.maxRewardRate ?? 0.5));
 }
 
-/** Currency of a country, e.g. JP → JPY. */
 export function currencyOf(config: AppConfig | undefined, code: string): string {
   return config?.countries?.find((c) => c.code === code)?.currency ?? 'KRW';
 }
 
-/** Digits after the decimal point for a currency: 0 for JPY/KRW/VND/IDR, 2 for USD/EUR/GBP. */
 export function currencyDecimals(currency: string): number {
   if (['TWD', 'IDR', 'VND', 'JPY', 'KRW'].includes(currency)) return 0;
   try {
@@ -136,7 +128,6 @@ export function currencyDecimals(currency: string): number {
   } catch { return 2; }
 }
 
-/** Amount in a foreign currency, e.g. "¥3,000", "$25.50", "฿300". */
 export function money(amount: number, currency: string): string {
   if (currency === 'KRW') return `₩${Math.round(amount).toLocaleString('ko-KR')}`;
   const decimals = Number.isInteger(amount) ? 0 : currencyDecimals(currency);
@@ -149,7 +140,6 @@ export function money(amount: number, currency: string): string {
   }
 }
 
-/** Symbol shown before an amount input, e.g. "¥", "$", "₩". */
 export function currencySymbol(currency: string): string {
   if (currency === 'KRW') return '₩';
   try {
@@ -159,19 +149,16 @@ export function currencySymbol(currency: string): string {
   } catch { return currency; }
 }
 
-/** A request's budget: in the country's currency with the won value, or just won for older requests. */
 export function budgetText(r: { maxBudget: number; budgetLocal?: number | null; budgetCurrency?: string | null }, lang: Lang): string {
   if (r.budgetLocal == null || !r.budgetCurrency) return krw(r.maxBudget);
   return `${money(r.budgetLocal, r.budgetCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(r.maxBudget)})`;
 }
 
-/** A product's price per item: in its local currency with the won value, or just won. */
 export function offerPriceText(o: { estPrice: number; priceLocal?: number | null; priceCurrency?: string | null }, lang: Lang): string {
   if (o.priceLocal == null || !o.priceCurrency) return krw(o.estPrice);
   return `${money(Number(o.priceLocal), o.priceCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(o.estPrice)})`;
 }
 
-/** Koreans quote yen, rupiah and dong per 100 units (100엔 = ₩936), everything else per 1. */
 export function rateUnit(currency: string): number {
   return currency === 'JPY' || currency === 'IDR' || currency === 'VND' ? 100 : 1;
 }

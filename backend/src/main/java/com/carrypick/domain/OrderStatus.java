@@ -7,7 +7,6 @@ public enum OrderStatus {
     AWAITING_APPROVAL,
     PURCHASED,
     DELIVERED,
-    /** Someone reported a problem; settlement and the auto-confirm timer are paused. */
     DISPUTED,
     SETTLED,
     CANCELLED

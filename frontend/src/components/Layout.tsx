@@ -38,12 +38,16 @@ export function Screen({ title, back, children, hideNav, flush, wide = !title, h
 
 function BackButton({ back, className = '' }: { back: true | string; className?: string }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useI18n();
   return (
     <button
       className={`icon-btn ${className}`}
       aria-label={t('common.back')}
-      onClick={() => (typeof back === 'string' ? navigate(back) : navigate(-1))}
+      onClick={() => {
+        if (location.key !== 'default') navigate(-1);
+        else navigate(typeof back === 'string' ? back : '/', { replace: true });
+      }}
     >
       <ChevronLeft size={22} />
     </button>
@@ -80,10 +84,6 @@ function HeaderActions() {
       </Link>
     </>
   );
-}
-
-export function BellLink() {
-  return <HeaderActions />;
 }
 
 function useNav() {

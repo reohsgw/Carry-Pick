@@ -58,10 +58,8 @@ public class DataSeeder implements ApplicationRunner {
         LocalDate today = Today.get();
         String pw = encoder.encode(DEMO_PASSWORD);
 
-        // Minji is the live buyer in the demo: a first-time user with no requests or orders yet.
         User minji = users.save(new User("buyer@carrypick.test", pw, "Minji (Buyer)", Mode.BUYER, true));
         User jun = users.save(new User("buyer2@carrypick.test", pw, "Jun (Buyer)", Mode.BUYER, true));
-        // Another buyer for requests on the board; Minji stays free for the live buyer demo.
         User seoyeon = users.save(new User("buyer3@carrypick.test", pw, "Seoyeon (Buyer)", Mode.BUYER, true));
         User kenji = users.save(new User("traveler@carrypick.test", pw, "Kenji (Traveler)", Mode.TRAVELER, true));
         User linh = users.save(new User("traveler2@carrypick.test", pw, "Linh (Traveler)", Mode.TRAVELER, true));
@@ -70,7 +68,6 @@ public class DataSeeder implements ApplicationRunner {
         users.save(kenji);
         users.save(linh);
 
-        // Kenji's trips for the demo: two finished trips. His current Tokyo trip is added live in the demo.
         Trip osaka = trips.save(new Trip(kenji, "JP", "Osaka", LocalDate.of(2024, 10, 24), LocalDate.of(2024, 10, 30),
                 "Half a suitcase free"));
         Trip nyc = trips.save(new Trip(kenji, "US", "New York", LocalDate.of(2025, 2, 13), LocalDate.of(2025, 2, 20),
@@ -78,7 +75,6 @@ public class DataSeeder implements ApplicationRunner {
 
         Trip paris = trips.save(new Trip(linh, "FR", "Paris", today.plusDays(20), today.plusDays(28),
                 "Small items only, about 3 kg"));
-        // Linh's upcoming Japan trip keeps Japan bookable while Kenji's Japan trips are finished or under way.
         Trip linhTokyo = trips.save(new Trip(linh, "JP", "Tokyo", today.plusDays(7), today.plusDays(12),
                 "One carry-on, about 6 kg"));
         Trip bangkok = trips.save(new Trip(linh, "TH", "Bangkok", today.plusDays(6), today.plusDays(12),
@@ -117,7 +113,6 @@ public class DataSeeder implements ApplicationRunner {
         offers.save(new Offer(kenji, nyc, "Levi's 501 Original jeans", "Levi's Times Square", "Fashion",
                 "US pricing; tell me waist and length.", "demo:levis-501", 95000, 15000, 2));
 
-        // More travelers, one upcoming trip each, so every country has its own person and products.
         User sophie = traveler("traveler3@carrypick.test", pw, "Sophie (Traveler)", "하나은행", "21091001234567");
         User daniel = traveler("traveler4@carrypick.test", pw, "Daniel (Traveler)", "우리은행", "1002345678901");
         User olivia = traveler("traveler5@carrypick.test", pw, "Olivia (Traveler)", "카카오뱅크", "3333012345678");
@@ -191,7 +186,6 @@ public class DataSeeder implements ApplicationRunner {
 
         requests.save(new PurchaseRequest(seoyeon, "JP", "Sanrio Hello Kitty Tokyo Limited Edition", null, "demo:hello-kitty-tokyo",
                 "Any Tokyo-only design", "Character store in Ikebukuro or Shibuya", 45000, 10000, today.plusDays(30)));
-        // More Japan requests, so a traveler who adds a Japan trip sees a full request board.
         requests.save(new PurchaseRequest(jun, "JP", "Tokyo Banana (8 pcs)", null, "demo:tokyo-banana",
                 "2 boxes if possible", "For my parents, any flavor is fine", 26000, 5000, today.plusDays(10)));
         requests.save(new PurchaseRequest(seoyeon, "JP", "Royce' Nama Chocolate", null, "demo:royce",
@@ -217,8 +211,6 @@ public class DataSeeder implements ApplicationRunner {
         demoOrder(seoyeon, laduree, 2);
         demoOrder(jun, mama, 1);
 
-        // Recent bookings on Linh's upcoming Tokyo trip: paid, waiting for her to buy. These keep the
-        // Japan ranking current (it counts the last 30 days).
         recentOrder(jun, linhBanana, 3);
         recentOrder(seoyeon, linhBanana, 2);
         recentOrder(jun, linhRoyce, 2);
@@ -229,7 +221,6 @@ public class DataSeeder implements ApplicationRunner {
         log.info("Demo data created. Log in with buyer@carrypick.test or traveler@carrypick.test / {}", DEMO_PASSWORD);
     }
 
-    /** A demo traveler with a payout account, ready to post products. */
     private User traveler(String email, String pw, String name, String bank, String account) {
         User u = users.save(new User(email, pw, name, Mode.TRAVELER, true));
         u.setPayoutAccount(bank, account, name.replace(" (Traveler)", ""));
@@ -241,7 +232,6 @@ public class DataSeeder implements ApplicationRunner {
             Quote q = pricing.quote(offer.getEstPrice(), offer.getReward());
             Order o = new Order(buyer, offer.getTraveler(), offer, null, offer.getProductName(), offer.getCountryCode(),
                     offer.getImageUrl(), 1, q.budget(), q.reward(), q.fee(), q.tax(), offer.getTrip().getReturnDate());
-            // Booked before the trip, bought during it, handed over and settled after the traveler is back.
             Trip trip = offer.getTrip();
             Instant booked = at(trip.getDepartDate().minusDays(3 + i), 10 + i % 8);
             Instant bought = at(trip.getDepartDate().plusDays(i % 3), 15);
@@ -281,10 +271,6 @@ public class DataSeeder implements ApplicationRunner {
         }
     }
 
-    /**
-     * Demo requests show their budget the way a buyer types it now: a round amount in the country's currency
-     * (e.g. ¥3,100), converted to won at the current rate.
-     */
     private void localBudgets() {
         for (PurchaseRequest r : requests.findAll()) {
             String currency = Countries.find(r.getCountryCode()).map(Countries.Country::currency).orElse(null);
@@ -301,7 +287,6 @@ public class DataSeeder implements ApplicationRunner {
         }
     }
 
-    /** Gives a demo order its local-currency limit at the current rate, like a real order gets when it is made. */
     private boolean lockCurrency(Order o) {
         String currency = Countries.find(o.getCountryCode()).map(Countries.Country::currency).orElse(null);
         Double rate = currency == null || "KRW".equals(currency) ? null : fx.krwPerUnit(currency);
@@ -314,7 +299,6 @@ public class DataSeeder implements ApplicationRunner {
         return true;
     }
 
-    /** Demo products are priced the way travelers post them now: a round amount in the trip country's currency. */
     private void localPrices() {
         for (Offer o : offers.findAll()) {
             String currency = Countries.find(o.getCountryCode()).map(Countries.Country::currency).orElse(null);

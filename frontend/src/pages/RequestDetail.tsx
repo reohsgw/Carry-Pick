@@ -118,7 +118,6 @@ export default function RequestDetail() {
         </div>
 
         <Sheet>
-          {/* Same price block as the offer page: label, big local amount, won value under it */}
           <div className="od-price-stub rd-price-stub">
             <small>{t('rd.budget')}</small>
             <strong>{r.budgetLocal != null && r.budgetCurrency ? money(Number(r.budgetLocal), r.budgetCurrency) : krw(r.maxBudget)}</strong>

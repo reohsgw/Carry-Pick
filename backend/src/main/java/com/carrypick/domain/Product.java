@@ -33,7 +33,6 @@ public class Product {
     @Column(length = 3)
     private String countryCode;
 
-    /** Estimated weight in grams, so travelers can judge whether it fits in their luggage. */
     private Integer weightGrams;
 
     @Column(nullable = false, length = 3000)

@@ -28,7 +28,6 @@ public class User {
 
     private String avatarUrl;
 
-    /** Where rewards are paid out (simulated: verified in the app with a fake 1-won check, no bank API). */
     private String payoutBank;
     private String payoutAccount;
     private String payoutHolder;

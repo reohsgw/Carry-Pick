@@ -8,7 +8,6 @@ import { api, assetUrl, type OrderStatus } from '../api';
 import { STATUS_TONE, rateUnit } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { productPhoto } from '../images';
-// The only whale artwork in the app (replaced the earlier set). Heads and stickers are for small spots.
 import whaleFly from '../assets/whale-fly.webp';
 import whaleWave from '../assets/whale-wave.webp';
 import whaleMap from '../assets/whale-map.webp';
@@ -19,25 +18,17 @@ import whaleBox from '../assets/whale-box.webp';
 import whaleSparkle from '../assets/whale-sparkle.webp';
 import headSleep from '../assets/whale-head-sleep.webp';
 import whaleInfo from '../assets/whale-info.webp';
-import stickerGift from '../assets/sticker-gift.webp';
-import stickerBox from '../assets/sticker-box.webp';
-import stickerPlane from '../assets/sticker-plane.webp';
-import stickerPin from '../assets/sticker-pin.webp';
 
 export type Mood = 'fly' | 'happy' | 'question' | 'love' | 'alert' | 'shop' | 'unbox' | 'sleep' | 'stamp' | 'info';
 const MOODS: Record<Mood, string> = {
   fly: whaleFly, happy: whaleWave, question: whaleMap, love: whaleGift, alert: whaleShocked,
   shop: whaleLaptop, unbox: whaleBox, sleep: headSleep, stamp: whaleSparkle, info: whaleInfo,
 };
-/** Small objects from the same set, for decoration next to the whale. */
-export const STICKERS = { gift: stickerGift, box: stickerBox, plane: stickerPlane, pin: stickerPin } as const;
 
-/** CarryPick's courier whale. Decorative, so hidden from screen readers. */
 export function Mascot({ mood = 'fly', className = '', size }: { mood?: Mood; className?: string; size?: number }) {
   return <img src={MOODS[mood]} alt="" aria-hidden className={`mascot is-${mood} ${className}`.trim()} style={size ? { width: size } : undefined} />;
 }
 
-/** Picks a fitting mood from the icon an empty state was given. */
 function moodFor(icon?: LucideIcon): Mood {
   if (icon === SearchX) return 'question';
   if (icon === Package) return 'sleep';
@@ -77,7 +68,6 @@ export function Notice({ tone = 'info', icon: Icon, children }: { tone?: 'info' 
   );
 }
 
-// `icon` is kept so existing call sites still type-check; the whale replaces it visually.
 export function Empty({ icon, mood, title, children }: { icon?: LucideIcon; mood?: Mood; title: string; children?: ReactNode }) {
   return (
     <div className="empty has-mascot">
@@ -121,10 +111,6 @@ export function categoryIcon(category: string | null | undefined): LucideIcon {
   return CATEGORY_ICON[(category ?? '').toLowerCase()] ?? ShoppingBag;
 }
 
-/**
- * The photo to show for a product, falling back when a file can't be loaded (for example an upload
- * that is no longer on the server): first the category's stock photo, then nothing (an icon).
- */
 function usePhoto(src: string | null | undefined, category: string | null | undefined) {
   const [failed, setFailed] = useState<string[]>([]);
   useEffect(() => setFailed([]), [src]);
@@ -153,15 +139,11 @@ export function ProductThumb({ src, category, size = 56 }: { src?: string | null
 
 export function Field({ label, hint, info, optional, error, children }: {
   label: string; hint?: string; optional?: boolean; error?: boolean; children: ReactNode;
-  /** An explanation shown only on demand: hover, keyboard focus or tap on the ⓘ next to the label. */
   info?: string;
 }) {
   const { t } = useI18n();
-  // null: shown on hover/focus only. true: opened by a tap. false: closed by a tap, even while a phone keeps
-  // the whale in its "hover" state after the touch.
   const [infoOpen, setInfoOpen] = useState<boolean | null>(null);
   const infoId = useId();
-  // Point the bubble's tail at the whale, wherever the label ends.
   const infoBtn = useRef<HTMLButtonElement>(null);
   const infoTip = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -216,18 +198,15 @@ export function MoneyInput({ value, onChange, placeholder, required, id }: {
   );
 }
 
-/** Amount in a foreign currency: shows its symbol and allows decimals where the currency has them (e.g. $25.50). */
 export function CurrencyInput({ value, onChange, symbol, decimals, placeholder, required, id }: {
   value: number | ''; onChange: (v: number | '') => void; symbol: string; decimals: number;
   placeholder?: string; required?: boolean; id?: string;
 }) {
   const format = (v: number | '') => (v === '' ? '' : v.toLocaleString('en-US', { maximumFractionDigits: decimals }));
   const [text, setText] = useState(() => format(value));
-  // Follow value changes made from outside (e.g. a converted budget), keeping what the user is typing otherwise.
   useEffect(() => {
     const typed = text.replace(/,/g, '');
     if (value === '' ? typed !== '' : Number(typed) !== value) setText(format(value));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, decimals]);
   return (
     <div className="money">
@@ -256,7 +235,6 @@ export function CurrencyInput({ value, onChange, symbol, decimals, placeholder, 
 
 const WEIGHT_PRESETS = [100, 300, 500, 1000, 2000];
 
-/** Estimated weight in grams, with quick presets. */
 export function WeightInput({ value, onChange, required, id }: {
   value: number | ''; onChange: (v: number | '') => void; required?: boolean; id?: string;
 }) {
@@ -341,7 +319,6 @@ export function Modal({ open, onClose, title, eyebrow, mood, hideClose, children
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
   if (!open) return null;
-  // Render at the top of the page so paper-card filters/transforms on ancestors can't trap the dialog.
   return createPortal(
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={`modal${mood ? ' is-letter' : ''}`} role="dialog" aria-modal aria-label={title}>
@@ -407,7 +384,6 @@ export function Avatar({ name, src, className = '', size }: {
   );
 }
 
-/** Which currency a person types amounts in on foreign-currency fields. Remembered across fields and visits. */
 export type MoneyMode = 'local' | 'won';
 const MONEY_MODE_KEY = 'carrypick.moneyMode';
 function readMoneyMode(): MoneyMode {
@@ -417,27 +393,17 @@ function readMoneyMode(): MoneyMode {
 export interface DualAmount {
   mode: MoneyMode;
   setMode: (m: MoneyMode) => void;
-  /** What is in the box, in the box's currency. */
   amount: number | '';
   setAmount: (v: number | '') => void;
-  /** The amount in the local currency (exact when typed in won; rounded only for display). */
   local: number | '';
   won: number | '';
-  /** Set from a local-currency value (a receipt scan, a saved price), whatever the box shows. */
   setLocal: (v: number | '') => void;
-  /** Set from a won value (a suggested budget). */
   setWon: (v: number | '') => void;
-  /** The person typed in one of the two rows: that row's currency becomes the one sent. */
   typeIn: (m: MoneyMode, v: number | '') => void;
 }
 
-/**
- * An amount that can be typed in the trip country's currency or in won. The other one follows from `rate`
- * (won per unit). Without a rate the box stays in the local currency.
- */
 export function useDualAmount(rate: number | undefined | null, decimals: number): DualAmount {
   const [pref, setPref] = useState<MoneyMode>(readMoneyMode);
-  // The amount and the currency it is in. Kept together so a value set before rates arrive is converted later.
   const [state, setState] = useState<{ v: number | ''; m: MoneyMode }>({ v: '', m: 'local' });
   const mode: MoneyMode = rate ? pref : 'local';
   const roundLocal = (v: number) => { const f = 10 ** decimals; return Math.round(v * f) / f; };
@@ -445,7 +411,6 @@ export function useDualAmount(rate: number | undefined | null, decimals: number)
     v === '' || from === to || !rate ? v : to === 'won' ? Math.round(v * rate) : roundLocal(v / rate);
   useEffect(() => {
     if (state.m !== mode && rate) setState((s) => ({ v: convert(s.v, s.m, mode), m: mode }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, rate]);
   const amount = state.m === mode ? state.v : convert(state.v, state.m, mode);
   const local = amount === '' ? '' : mode === 'local' ? amount : rate ? amount / rate : '';
@@ -456,7 +421,7 @@ export function useDualAmount(rate: number | undefined | null, decimals: number)
     setMode: (m) => {
       if (m === mode) return;
       setPref(m);
-      try { localStorage.setItem(MONEY_MODE_KEY, m); } catch { /* private mode */ }
+      try { localStorage.setItem(MONEY_MODE_KEY, m); } catch {  }
     },
     setLocal: (v) => setState({ v, m: 'local' }),
     setWon: (v) => setState({ v, m: 'won' }),
@@ -464,17 +429,12 @@ export function useDualAmount(rate: number | undefined | null, decimals: number)
       setState({ v, m });
       if (m !== pref) {
         setPref(m);
-        try { localStorage.setItem(MONEY_MODE_KEY, m); } catch { /* private mode */ }
+        try { localStorage.setItem(MONEY_MODE_KEY, m); } catch {  }
       }
     },
   };
 }
 
-/**
- * Two linked amount rows, as in Revolut, Toss 환전 or Google's converter: the trip country's currency and
- * won. Type in either row and the other follows at `rate`; the swap button changes which row is on top;
- * the rate and where it comes from sit on the divider.
- */
 export function DualMoneyInput({ dual, currency, symbol, decimals, rate, rateNote, required, placeholder, wonPlaceholder, id }: {
   dual: DualAmount; currency: string; symbol: string; decimals: number;
   rate?: number | null; rateNote?: string;

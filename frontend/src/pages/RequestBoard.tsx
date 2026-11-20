@@ -22,7 +22,6 @@ type Filters = {
 };
 const NONE: Filters = { trips: [], minReward: 0, maxWeight: null, includeUnknown: true, maxBudget: null, cat: '' };
 
-/** Traveler side: open buyer requests that fit one of my trips, with filters for what matters on the road. */
 export default function RequestBoard() {
   const { t } = useI18n();
   const trips = useQuery({ queryKey: ['myTrips'], queryFn: api.myTrips });
@@ -34,8 +33,8 @@ export default function RequestBoard() {
   const all = requests.data ?? [];
   const myTrips = trips.data ?? [];
   const caps = useMemo(() => ({
-    reward: 50000, // slider runs ₩0–₩50,000
-    weight: 5000, // slider runs 100g–5kg; all the way right = no weight limit
+    reward: 50000,
+    weight: 5000,
     budget: roundUp(Math.max(10000, ...all.map((r) => r.maxBudget)), 10000),
   }), [all]);
   const categories = useMemo(
@@ -43,7 +42,6 @@ export default function RequestBoard() {
     [all],
   );
 
-  // A slider pushed all the way to its end means "no limit".
   const weightLimit = f.maxWeight != null && f.maxWeight < caps.weight ? f.maxWeight : null;
   const budgetLimit = f.maxBudget != null && f.maxBudget < caps.budget ? f.maxBudget : null;
   const picked = myTrips.filter((tr) => f.trips.includes(tr.id));
@@ -197,7 +195,6 @@ function Group({ label, value, hint, children }: { label: string; value?: string
 
 const tripLabel = (tr: Trip) => `${tr.city ?? ''} ${boardDate(tr.departDate)} – ${boardDate(tr.returnDate)}`.trim();
 
-/** Same rule as the server: same country, and I'm back before the buyer's deadline. */
 const fitsTrip = (r: PurchaseRequest, tr: Trip) => r.countryCode === tr.countryCode && tr.returnDate <= r.deadline;
 
 function comparator(sort: Sort) {

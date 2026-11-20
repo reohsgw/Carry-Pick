@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 
-/** Serves uploaded files at /uploads/{name}. Names are random UUIDs, so the content never changes. */
 @RestController
 public class UploadController {
     private final FileStorageService files;

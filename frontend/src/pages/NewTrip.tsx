@@ -21,7 +21,6 @@ export default function NewTrip() {
   const [returnDate, setReturn] = useState(isoDay(14));
   const [luggageNote, setLuggage] = useState('');
 
-  // /t/trips/:id/edit edits an existing trip; /t/trips/new creates one.
   const { id } = useParams();
   const editId = id ? Number(id) : null;
   const mine = useQuery({ queryKey: ['myTrips'], queryFn: api.myTrips, enabled: editId != null });

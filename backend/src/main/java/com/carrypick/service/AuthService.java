@@ -87,7 +87,6 @@ public class AuthService {
         return UserDto.of(u);
     }
 
-    /** Travelers need somewhere to receive their reward before they take on an order. */
     public void requirePayoutAccount(User u) {
         if (!u.hasPayoutAccount()) {
             throw ApiException.badRequest("PAYOUT_ACCOUNT_REQUIRED", "Register a payout account first");

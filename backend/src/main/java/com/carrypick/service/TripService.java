@@ -51,7 +51,6 @@ public class TripService {
         return TripDto.of(t);
     }
 
-    /** The traveler edits their own trip until bookings close (the day before they return). The country is fixed once products are posted on it. */
     @Transactional
     public TripDto update(Long userId, Long tripId, TripForm f) {
         Trip t = trips.findById(tripId).orElseThrow(() -> ApiException.notFound("Trip"));
@@ -68,10 +67,6 @@ public class TripService {
         return TripDto.of(t);
     }
 
-    /**
-     * The traveler deletes their own trip. Products posted on it go too, unless someone has already
-     * ordered one: then the trip stays, so no order loses its history.
-     */
     @Transactional
     public void delete(Long userId, Long tripId) {
         Trip t = trips.findById(tripId).orElseThrow(() -> ApiException.notFound("Trip"));

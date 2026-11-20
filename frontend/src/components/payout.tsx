@@ -14,7 +14,6 @@ const BANKS = [
 
 const newCode = () => String(Math.floor(1000 + Math.random() * 9000));
 
-/** "My payout account" sheet for the My page: shows the masked account, or invites the user to add one. */
 export function PayoutCard() {
   const { user, refreshMe } = useSession();
   const { t } = useI18n();
@@ -56,7 +55,6 @@ export function PayoutCard() {
   );
 }
 
-/** Two steps, like a real bank check: enter the account, then type the code from a simulated 1-won deposit. */
 function PayoutSetup({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { user, refreshMe } = useSession();
   const { t } = useI18n();
@@ -142,7 +140,6 @@ function PayoutSetup({ open, onClose }: { open: boolean; onClose: () => void }) 
   );
 }
 
-/** Shown where a traveler is about to take on work without a payout account. */
 export function PayoutRequired() {
   const { t } = useI18n();
   return (

@@ -288,10 +288,6 @@ class OrderFlowTest {
         return res.get("token").asText();
     }
 
-    /**
-     * A bookable offer in the country. Japan offers are always Kenji's, created fresh for the test, so flows
-     * where the traveler buys and hands over don't depend on how the demo data is arranged.
-     */
     private long firstBookableOffer(String country) throws Exception {
         if ("JP".equals(country)) return kenjiOffer(null);
         JsonNode list = body(get("/api/offers").param("country", country), 200);
@@ -301,7 +297,6 @@ class OrderFlowTest {
         throw new AssertionError("No bookable offer in " + country);
     }
 
-    /** Kenji adds an upcoming Japan trip (the demo data has none), so he can accept Japan requests. */
     private void kenjiJapanTrip(String kenji) throws Exception {
         java.time.LocalDate depart = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(5);
         body(post("/api/trips", kenji, """
@@ -309,7 +304,6 @@ class OrderFlowTest {
                 """.formatted(depart, depart.plusDays(5))), 201);
     }
 
-    /** Kenji posts a new Japan trip and an offer on it; returns the offer id. */
     private long kenjiOffer(String receiptUrl) throws Exception {
         String kenji = login("traveler@carrypick.test");
         java.time.LocalDate depart = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")).plusDays(10);
@@ -356,7 +350,6 @@ class OrderFlowTest {
         pay(buyer, orderId, "mock_ok_dispute");
         purchase(traveler, orderId, order.get("budget").asLong());
 
-        // No photo, no hand-over.
         body(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                 .multipart("/api/orders/" + orderId + "/deliver")
                 .header("Authorization", "Bearer " + traveler), 400);
@@ -365,14 +358,12 @@ class OrderFlowTest {
         assertThat(delivered.get("handoverPhotoUrl").asText()).startsWith("/uploads/");
         assertThat(delivered.get("autoConfirmAt").isNull()).isFalse();
 
-        // A traveler reason doesn't fit the buyer.
         report(buyer, orderId, "NO_CONTACT", 400);
         JsonNode disputed = report(buyer, orderId, "NOT_RECEIVED", 200);
         assertThat(disputed.get("status").asText()).isEqualTo("DISPUTED");
         assertThat(disputed.get("dispute").get("byRole").asText()).isEqualTo("BUYER");
         assertThat(disputed.get("dispute").get("mine").asBoolean()).isTrue();
 
-        // While disputed, the normal "received" button is blocked; resolving settles it.
         body(post("/api/orders/" + orderId + "/confirm", buyer, null), 409);
         body(post("/api/orders/" + orderId + "/resolve", traveler, "{\"action\":\"RECEIVED\"}"), 403);
         JsonNode done = body(post("/api/orders/" + orderId + "/resolve", buyer, "{\"action\":\"RECEIVED\"}"), 200);

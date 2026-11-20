@@ -27,11 +27,8 @@ export function ReceiptCapture({ file, onFile, onAmount, onScan, autoScan = fals
   file: File | null;
   onFile: (f: File | null) => void;
   onAmount: (krw: number) => void;
-  /** Called with the AI result after a check, and with null when the photo changes. */
   onScan?: (scan: ReceiptScan | null) => void;
-  /** Check the receipt with AI as soon as a photo is chosen. */
   autoScan?: boolean;
-  /** Show the receipt's won estimate (off when the order converts at its own locked rate). */
   showKrw?: boolean;
 }) {
   const { t } = useI18n();
@@ -51,7 +48,6 @@ export function ReceiptCapture({ file, onFile, onAmount, onScan, autoScan = fals
 
   useEffect(() => {
     if (autoScan && file && file.type.startsWith('image/')) void read();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file, autoScan]);
 
   async function read() {

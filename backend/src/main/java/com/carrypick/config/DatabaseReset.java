@@ -13,11 +13,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.List;
 
-/**
- * One-time wipe switch for the hosted database. Set RESET_DATABASE=true on the server and restart:
- * every table is emptied before {@link DataSeeder} (order 1) runs, so only the demo data is created again.
- * Remove the variable afterwards, otherwise every restart wipes the data. Off by default.
- */
 @Component
 @Order(0)
 public class DatabaseReset implements ApplicationRunner {

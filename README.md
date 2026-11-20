@@ -1,20 +1,4 @@
-# CarryPick — completed starter
-
-This is `carrypick-starter` with every step of [GUIDE.md](GUIDE.md) finished. It uses only the dependencies that were already in the starter's `pom.xml` and `package.json`.
-
-| GUIDE step | Where it is done |
-| --- | --- |
-| 1 Trips | `domain/Trip`, `TripService`, `TripController` (now uses the logged-in user instead of `travelerId`) |
-| 2 Offers | `domain/Offer`, `OfferStatus`, `OfferRepository`, `MarketService`, `MarketController`; `pages/CountryOffers.tsx` |
-| 3 Pricing | `PricingService` (checked by `PricingServiceTest`) |
-| 4 Offer detail, home | `pages/OfferDetail.tsx`, `pages/BuyerHome.tsx`, ranking in `MarketService.ranking` |
-| 5 Requests | `domain/PurchaseRequest`, `RequestStatus`, `MarketService.openRequestsForTraveler`; `NewRequest`, `RequestBoard`, `RequestDetail` pages |
-| 6 Orders | `domain/Order`, `OrderStatus`, `OrderService` (book, acceptRequest, markPaid, purchase, reject, deliver, confirm, cancel), `OrderController`; `MyOrders`, `OrderDetail` pages; `OrderFlowTest` |
-| 7 Login | `JwtService`, `JwtAuthFilter`, `SecurityConfig`, `AuthService`, `AuthController`; `pages/Login.tsx`, token in `api.ts` |
-| 8 Payments | `PaymentService`, `TossClient`, `domain/Payment`; `components/payment.tsx` (mock + Toss test) |
-| 9 Receipts | `FileStorageService`, `OrderService.purchase`, AI reader `ReceiptScanService`; `components/receipt.tsx` |
-| 10 Polish | Figma design in `styles.css`, Korean/English in `i18n.tsx`, notifications, sparkle trail |
-
+# CarryPick
 
 Traveler-linked overseas purchase platform (Ajou Univ. Capstone, Team 14).
 

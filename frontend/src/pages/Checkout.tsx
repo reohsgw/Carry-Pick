@@ -40,7 +40,6 @@ export default function Checkout() {
 
   return (
     <Screen back={`/orders/${o.id}`} title={t('pay.title')} hideNav wide>
-      {/* The whale says it, in the same speech bubble as on the home and new-request pages */}
       <div className="live-say req-say">
         <Mascot mood={payable ? 'happy' : 'alert'} className="live-say-whale" size={76} />
         <p className="live-say-bubble">{payable ? t('pay.hello', { name: traveler }) : t('pay.notPayable')}</p>
@@ -86,7 +85,6 @@ export default function Checkout() {
         </section>
 
         <Sheet title={t('pay.steps')}>
-          {/* Same journey as the home page: numbered stops on a route line, a whale for each step */}
           <ol className="ask-stamp is-plain">
             {STEPS.map((s, i) => (
               <li key={s.key}>

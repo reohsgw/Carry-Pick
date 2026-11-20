@@ -68,7 +68,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** The old per-country list was merged into /offers; keep its links working. */
 function CountryRedirect() {
   const { code = 'ALL' } = useParams();
   const { search } = useLocation();

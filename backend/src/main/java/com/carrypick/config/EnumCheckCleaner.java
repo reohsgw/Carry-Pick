@@ -13,12 +13,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.List;
 
-/**
- * Hibernate creates enum columns with a CHECK constraint listing the enum values that existed when the
- * table was first created, and {@code ddl-auto: update} never refreshes it. A value added later
- * (e.g. OrderStatus.DISPUTED) is then rejected by the database. Java already guarantees valid values,
- * so on PostgreSQL we drop those stale enum checks at startup.
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class EnumCheckCleaner implements ApplicationRunner {

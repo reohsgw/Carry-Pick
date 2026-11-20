@@ -40,17 +40,12 @@ public final class Forms {
                         @Size(max = 40) String category,
                         @Size(max = 1000) String description,
                         @Size(max = 500) String imageUrl,
-                        /**
-                         * Price in won. Optional when the price is given in the trip country's currency
-                         * (priceLocal).
-                         */
                         @Positive Long estPrice,
                         @PositiveOrZero long reward,
                         @Min(1) @Max(99) int quantity,
                         @Size(max = 500) String receiptUrl,
                         Long productId,
                         @Min(1) @Max(50000) Integer weightGrams,
-                        /** Price per item in the trip country's currency, e.g. 1500 (JPY). */
                         @Positive @Digits(integer = 13, fraction = 2) java.math.BigDecimal priceLocal,
                         @Size(max = 3) String priceCurrency) {
         }
@@ -62,19 +57,11 @@ public final class Forms {
                         @Size(max = 500) String imageUrl,
                         @Size(max = 200) String options,
                         @Size(max = 1000) String note,
-                        /**
-                         * Max budget in won. Optional when the budget is given in the country's
-                         * currency (budgetLocal).
-                         */
                         @Positive Long maxBudget,
                         @PositiveOrZero long reward,
                         @NotNull LocalDate deadline,
                         Long productId,
                         @Min(1) @Max(50000) Integer weightGrams,
-                        /**
-                         * Max budget in the currency of the country the item is bought in, e.g. 3000
-                         * (JPY).
-                         */
                         @Positive @Digits(integer = 13, fraction = 2) java.math.BigDecimal budgetLocal,
                         @Size(max = 3) String budgetCurrency) {
         }
@@ -100,10 +87,6 @@ public final class Forms {
         public record CancelForm(@Size(max = 200) String reason) {
         }
 
-        /**
-         * RECEIVED (buyer: it arrived after all), REFUND (traveler: cancel and refund),
-         * WITHDRAW (reporter takes the report back).
-         */
         public record ResolveForm(@NotBlank String action) {
         }
 

@@ -1,4 +1,3 @@
-import hero from './assets/hero.jpg';
 import keychain from './assets/keychain.jpg';
 import skincare from './assets/skincare.jpg';
 import snacks from './assets/snacks.jpg';
@@ -43,8 +42,6 @@ import pieSusuBali from './assets/pie-susu-bali.jpg';
 import ellipsHairVitamin from './assets/ellips-hair-vitamin.jpg';
 import batikPouch from './assets/batik-pouch.jpg';
 import { assetUrl } from './api';
-
-export const IMAGES = { hero, keychain, skincare, snacks };
 
 const DEMO_PHOTOS: Record<string, string> = {
   'tokyo-banana': tokyoBanana,

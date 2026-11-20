@@ -19,7 +19,6 @@ public class PricingService {
         this.maxRewardRate = maxRewardRate;
     }
 
-    /** Highest reward allowed for an item at this price (rounded down to the won). */
     public long maxReward(long itemPrice) {
         return (long) Math.floor(itemPrice * maxRewardRate);
     }

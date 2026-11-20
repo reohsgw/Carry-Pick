@@ -17,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Buyers give the budget in the country's currency; the server converts it to won. Fixed rates: 1 JPY = ₩9.2. */
 @SpringBootTest(properties = {"app.payment.mode=mock", "app.fx-live=false"})
 @AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -40,25 +39,21 @@ class RequestBudgetCurrencyTest {
         assertThat(r.get("fxRate").asDouble()).isEqualTo(9.2);
         assertThat(r.get("maxBudget").asLong()).isEqualTo(27600);
 
-        // Decimals work for currencies like USD (fixed rate ₩1,380).
         JsonNode usd = body(send(post("/api/requests"), minji, """
                 {"countryCode":"US","productName":"Tote","budgetLocal":25.50,"budgetCurrency":"USD",
                  "reward":5000,"deadline":"%s"}
                 """.formatted(deadline)), 201);
         assertThat(usd.get("maxBudget").asLong()).isEqualTo(35190);
 
-        // The currency must be the country's.
         JsonNode wrong = body(send(post("/api/requests"), minji, """
                 {"countryCode":"JP","productName":"x","budgetLocal":3000,"budgetCurrency":"USD","reward":0,"deadline":"%s"}
                 """.formatted(deadline)), 400);
         assertThat(wrong.get("code").asText()).isEqualTo("BUDGET_CURRENCY");
 
-        // The reward cap still applies to the won value: 50% of ₩27,600.
         body(send(post("/api/requests"), minji, """
                 {"countryCode":"JP","productName":"x","budgetLocal":3000,"budgetCurrency":"JPY","reward":20000,"deadline":"%s"}
                 """.formatted(deadline)), 400);
 
-        // Budgets typed in won stay exact; the yen limit is its value at the same rate (₩30,000 / 9.2 = ¥3,260.87).
         JsonNode won = body(send(post("/api/requests"), minji, """
                 {"countryCode":"JP","productName":"x","maxBudget":30000,"reward":5000,"deadline":"%s"}
                 """.formatted(deadline)), 201);
@@ -80,11 +75,9 @@ class RequestBudgetCurrencyTest {
                 {"countryCode":"JP","city":"Tokyo","departDate":"%s","returnDate":"%s"}
                 """.formatted(today.plusDays(2), today.plusDays(6))), 201);
 
-        // Two requests with a ¥1,500 limit (₩13,800 at the fixed ₩9.2 rate).
         long okId = request(minji, today);
         long overId = request(minji, today);
 
-        // Bought for exactly ¥1,500: within the yen limit.
         long okOrder = acceptAndPay(kenji, minji, okId);
         JsonNode order = body(get("/api/orders/" + okOrder).header("Authorization", "Bearer " + kenji), 200);
         assertThat(order.get("currency").asText()).isEqualTo("JPY");
@@ -94,16 +87,13 @@ class RequestBudgetCurrencyTest {
         assertThat(bought.get("actualLocal").asInt()).isEqualTo(1500);
         assertThat(bought.get("actualPrice").asLong()).isEqualTo(13800);
 
-        // A price typed in won is converted at the locked rate: ₩13,800 / 9.2 = ¥1,500, within the limit.
         long wonOrder = acceptAndPay(kenji, minji, request(minji, today));
         JsonNode wonBought = body(purchase(kenji, wonOrder, "actualPrice", "13800"), 200);
         assertThat(wonBought.get("actualLocal").asInt()).isEqualTo(1500);
         assertThat(wonBought.get("actualPrice").asLong()).isEqualTo(13800);
-        // ₩14,720 = ¥1,600 is over the ¥1,500 limit even when typed in won.
         long wonOver = acceptAndPay(kenji, minji, request(minji, today));
         body(purchase(kenji, wonOver, "actualPrice", "14720"), 409);
 
-        // ¥1,600 is over the ¥1,500 limit; a price check asks for ¥100 more at the same locked rate (₩920).
         long overOrder = acceptAndPay(kenji, minji, overId);
         body(purchase(kenji, overOrder, "actualLocal", "1600"), 409);
         JsonNode checked = body(multipart("/api/orders/" + overOrder + "/price-check")
@@ -130,7 +120,6 @@ class RequestBudgetCurrencyTest {
         assertThat(offer.get("priceCurrency").asText()).isEqualTo("JPY");
         assertThat(offer.get("estPrice").asLong()).isEqualTo(13800);
 
-        // A price typed in won is stored in yen too: ₩9,200 → ¥1,000.
         JsonNode wonOffer = body(send(post("/api/offers"), kenji, """
                 {"tripId":%d,"productName":"Pocky","estPrice":9200,"reward":2000,"quantity":2,"weightGrams":100}
                 """.formatted(tripId)), 201);
@@ -138,7 +127,6 @@ class RequestBudgetCurrencyTest {
         assertThat(wonOffer.get("priceLocal").asInt()).isEqualTo(1000);
         assertThat(wonOffer.get("estPrice").asLong()).isEqualTo(9200);
 
-        // Wrong currency for a Japan trip.
         body(send(post("/api/offers"), kenji, """
                 {"tripId":%d,"productName":"x","priceLocal":10,"priceCurrency":"USD","reward":0,"quantity":1}
                 """.formatted(tripId)), 400);

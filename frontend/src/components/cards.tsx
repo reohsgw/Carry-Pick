@@ -1,11 +1,11 @@
 import type { MouseEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, ChevronRight } from './icons';
+import { ArrowRight } from './icons';
 import type { Offer, Order, PurchaseRequest, Quote, Ranking } from '../api';
 import { countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText, money } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
-import { Avatar, Code, Mascot, ProductPhoto, ProductThumb, StatusBadge, Tag } from './ui';
+import { Avatar, Mascot, ProductPhoto, ProductThumb, Tag } from './ui';
 import { useConfirm } from './confirm';
 
 export function firstName(name: string): string {
@@ -22,7 +22,6 @@ export function useRoute() {
 export function ProductCard({ item, country }: { item: Ranking['items'][number]; country: string }) {
   const { t, lang } = useI18n();
   const name = lang === 'ko' && item.nameKo ? item.nameKo : item.productName;
-  // No traveler has it right now: open the request form already filled in with everything we know.
   const requestParams = new URLSearchParams({ country: item.countryCode ?? country, q: name, from: 'ranking' });
   if (item.productId) requestParams.set('productId', String(item.productId));
   if (item.imageUrl) requestParams.set('img', item.imageUrl);
@@ -31,7 +30,6 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
   const to = item.offerId ? `/offers/${item.offerId}` : `/requests/new?${requestParams}`;
   const ask = useConfirm();
   const navigate = useNavigate();
-  // Sold out: say so first and let them decide whether to post a request.
   const onClick = item.offerId ? undefined : async (e: MouseEvent) => {
     e.preventDefault();
     if (await ask({ message: t('req.soldOutAsk', { name: name.replace(/\s*\([^)]*\)\s*$/, '') }), mood: 'question', okLabel: t('req.soldOutOk') })) navigate(to);
@@ -60,7 +58,6 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
   );
 }
 
-/** Country-to-country route for card labels, e.g. "태국 → 한국" / "Thailand → Korea". */
 export function useCountryRoute() {
   const { lang } = useI18n();
   const { config } = useSession();
@@ -197,62 +194,8 @@ export function RequestRow({ request, to }: { request: PurchaseRequest; to: stri
   );
 }
 
-export function OrderRow({ order }: { order: Order }) {
-  const { t, lang } = useI18n();
-  const other = order.myRole === 'BUYER' ? order.traveler.name : order.buyer.name;
-  return (
-    <Link to={`/orders/${order.id}`} className="row">
-      <ProductThumb src={order.imageUrl} category={order.category} />
-      <div className="row-body">
-        <div className="row-title">
-          {order.productName}
-          {order.quantity > 1 && <span className="qty"> × {order.quantity}</span>}
-        </div>
-        <div className="row-meta">
-          <span>{firstName(other)}</span>
-          <span>{dateTime(order.createdAt, lang)}</span>
-          {order.unreadMessages > 0 && <span className="chat-unread">{t('chat.unread', { n: order.unreadMessages })}</span>}
-        </div>
-        <div className="row-next">
-          <StatusBadge status={order.status} />
-          <span>{t(`next.${order.myRole === 'BUYER' ? 'b' : 't'}.${order.status}` as Key)}</span>
-        </div>
-      </div>
-      <ChevronRight size={18} className="row-chevron" aria-hidden />
-    </Link>
-  );
-}
-
-export function OrderHero({ order }: { order: Order }) {
-  const { t, lang } = useI18n();
-  const route = useRoute();
-  const buyer = order.myRole === 'BUYER';
-  return (
-    <div className="order-hero">
-      <span className="pill">{t(`st.${order.status}` as Key)}</span>
-      <h1 className="font-display">
-        {order.productName}{order.quantity > 1 ? ` × ${order.quantity}` : ''}
-      </h1>
-      <div className="route-line">
-        <Code>CP-{String(order.id).padStart(5, '0')}</Code>
-        <span>{route(null, order.countryCode)}</span>
-        {order.expectedDelivery && <span>{shortDate(order.expectedDelivery, lang)}</span>}
-      </div>
-      <div className="route-line">
-        <Avatar size={26} name={(buyer ? order.traveler : order.buyer).name} src={(buyer ? order.traveler : order.buyer).avatarUrl} />
-        <span>{buyer ? t('order.traveler') : t('order.buyer')} {firstName(buyer ? order.traveler.name : order.buyer.name)}</span>
-      </div>
-    </div>
-  );
-}
-
 type Line = { label: string; value: number; note?: string; muted?: boolean };
 
-/**
- * Price details laid out like Trip.com, Klook and Agoda: label left, amount right, how the item price
- * is made up in a grey line under it, a divider, the total, the currency it is charged in, and the
- * refund or approval rules in a soft info box at the end.
- */
 export function ReceiptStrip({ quote, budgetLabel, budgetNote, note, extra }: {
   quote: Quote; budgetLabel?: string; budgetNote?: string; note?: string; extra?: Line[];
 }) {
@@ -322,7 +265,6 @@ export function StatusTimeline({ order }: { order: Order }) {
     const firstOpen = steps.findIndex((s) => !s.done);
     shown = steps.map((s, i) => ({ ...s, current: s.current || i === firstOpen }));
   }
-  // The whale marks where the order is: a step that went wrong, else the first open step, else the last (finished).
   const badAt = shown.findIndex((s) => s.bad);
   const openAt = shown.findIndex((s) => !s.done);
   const here = badAt >= 0 ? badAt : openAt >= 0 ? openAt : shown.length - 1;

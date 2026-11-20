@@ -1,9 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { Order, PurchaseRequest } from './api';
 
-/* Remembers what I've already opened, per status, so an item counts as "new" until I open it and
-   becomes new again when its status changes (a traveler accepts my request, my order gets delivered…). */
-
 const EVENT = 'carrypick:seen';
 type Ref = { id: number; status: string };
 const tag = (r: Ref) => `${r.id}:${r.status}`;
@@ -41,7 +38,6 @@ const ORDERS = 'carrypick.seenOrders';
 export const markRequestSeen = (r: Pick<PurchaseRequest, 'id' | 'status'>) => mark(REQUESTS, r);
 export const markOrderSeen = (o: Pick<Order, 'id' | 'status'>) => mark(ORDERS, o);
 
-/** A request is new until I open it in its current status. */
 export function useRequestIsNew(): (r: Pick<PurchaseRequest, 'id' | 'status'>) => boolean {
   const { seenNow } = useSeen(REQUESTS);
   return (r) => !seenNow(r);
@@ -49,10 +45,6 @@ export function useRequestIsNew(): (r: Pick<PurchaseRequest, 'id' | 'status'>) =
 
 const FINISHED = new Set(['COMPLETED', 'SETTLED', 'CANCELLED']);
 
-/**
- * An order has news when it has unread chat, or its status changed since I last opened it.
- * Old finished orders I've never opened don't count, so a fresh browser doesn't light up with history.
- */
 export function useOrderHasNews(): (o: Pick<Order, 'id' | 'status' | 'unreadMessages'>) => boolean {
   const { seenNow, seenEver } = useSeen(ORDERS);
   return (o) => o.unreadMessages > 0

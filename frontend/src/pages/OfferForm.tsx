@@ -36,12 +36,10 @@ export default function OfferForm() {
   const [category, setCategory] = useState('Food');
   const [description, setDescription] = useState('');
   const [imageUrl, setImage] = useState<string | null>(null);
-  // Price per item in the trip country's currency (e.g. ¥1,500); its won value follows today's rate.
   const [reward, setReward] = useState<number | ''>(5000);
   const [quantity, setQuantity] = useState(1);
   const [bought, setBought] = useState(false);
   const [receiptUrl, setReceipt] = useState<string | null>(null);
-  // AI receipt check for "already bought": the photo, the AI result, and the receipt already saved on the offer.
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptScan, setReceiptScan] = useState<ReceiptScan | null>(null);
   const [savedReceipt, setSavedReceipt] = useState<string | null>(null);
@@ -60,7 +58,6 @@ export default function OfferForm() {
     setWeight(o.weightGrams ?? '');
   }, [existing.data]);
 
-  // Products can be posted until the day before the traveler returns.
   const futureTrips = (trips.data ?? []).filter((tr) => daysUntil(tr.returnDate) > 0);
 
   const rates = useQuery({ queryKey: ['fx'], queryFn: api.fx, staleTime: 60 * 60 * 1000 });
@@ -70,9 +67,7 @@ export default function OfferForm() {
   const rate = currency === 'KRW' ? 1 : rates.data?.krwPerUnit[currency];
   const local = currency !== 'KRW' && !!rate;
   const roundLocal = (v: number) => { const f = 10 ** decimals; return Math.round(v * f) / f; };
-  // Price per item, typed in the trip country's currency or in won (switch on the box).
   const price = useDualAmount(local ? rate : null, decimals);
-  // Won price of one item (used for the price summary and the reward cap).
   const estPrice: number | '' = local ? price.won : price.amount;
   useEffect(() => {
     if (tripId === '' && futureTrips.length > 0 && !editId) setTripId(futureTrips[0].id);
@@ -82,7 +77,6 @@ export default function OfferForm() {
     mutationFn: () => {
       const body = {
         tripId: Number(tripId), productName, store, category, description, imageUrl,
-        // Typed in won → sent in won (the server stores the local price too); typed in ¥ → sent in ¥.
         ...(local && price.mode === 'local' ? { priceLocal: Number(price.amount), priceCurrency: currency } : { estPrice: Number(estPrice) }),
         reward: Number(reward || 0), quantity,
         receiptUrl: bought ? receiptUrl : null, productId,
@@ -111,8 +105,6 @@ export default function OfferForm() {
     save.mutate();
   }
 
-  // The receipt total covers every unit, so the per-item price follows the quantity. Read in the receipt's own
-  // currency when it matches the trip country (¥ receipt for a Japan trip), otherwise in won.
   const receiptTotal = receiptScan && !receiptScan.mock
     ? (local ? (receiptScan.currency === currency ? receiptScan.total : null) : receiptScan.totalKrw)
     : null;
@@ -121,7 +113,6 @@ export default function OfferForm() {
       if (local) price.setLocal(roundLocal(receiptTotal / Math.max(quantity, 1)));
       else price.setAmount(Math.round(receiptTotal / Math.max(quantity, 1)));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quantity, receiptTotal, bought]);
 
   if (trips.isLoading || (editId && existing.isLoading)) return <Screen back title={t('of.new')}><Loading /></Screen>;
@@ -140,7 +131,6 @@ export default function OfferForm() {
   const rewardCap = maxReward(config, Number(estPrice || 0));
   const rewardOver = !!estPrice && Number(reward || 0) > rewardCap;
 
-  // "Already bought" needs an AI-checked receipt. A receipt saved earlier on this offer still counts.
   const receiptChecked = !!receiptScan || (!!receiptUrl && !receiptFile && receiptUrl === savedReceipt);
   const receiptReady = !bought || (!!receiptUrl && receiptChecked && !receiptUploading);
   const enteredTotal = Number(price.local || 0) * quantity;
@@ -179,7 +169,6 @@ export default function OfferForm() {
   return (
     <Screen back title={editId ? t('of.edit') : t('of.new')} hideNav wide>
       {needsPayout && <div className="of-payout"><PayoutRequired /></div>}
-      {/* The whale says the intro, in the same speech bubble as on the home and request pages */}
       <div className="live-say req-say">
         <Mascot mood="shop" className="live-say-whale" size={76} />
         <p className="live-say-bubble">{editId ? t('of.helloEdit') : t('of.hello')}</p>

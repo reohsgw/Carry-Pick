@@ -22,14 +22,11 @@ export default function OfferDetail() {
   const ask = useConfirm();
   const [qty, setQty] = useState(1);
   const location = useLocation();
-  // Just posted from the offer form: celebrate once, then drop the flag so a refresh doesn't show it again.
   const flags = location.state as { posted?: boolean; edited?: boolean } | null;
   const [posted, setPosted] = useState(() => !!flags?.posted);
   const [edited, setEdited] = useState(() => !!flags?.edited);
   const closePosted = () => { setPosted(false); setEdited(false); navigate(location.pathname, { replace: true, state: null }); };
 
-  // Book and pay in one go: the order is created, then the payment window opens right here.
-  // Closing it without paying leaves the order as 결제 대기 and opens its payment page to retry.
   const payment = usePayment(undefined, { onCancel: (orderId) => navigate(`/orders/${orderId}/pay`) });
   const book = useMutation({
     mutationFn: () => api.book(id, qty),
@@ -42,9 +39,8 @@ export default function OfferDetail() {
   const o = offer.data;
   const mine = user?.id === o.traveler.id;
   const q = quote(config, o.estPrice * qty, o.reward * qty);
-  // Priced in the trip country's currency: show that amount and its won value for the chosen quantity.
   const local = o.priceLocal != null && o.priceCurrency && o.priceCurrency !== 'KRW' ? { amount: Number(o.priceLocal), currency: o.priceCurrency } : null;
-  const closesIn = daysUntil(o.trip.returnDate) - 1; // last booking day is the day before they return
+  const closesIn = daysUntil(o.trip.returnDate) - 1;
   const country = countryName(config, o.countryCode, lang);
 
   return (
@@ -79,7 +75,6 @@ export default function OfferDetail() {
               <ReceiptStrip quote={q}
                 budgetLabel={t(o.receiptUrl ? 'price.itemPaid' : 'price.itemEstimate')}
                 budgetNote={t('price.unitTimes', { price: local ? money(local.amount, local.currency) : krw(o.estPrice), n: qty })} />
-              {/* Key facts as icon rows, the way Trip.com, Klook and Agoda list dates and policies */}
               <ul className="od-facts-list">
                 <li>
                   <Calendar size={20} aria-hidden />
@@ -124,7 +119,6 @@ export default function OfferDetail() {
           </div>
         </div>
 
-        {/* One boarding pass: who is carrying it, where from, when it lands, and the price stub. */}
         <section className="od-pass" aria-label={t('offer.trip')}>
           <div className="od-pass-main">
             <div className="od-pass-head">

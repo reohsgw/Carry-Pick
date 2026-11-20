@@ -21,7 +21,6 @@ export default function BuyerHome() {
   const navigate = useNavigate();
   const { country } = useCountry();
   const [q, setQ] = useState('');
-  // null: follows hover; true/false: set by a tap, so tapping again hides the bubble
   const [tipOpen, setTipOpen] = useState<boolean | null>(null);
   const ranking = useQuery({ queryKey: ['ranking', country], queryFn: () => api.ranking(country) });
   const offers = useQuery({ queryKey: ['offers', country], queryFn: () => api.offers(country) });
@@ -45,7 +44,6 @@ export default function BuyerHome() {
           <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
           <Mascot className="hero-whale" />
           <Mascot mood="shop" className="hero-whale-2" />
-          {/* One sentence per line, each shrunk to fit on one line where it stays readable */}
           <p className="hero-body">
             {t('home.heroBody').split('\n').map((line) => <span key={line} className="hero-body-line">{line}</span>)}
           </p>
@@ -95,7 +93,6 @@ export default function BuyerHome() {
           <div className="live-copy">
             <div className="live-title-row">
               <h2 className="live-title">{t('home.liveTitle')}</h2>
-              {/* Hover, focus or tap the whale to read the booking line in its speech bubble */}
               <span className={`live-tip${tipOpen === true ? ' is-open' : tipOpen === false ? ' is-closed' : ''}`} onMouseLeave={() => setTipOpen(null)}>
                 <button type="button" className="live-tip-btn" aria-label={t('home.liveTipLabel')} aria-describedby="live-tip-text"
                   aria-expanded={!!tipOpen} onClick={() => setTipOpen((o) => !o)} onBlur={() => setTipOpen(null)}>

@@ -21,11 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-/**
- * Won value of one unit of each foreign currency ("1 JPY = ₩9.2").
- * Today's rates come from a free public source (open.er-api.com, no key) and are cached for a few hours.
- * If that source can't be reached, the fixed rates in app.fx are used, so the app keeps working offline.
- */
 @Service
 public class ExchangeRateService {
     private static final Logger log = LoggerFactory.getLogger(ExchangeRateService.class);
@@ -33,7 +28,6 @@ public class ExchangeRateService {
     private static final Duration REFRESH = Duration.ofHours(6);
     private static final Duration RETRY_AFTER_FAILURE = Duration.ofMinutes(10);
 
-    /** krwPerUnit: currency code to won per one unit. live: false when these are the fixed fallback rates. */
     public record Rates(Map<String, Double> krwPerUnit, boolean live, Instant updatedAt) {}
 
     private final Map<String, Double> fixed;
@@ -56,7 +50,6 @@ public class ExchangeRateService {
         this.liveEnabled = liveEnabled;
     }
 
-    /** Fixed rates only, never calling out (tests, offline). */
     public static ExchangeRateService fixedOnly(Map<String, Double> fixed) {
         return new ExchangeRateService(fixed, new ObjectMapper(), false);
     }
@@ -76,13 +69,11 @@ public class ExchangeRateService {
         }
     }
 
-    /** Won per one unit of the currency, or null when there is no rate for it. */
     public Double krwPerUnit(String currency) {
         if (currency == null) return null;
         return rates().krwPerUnit().get(currency.toUpperCase());
     }
 
-    /** Won price of one item of an offer right now: its local price at today's rate, or its won price. */
     public long offerPriceKrw(com.carrypick.domain.Offer o) {
         if (!o.hasLocalPrice()) return o.getEstPrice();
         Double rate = krwPerUnit(o.getPriceCurrency());
@@ -109,7 +100,6 @@ public class ExchangeRateService {
                 log.warn("Exchange rates unavailable (HTTP {}); using fixed rates", res.statusCode());
                 return null;
             }
-            // The source gives units per 1 KRW; we store won per 1 unit.
             JsonNode perKrw = body.path("rates");
             Map<String, Double> out = new LinkedHashMap<>();
             for (String code : wanted()) {

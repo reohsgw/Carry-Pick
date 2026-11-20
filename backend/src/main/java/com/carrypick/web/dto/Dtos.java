@@ -18,7 +18,6 @@ public final class Dtos {
         }
     }
 
-    /** Payout account, with the number masked: only the last 4 digits ever leave the server. */
     public record PayoutDto(String bank, String accountMasked, String holder) {
         public static PayoutDto of(User u) {
             if (!u.hasPayoutAccount()) return null;
@@ -48,7 +47,6 @@ public final class Dtos {
                            String store, String category, String description, String imageUrl, long estPrice,
                            long reward, int quantity, OfferStatus status, boolean bookable, Quote unitQuote,
                            String receiptUrl, ProductDto product, Integer weightGrams,
-                           /** Price per item in the trip country's currency; estPrice is its won value today. */
                            String priceCurrency, java.math.BigDecimal priceLocal) {}
 
     public record RequestDto(Long id, PersonDto buyer, PersonDto traveler, String countryCode, String productName,
@@ -94,11 +92,9 @@ public final class Dtos {
                            List<PaymentDto> payments, SettlementDto settlement, long unreadMessages,
                            String handoverMethod, String handoverPhotoUrl, Instant autoConfirmAt,
                            DisputeDto dispute,
-                           /** Local-currency prices and the order's locked won rate (null for won-only orders). */
                            String currency, Double fxRate, java.math.BigDecimal limitLocal,
                            java.math.BigDecimal quotedLocal, java.math.BigDecimal actualLocal) {}
 
-    /** An open problem report. byRole is BUYER or TRAVELER; mine tells the viewer whether they filed it. */
     public record DisputeDto(String reason, String note, String photoUrl, String byRole, boolean mine, Instant at) {}
 
     public record ChatMessageDto(Long id, Long senderId, String senderName, boolean mine, String text,
@@ -129,7 +125,6 @@ public final class Dtos {
     public record RankingItem(int rank, String productName, long orderCount, Long offerId, String imageUrl,
                               String category, Long productId, String nameKo,
                               Long estPrice, String countryCode, Integer weightGrams,
-                              /** The same price in the country's currency, when known (e.g. ¥1,400). */
                               String priceCurrency, java.math.BigDecimal priceLocal) {}
 
     public record RankingDto(String countryCode, boolean demoData, int days, List<RankingItem> items) {}

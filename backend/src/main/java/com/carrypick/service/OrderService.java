@@ -63,7 +63,6 @@ public class OrderService {
     private static final Set<String> BUYER_REASONS = Set.of("NOT_RECEIVED", "WRONG_OR_DAMAGED", "OTHER");
     private static final Set<String> TRAVELER_REASONS = Set.of("NOT_CONFIRMING", "NO_CONTACT", "OTHER");
 
-    /** Either side reports a problem: the order pauses (no payout, no auto-confirm) until it's resolved. */
     @Transactional
     public OrderDto report(Long userId, Long orderId, String reason, String note, MultipartFile photo) {
         Order o = findForParticipant(userId, orderId);
@@ -131,7 +130,6 @@ public class OrderService {
         return mapper.order(o, userId);
     }
 
-    /** Buyers who never press "received": confirm for them once the timer runs out. */
     @Scheduled(initialDelay = 15_000, fixedDelay = 300_000)
     @Transactional
     public void autoConfirmDelivered() {
@@ -164,7 +162,6 @@ public class OrderService {
             throw ApiException.conflict("NOT_ENOUGH_STOCK", "Only " + offer.getQuantity() + " left");
         }
         offer.reserve(f.quantity());
-        // Priced in the country's currency: lock today's rate now; the buyer pays the won value of that price.
         Double rate = offer.hasLocalPrice() ? fx.krwPerUnit(offer.getPriceCurrency()) : null;
         java.math.BigDecimal localTotal = rate != null ? offer.getPriceLocal().multiply(java.math.BigDecimal.valueOf(f.quantity())) : null;
         long itemsKrw = localTotal != null ? Math.round(localTotal.doubleValue() * rate) : offer.getEstPrice() * f.quantity();
@@ -205,7 +202,6 @@ public class OrderService {
         Quote q = pricing.quote(r.getMaxBudget(), r.getReward());
         Order o = orders.save(new Order(r.getBuyer(), traveler, null, r, r.getProductName(), r.getCountryCode(),
                 r.getImageUrl(), 1, q.budget(), q.reward(), q.fee(), q.tax(), trip.getReturnDate()));
-        // The buyer's limit stays in the currency they set it in, at the rate their won budget was based on.
         if (r.getBudgetLocal() != null && r.getFxRate() != null) o.lockCurrency(r.getBudgetCurrency(), r.getFxRate(), r.getBudgetLocal());
         else lockCurrencyNow(o);
         notifications.notify(r.getBuyer(), o.getId(), NotificationService.Kind.REQUEST_ACCEPTED, traveler.getName(),
@@ -233,10 +229,8 @@ public class OrderService {
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PAID);
         long actualPrice;
-        // Typed in won on a locally priced order: converted at the order's locked rate, then checked in the local currency.
         if (actualLocal == null && actualPriceKrw != null && actualPriceKrw > 0 && o.hasLocalPrices()) actualLocal = o.wonToLocal(actualPriceKrw);
         if (actualLocal != null && o.hasLocalPrices()) {
-            // Compared in the local currency (¥ to ¥); the won value uses the order's locked rate.
             if (actualLocal.signum() <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
             if (actualLocal.compareTo(o.localLimit()) > 0) {
                 throw ApiException.conflict("OVER_LIMIT", "The price is over the approved " + o.localLimit().toPlainString()
@@ -274,7 +268,6 @@ public class OrderService {
         long price;
         if (priceLocal == null && priceKrw != null && priceKrw > 0 && o.hasLocalPrices()) priceLocal = o.wonToLocal(priceKrw);
         if (priceLocal != null && o.hasLocalPrices()) {
-            // Over budget in the local currency; the extra is charged at the same locked rate as the first payment.
             if (priceLocal.compareTo(o.getLimitLocal()) <= 0) {
                 throw ApiException.badRequest("NOT_OVER_BUDGET", "The price is within the budget. You can buy it now.");
             }
@@ -480,7 +473,6 @@ public class OrderService {
         o.setSettledAt(Instant.now());
     }
 
-    /** Locks today's rate on an order and expresses its won item budget in the country's currency. */
     private void lockCurrencyNow(Order o) {
         String currency = com.carrypick.domain.Countries.find(o.getCountryCode())
                 .map(com.carrypick.domain.Countries.Country::currency).orElse(null);
