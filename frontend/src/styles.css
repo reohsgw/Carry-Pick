@@ -11945,19 +11945,46 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
   text-shadow: 0 0 2px rgb(255 255 255 / 0.9), 0 0 10px rgb(255 255 255 / 0.7);
 }
 @media (min-width: 768px) { .hero-body { font-size: 17px !important; } }
-/* Home hero whales between phone and wide laptop: no room beside the logo and categories, so the laptop whale
-   goes and the flying whale gets smaller and sits in the top corner, clear of the logo */
-@media (max-width: 1279.98px) {
-  .hero-whale-2 { display: none !important; }
-}
+/* Home hero whales between phone and wide laptop. The content column (logo, text, search, categories) is centered
+   and --hc is half its width. Both whales sit in the free space beside it and scale with that space: the flying
+   one at the top right of the logo, the laptop one at the lower left beside the categories. */
 @media (min-width: 701px) and (max-width: 1279.98px) {
-  /* Above the right end of the logo (the logo is centered, min(100%, 640px, 68vh) wide), with room left for it */
+  .hero-section { position: relative; container-type: inline-size; container-name: hero; --hc: 272px; }
+  .hero-inner { padding-top: 40px !important; }
+  .hero-whale, .hero-whale-2 { --ws: clamp(56px, 50cqw - var(--hc) - 24px, 124px); width: var(--ws) !important; }
   .hero-whale {
-    width: 80px !important; top: 6px !important; right: auto !important;
-    left: calc(50% + min(50% - 24px, 320px, 34vh) - 72px) !important;
+    right: auto !important; left: calc(50% + var(--hc) + 6px) !important;
+    top: 48px !important; /* level with the top of the logo, beside it */
   }
-  .hero-inner { padding-top: 92px !important; }
+  .hero-whale-2 {
+    display: block !important; top: auto !important; right: auto !important;
+    left: calc(50% - var(--hc) - var(--ws) - 10px) !important; bottom: 36px !important;
+  }
 }
+@media (min-width: 900px) and (max-width: 1279.98px) { .hero-section { --hc: 258px; } }
+/* Narrow tablets: too little room beside the logo for a proper-size whale, so use the phone layout instead
+   (whale above the right end of the logo, logo moved down to clear it) */
+@container hero (max-width: 760px) {
+  .hero-whale { width: 76px !important; top: 14px !important; left: auto !important; right: 14px !important; }
+  .hero-inner { padding-top: 58px !important; }
+}
+/* Too little room beside the categories for the laptop whale */
+@media (max-width: 899.98px) { .hero-whale-2 { display: none !important; } } /* categories span the full card width here */
 @media (max-width: 700px) {
-  .hero-whale { width: 70px !important; top: 2px !important; right: 6px !important; }
+  /* Phones: the whale sits fully inside the hero (not cut off at the top), with the logo moved down to clear it */
+  .hero-whale { width: 70px !important; top: 14px !important; right: 10px !important; }
+  .hero-inner { padding-top: 54px !important; }
+}
+/* Home intro: each sentence on its own line; if a sentence is still too long for a narrow phone it breaks evenly */
+.hero-body-line { display: block; text-wrap: balance; }
+/* Home categories on phones: spread evenly and centered across the row; if they ever can't fit, the row
+   starts at the left edge and scrolls (safe center) so none is cut off at the start */
+@media (max-width: 600px) {
+  .home-cats { justify-content: safe center !important; gap: 2px !important; }
+  .home-cat { flex: 1 1 0 !important; min-width: max(50px, min-content); max-width: 96px; }
+}
+@media (max-width: 374px) {
+  .home-cats { gap: 0 !important; }
+  .home-cat-label { font-size: 12px !important; }
+  .home-cat-icon { width: 44px !important; height: 44px !important; }
 }

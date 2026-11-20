@@ -28,6 +28,11 @@ const GROUPS = [
   '.offer-title', '.top10-name', '.request-card .request-head h3', '.kt-item-body h3', '.ob-title-row h3', '.row-title',
 ];
 const GROUP_FLOOR = 0.85;
+/**
+ * Lines of one passage (the home intro): same size for all lines. If the longest can't fit at 85%, every line
+ * stays at its normal size and the long one wraps (evenly, via text-wrap: balance) instead of ending in "…".
+ */
+const SOFT_GROUPS = ['.hero-body-line'];
 
 /** Number of rendered text lines inside el (icons, badges and emoji at other heights don't count). */
 function lineCount(el: HTMLElement) {
@@ -173,10 +178,11 @@ function fitAll() {
     if (needsFit(el) && !isMultiPart(el)) fit(el, true);
   }
   for (const sel of GROUPS) fitGroup(sel);
+  for (const sel of SOFT_GROUPS) fitGroup(sel, true);
 }
 
 /** One size for every element matching sel (see GROUPS). */
-function fitGroup(sel: string) {
+function fitGroup(sel: string, soft = false) {
   const els = Array.from(document.querySelectorAll<HTMLElement>(sel)).filter((el) => el.clientWidth > 0 && el.textContent?.trim());
   if (els.length < 2) return;
   const sizes = els.map((el) => {
@@ -185,7 +191,17 @@ function fitGroup(sel: string) {
     return { el, base, now };
   });
   const base = Math.max(...sizes.map((x) => x.base));
-  const size = Math.max(base * GROUP_FLOOR, Math.min(...sizes.map((x) => x.now)));
+  const tightest = Math.min(...sizes.map((x) => x.now));
+  if (soft && (tightest < base * GROUP_FLOOR || sizes.some((x) => needsFit(x.el)))) {
+    // Too long to fit readably: all lines back to normal size, wrapping where needed.
+    for (const { el } of sizes) {
+      for (const prop of FIT_PROPS) el.style.removeProperty(prop);
+      el.classList.remove('fit-clip');
+      delete el.dataset.fit;
+    }
+    return;
+  }
+  const size = Math.max(base * GROUP_FLOOR, tightest);
   for (const { el } of sizes) {
     const avail = el.clientWidth;
     el.classList.remove('fit-clip');

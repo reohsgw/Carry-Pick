@@ -45,7 +45,10 @@ export default function BuyerHome() {
           <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
           <Mascot className="hero-whale" />
           <Mascot mood="shop" className="hero-whale-2" />
-          <p className="hero-body">{t('home.heroBody')}</p>
+          {/* One sentence per line, each shrunk to fit on one line where it stays readable */}
+          <p className="hero-body">
+            {t('home.heroBody').split('\n').map((line) => <span key={line} className="hero-body-line">{line}</span>)}
+          </p>
           <form
             className="hero-search"
             role="search"
