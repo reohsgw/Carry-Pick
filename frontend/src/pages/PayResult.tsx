@@ -83,9 +83,9 @@ export default function PayResult({ success }: { success: boolean }) {
       {state !== 'working' && (
         <div className="stack">
           {state === 'failed' && order?.status === 'PAYMENT_FAILED' && (
-            <Link to={`/orders/${orderId}/pay`} className="btn btn-primary btn-block">{t('pay.tryAgain')}</Link>
+            <Link to={`/orders/${orderId}/pay`} replace className="btn btn-primary btn-block">{t('pay.tryAgain')}</Link>
           )}
-          <Link to={`/orders/${orderId}`} className={`btn btn-block ${state === 'ok' ? 'btn-primary' : 'btn-quiet'}`}>{t('pay.viewOrder')}</Link>
+          <Link to={`/orders/${orderId}`} replace className={`btn btn-block ${state === 'ok' ? 'btn-primary' : 'btn-quiet'}`}>{t('pay.viewOrder')}</Link>
         </div>
       )}
     </Screen>
