@@ -251,10 +251,22 @@ export default function FitText() {
     const mo = new MutationObserver(schedule);
     mo.observe(document.body, { childList: true, subtree: true, characterData: true });
     document.fonts?.ready.then(schedule).catch(() => {});
+    // Web fonts that finish loading later (common on phones) change text widths: fit again.
+    document.fonts?.addEventListener?.('loadingdone', schedule);
+    // Layout changes that are not DOM changes (images loading, container resizes) also change the space available.
+    // Width only: fitting changes heights, which must not start another round.
+    let lastWidth = 0;
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver((entries) => {
+      const w = Math.round(entries[0]?.contentRect.width ?? 0);
+      if (w !== lastWidth) { lastWidth = w; schedule(); }
+    }) : null;
+    ro?.observe(document.body);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', schedule);
       mo.disconnect();
+      ro?.disconnect();
+      document.fonts?.removeEventListener?.('loadingdone', schedule);
     };
   }, []);
   return null;

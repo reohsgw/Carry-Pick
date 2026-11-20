@@ -11990,3 +11990,8 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
 }
 /* Phones: the intro uses some of the hero's side padding so its one-line sentences can stay larger */
 @media (max-width: 600px) { .hero-body { margin-inline: -14px !important; max-width: none !important; } }
+/* Phones: size the intro from the screen width in CSS, so each sentence fits on one line even before (or without)
+   the JS fitter running. The longest sentence is about 30em (Korean) / 32em (English) wide. */
+@media (max-width: 600px) {
+  .hero-body-line { font-size: clamp(9.5px, calc((100vw - 44px) / 32.5), 15.5px) !important; }
+}
