@@ -11988,3 +11988,5 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
   .home-cat-label { font-size: 12px !important; }
   .home-cat-icon { width: 44px !important; height: 44px !important; }
 }
+/* Phones: the intro uses some of the hero's side padding so its one-line sentences can stay larger */
+@media (max-width: 600px) { .hero-body { margin-inline: -14px !important; max-width: none !important; } }

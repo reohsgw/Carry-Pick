@@ -33,6 +33,8 @@ const GROUP_FLOOR = 0.85;
  * stays at its normal size and the long one wraps (evenly, via text-wrap: balance) instead of ending in "…".
  */
 const SOFT_GROUPS = ['.hero-body-line'];
+/** The home intro may shrink further than product names before it wraps: one line per sentence matters more there. */
+const SOFT_GROUP_FLOOR = 0.6;
 
 /** Number of rendered text lines inside el (icons, badges and emoji at other heights don't count). */
 function lineCount(el: HTMLElement) {
@@ -191,8 +193,20 @@ function fitGroup(sel: string, soft = false) {
     return { el, base, now };
   });
   const base = Math.max(...sizes.map((x) => x.base));
+  const floor = soft ? SOFT_GROUP_FLOOR : GROUP_FLOOR;
+  // Soft-fit lines give up below ~72% on their own; work out the size each line needs to fit on one line.
+  if (soft) {
+    for (const x of sizes) {
+      if (!needsFit(x.el)) continue;
+      const avail = innerWidth(x.el);
+      set(x.el, 'white-space', 'nowrap');
+      const need = contentWidth(x.el);
+      x.el.style.removeProperty('white-space');
+      x.now = Math.min(x.now, (x.now * avail) / Math.max(need, 1) * 0.98);
+    }
+  }
   const tightest = Math.min(...sizes.map((x) => x.now));
-  if (soft && (tightest < base * GROUP_FLOOR || sizes.some((x) => needsFit(x.el)))) {
+  if (soft && tightest < base * floor) {
     // Too long to fit readably: all lines back to normal size, wrapping where needed.
     for (const { el } of sizes) {
       for (const prop of FIT_PROPS) el.style.removeProperty(prop);
@@ -201,7 +215,7 @@ function fitGroup(sel: string, soft = false) {
     }
     return;
   }
-  const size = Math.max(base * GROUP_FLOOR, tightest);
+  const size = Math.max(base * floor, tightest);
   for (const { el } of sizes) {
     const avail = el.clientWidth;
     el.classList.remove('fit-clip');
@@ -211,7 +225,7 @@ function fitGroup(sel: string, soft = false) {
     set(el, 'font-size', `${size}px`);
     el.dataset.fit = '1';
     if (!el.dataset.fitBase) el.dataset.fitBase = String(base);
-    if (needsFit(el)) {
+    if (needsFit(el) && !soft) {
       set(el, 'width', `${avail}px`);
       set(el, 'max-width', '100%');
       el.classList.add('fit-clip');
