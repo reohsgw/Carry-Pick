@@ -142,17 +142,15 @@ export default function MyPage() {
               <div>
                 <span>{t('kt.pending')}</span>
                 <strong>{krw(pending.item + pending.reward)}</strong>
-                <small>{t('kt.breakdown', { item: krw(pending.item), reward: krw(pending.reward) })}</small>
               </div>
               <div>
                 <span>{t('kt.earned')}</span>
                 <strong>{krw(earned.item + earned.reward)}</strong>
-                <small>{t('kt.breakdown', { item: krw(earned.item), reward: krw(earned.reward) })}</small>
               </div>
             </div>
             <div className="kt-wallet-actions">
+              <Link to={next ? `/t/offers/new?trip=${next.id}` : '/t/offers/new'} className="kt-btn is-solid is-main">{t('t.offerItem')}</Link>
               <Link to="/t/trips/new" className="kt-btn"><Plus size={16} aria-hidden /> {t('t.addTrip')}</Link>
-              <Link to={next ? `/t/offers/new?trip=${next.id}` : '/t/offers/new'} className="kt-btn is-solid">{t('t.offerItem')}</Link>
             </div>
           </section>
 

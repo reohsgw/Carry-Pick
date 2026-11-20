@@ -11850,3 +11850,48 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 .offers-more p { margin: 0; font: 500 16px/1.5 var(--font); color: #4A535A; }
 .rd-budget { display: inline-grid; justify-items: end; gap: 2px; text-align: right; }
 .rd-budget small { font: 400 12.5px/1.4 var(--font); color: #6B747B; }
+
+/* Login test accounts: on phones the label goes on its own line, the two accounts below it */
+@media (max-width: 560px) {
+  .lg-try { flex-wrap: wrap !important; row-gap: 6px !important; white-space: normal !important; font-size: 13px !important; }
+  .lg-try > span:first-child { flex-basis: 100%; text-align: center; }
+  .lg-try button { white-space: nowrap; font-size: 14px !important; }
+}
+
+/* Placeholders never spill past their box: a step smaller on phones, and "…" if still too long */
+input, textarea { text-overflow: ellipsis; }
+input::placeholder { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+@media (max-width: 560px) {
+  input::placeholder, textarea::placeholder { font-size: 14px; letter-spacing: -0.01em; }
+}
+
+/* Weight presets: always one row of five equal chips that shrink to fit the box */
+.weight-presets { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px !important; flex-wrap: nowrap !important; }
+.weight-presets > * { min-width: 0 !important; width: 100%; padding-left: 4px !important; padding-right: 4px !important; white-space: nowrap; justify-content: center; text-align: center; }
+@media (max-width: 420px) { .weight-presets > * { font-size: 13px !important; } }
+/* The note under the price total stays on one line on phones (FitText shrinks it to fit) */
+@media (max-width: 560px) { .receipt-strip .receipt-note { padding: 10px 12px !important; white-space: nowrap; } }
+
+/* iPhone Safari greys out any tapped element that listens for clicks (e.g. the whole order card).
+   The app shows its own pressed states, so turn that flash off everywhere. */
+html, body, * { -webkit-tap-highlight-color: transparent; }
+
+/* My page: the main action ("Offer an item") is the app's rose button, full width and one line; "Add trip" sits under it */
+.kt-wallet-actions { grid-template-columns: 1fr !important; }
+.kt-btn { white-space: nowrap; min-width: 0; }
+.kt-btn.is-solid { background: #A85A62 !important; border-color: #A85A62 !important; color: #FFFFFF !important; }
+.kt-btn.is-solid:hover { background: #924B53 !important; border-color: #924B53 !important; }
+.kt-btn.is-main { height: 52px !important; font-size: 16px !important; }
+.kt-btn:active { scale: 0.98; }
+.kt-wallet-sums small { display: block; white-space: nowrap; min-width: 0; } .kt-wallet-sums > div { min-width: 0; }
+
+/* Payout breakdown: "Item ₩…" and "+ reward ₩…" each on their own line */
+.kt-wallet-sums small { white-space: nowrap !important; display: block; font: 400 13px/1.45 var(--font); color: #6B747B; }
+
+/* Home whale bubble: a tap shows it, a second tap hides it (hover still shows it on computers) */
+.live-tip:focus-within .live-tip-bubble { opacity: 0; visibility: hidden; }
+.live-tip:hover .live-tip-bubble, .live-tip.is-open .live-tip-bubble, .live-tip-btn:focus-visible + .live-tip-bubble {
+  opacity: 1 !important; visibility: visible !important;
+}
+.live-tip.is-closed .live-tip-bubble { opacity: 0 !important; visibility: hidden !important; }
+.kt-wallet-sums small + small { margin-top: -4px; }
