@@ -11827,6 +11827,15 @@ input[type="date"], input[type="datetime-local"], input[type="time"] {
   box-sizing: border-box; text-align: left;
 }
 input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+/* iPhone draws the date at the top of a box that only has a min-height: give it a fixed height and line height
+   so the date sits in the vertical middle like other inputs */
+.field input[type="date"], .field input[type="datetime-local"], .field input[type="time"] {
+  height: 48px; line-height: 46px; padding-top: 0 !important; padding-bottom: 0 !important;
+}
+.offer-searchbar input[type="date"] { height: 40px; line-height: 38px; padding-top: 0 !important; padding-bottom: 0 !important; }
+input[type="date"]::-webkit-date-and-time-value, input[type="datetime-local"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value { line-height: inherit; min-height: 0; padding: 0; vertical-align: middle; }
+input[type="date"]::-webkit-datetime-edit { padding: 0; line-height: inherit; }
 .field, .two-col > *, .field > * { min-width: 0; }
 .two-col { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 @media (max-width: 380px) { .two-col { gap: 8px !important; } }
@@ -11926,3 +11935,29 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
 /* Unread count badges: the number sits in the exact middle of the circle */
 .dot { display: inline-flex; align-items: center; justify-content: center; line-height: 1 !important; font-variant-numeric: tabular-nums; box-sizing: border-box; }
 .dot.is-inline { flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; }
+.kt-profile .kt-profile-dates { margin-top: 2px; }
+/* Field help whale: a second tap hides the bubble even while the phone still treats the whale as hovered */
+.field-info.is-closed .field-info-tip { opacity: 0 !important; visibility: hidden !important; pointer-events: none; }
+/* Home intro: darker, slightly heavier and larger so it reads clearly on the light background */
+.hero-body {
+  color: #3A4652 !important; font-weight: 500 !important; font-size: 15.5px !important; line-height: 1.65 !important;
+  letter-spacing: -0.005em; word-break: keep-all;
+  text-shadow: 0 0 2px rgb(255 255 255 / 0.9), 0 0 10px rgb(255 255 255 / 0.7);
+}
+@media (min-width: 768px) { .hero-body { font-size: 17px !important; } }
+/* Home hero whales between phone and wide laptop: no room beside the logo and categories, so the laptop whale
+   goes and the flying whale gets smaller and sits in the top corner, clear of the logo */
+@media (max-width: 1279.98px) {
+  .hero-whale-2 { display: none !important; }
+}
+@media (min-width: 701px) and (max-width: 1279.98px) {
+  /* Above the right end of the logo (the logo is centered, min(100%, 640px, 68vh) wide), with room left for it */
+  .hero-whale {
+    width: 80px !important; top: 6px !important; right: auto !important;
+    left: calc(50% + min(50% - 24px, 320px, 34vh) - 72px) !important;
+  }
+  .hero-inner { padding-top: 92px !important; }
+}
+@media (max-width: 700px) {
+  .hero-whale { width: 70px !important; top: 2px !important; right: 6px !important; }
+}

@@ -126,7 +126,8 @@ export default function MyPage() {
             </div>
             <div className="kt-profile-text">
               <h1>{firstName(user.name)} {user.test && <Tag tone="action">{t('me.test')}</Tag>}</h1>
-              <p>{next ? t('kt.nextTrip', { route: route(next.city, next.countryCode), dates: dates(next.departDate, next.returnDate) }) : user.email}</p>
+              <p>{next ? t('kt.nextTrip', { route: route(next.city, next.countryCode) }) : user.email}</p>
+              {next && <p className="kt-profile-dates">{dates(next.departDate, next.returnDate)}</p>}
               {user.avatarUrl && !busy && (
                 <button type="button" className="kt-text-btn" onClick={removePhoto}>{t('me.photoRemove')}</button>
               )}

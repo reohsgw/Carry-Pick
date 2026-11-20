@@ -157,7 +157,9 @@ export function Field({ label, hint, info, optional, error, children }: {
   info?: string;
 }) {
   const { t } = useI18n();
-  const [infoOpen, setInfoOpen] = useState(false);
+  // null: shown on hover/focus only. true: opened by a tap. false: closed by a tap, even while a phone keeps
+  // the whale in its "hover" state after the touch.
+  const [infoOpen, setInfoOpen] = useState<boolean | null>(null);
   const infoId = useId();
   // Point the bubble's tail at the whale, wherever the label ends.
   const infoBtn = useRef<HTMLButtonElement>(null);
@@ -175,11 +177,12 @@ export function Field({ label, hint, info, optional, error, children }: {
         {label}
         {optional && <span className="field-optional">{t('common.optional')}</span>}
         {info && (
-          <span className={`field-info${infoOpen ? ' is-open' : ''}`}>
+          <span className={`field-info${infoOpen ? ' is-open' : infoOpen === false ? ' is-closed' : ''}`}
+            onMouseLeave={() => setInfoOpen(null)}>
             <button ref={infoBtn} type="button" className="field-info-btn" aria-label={t('common.whatIsThis')} aria-describedby={infoId}
-              aria-expanded={infoOpen}
+              aria-expanded={!!infoOpen}
               onClick={(e) => { e.preventDefault(); setInfoOpen((o) => !o); }}
-              onBlur={() => setInfoOpen(false)}>
+              onBlur={() => setInfoOpen(null)}>
               <Mascot mood="info" size={30} />
             </button>
             <span ref={infoTip} role="tooltip" id={infoId} className="field-info-tip">{info}</span>
