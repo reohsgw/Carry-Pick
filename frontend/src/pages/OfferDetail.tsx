@@ -46,7 +46,6 @@ export default function OfferDetail() {
   const local = o.priceLocal != null && o.priceCurrency && o.priceCurrency !== 'KRW' ? { amount: Number(o.priceLocal), currency: o.priceCurrency } : null;
   const closesIn = daysUntil(o.trip.returnDate) - 1; // last booking day is the day before they return
   const country = countryName(config, o.countryCode, lang);
-  const cat = o.category ? t(`cat.${o.category}` as Key) : '';
 
   return (
     <Screen back title={country} hideNav wide>
@@ -71,13 +70,6 @@ export default function OfferDetail() {
             <section className="summary-card">
               <div className="summary-head">
                 <h2>{t('offer.summary')}</h2>
-                {o.bookable && !mine && (
-                  <div className="stepper" aria-label={t('offer.qty')}>
-                    <button onClick={() => setQty(Math.max(1, qty - 1))} disabled={qty <= 1} aria-label={t('offer.fewer')}><Minus size={15} /></button>
-                    <span>{qty}</span>
-                    <button onClick={() => setQty(Math.min(o.quantity, qty + 1))} disabled={qty >= o.quantity} aria-label={t('offer.more')}><Plus size={15} /></button>
-                  </div>
-                )}
               </div>
               <div className="od-price-stub">
                 <small>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</small>
@@ -118,8 +110,17 @@ export default function OfferDetail() {
           </div>
           <div className="od-top-text">
             <h1 className="detail-title font-display">{o.productName}</h1>
-            <p className="od-meta">{t('offer.from', { category: cat, country })}</p>
-            {o.description && <p className="body-text" style={{ marginTop: 10 }}>{o.description}</p>}
+            <p className="od-meta">{o.category ? `${t(`cat.${o.category}` as Key)} · ${country}` : country}</p>
+            {o.bookable && !mine && (
+              <div className="od-qty">
+                <span>{t('offer.qty')}</span>
+                <div className="stepper" aria-label={t('offer.qty')}>
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} disabled={qty <= 1} aria-label={t('offer.fewer')}><Minus size={15} /></button>
+                  <span>{qty}</span>
+                  <button onClick={() => setQty(Math.min(o.quantity, qty + 1))} disabled={qty >= o.quantity} aria-label={t('offer.more')}><Plus size={15} /></button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -156,6 +157,7 @@ export default function OfferDetail() {
               <div><dt>{t('offer.leftLabel')}</dt><dd>{o.quantity}</dd></div>
               {o.weightGrams != null && <div><dt>{t('w.label')}</dt><dd>{weight(o.weightGrams)}</dd></div>}
               {o.trip.luggageNote && <div className="is-wide"><dt>{t('offer.luggage')}</dt><dd>{o.trip.luggageNote}</dd></div>}
+              {o.description && <div className="is-wide is-note"><dt>{t('offer.noteFrom', { name: firstName(o.traveler.name) })}</dt><dd>“{o.description}”</dd></div>}
             </dl>
           </div>
         </section>

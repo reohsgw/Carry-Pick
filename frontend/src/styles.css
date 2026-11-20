@@ -11781,3 +11781,19 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .money input:
 /* The step the whale sits on reads a little stronger whatever its state */
 .timeline-item:has(.is-whale) { padding: 12px 0; }
 .timeline-item.is-bad:has(.is-whale) .timeline-label { font-weight: 600; }
+
+/* Quantity sits at the bottom-right of the product header, beside the photo */
+.od-top { align-items: stretch !important; }
+.od-top-text { display: flex !important; flex-direction: column; min-height: 100%; }
+.od-qty { margin-top: auto; padding-top: 20px; align-self: flex-end; display: flex; align-items: center; gap: 12px; }
+.od-qty > span { font: 500 14px/1 var(--font); color: #6B747B; }
+.cf-title { margin: 4px 0 0 !important; } .cf-title + .cf-msg { margin-top: -10px; }
+/* Optical alignment: the big product title's letters carry extra side space, so pull it left to line up with the lines below */
+.od-top-text .detail-title { margin-left: -0.055em !important; }
+
+/* The traveler's description, shown as their note */
+.od-note { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: rgb(255 255 255 / 0.7); border: 1px solid rgb(46 58 70 / 0.1); max-width: 34rem; }
+.od-note figcaption { display: flex; align-items: center; gap: 8px; font: 500 13px/1.2 var(--font); color: #6B747B; }
+.od-note figcaption .avatar { width: 24px !important; height: 24px !important; font-size: 10px !important; }
+.od-note blockquote { margin: 8px 0 0; font: 400 15px/1.55 var(--font); color: #2E3A46; }
+.cf-card .cf-title { margin-top: -8px !important; }
