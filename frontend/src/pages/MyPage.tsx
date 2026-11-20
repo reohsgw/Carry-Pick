@@ -8,8 +8,8 @@ import { api, type Order } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Avatar, Loading, Notice, ProductThumb, Tag } from '../components/ui';
-import { ACTIVE_STATUSES, countryName, daysUntil, krw, money, yearDate, yearRange } from '../format';
-import { LangToggle, useErrorText, useI18n, type Key } from '../i18n';
+import { ACTIVE_STATUSES, approx, countryName, daysUntil, krw, money, yearDate, yearRange } from '../format';
+import { LangSelect, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { PayoutCard } from '../components/payout';
 import { useOrderHasNews, useRequestIsNew } from '../seen';
@@ -171,14 +171,14 @@ export default function MyPage() {
             <h2 className="kt-label">{t('kt.account')}</h2>
             <div className="kt-menu-row">
               <span>{t('lang.label')}</span>
-              <LangToggle />
+              <LangSelect />
             </div>
             <Link to="/notifications">
               <Bell size={20} aria-hidden /> <span>{t('me.notifications')}</span>
               {unread > 0 && <span className="dot is-inline">{unread}</span>}
               <ChevronRight size={18} aria-hidden />
             </Link>
-            <button type="button" className="is-danger" onClick={() => { logout(); navigate('/login', { replace: true }); }}>
+            <button type="button" className="is-danger" onClick={() => { logout(); navigate('/', { replace: true }); }}>
               <LogOut size={20} aria-hidden /> <span>{t('me.logout')}</span>
             </button>
           </section>
@@ -229,7 +229,7 @@ export default function MyPage() {
                   <div className="kt-item-line">
                     {o.status !== 'ACTIVE' && <Tag>{t(`offer.status.${o.status}` as Key)}</Tag>}
                     <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
-                    {o.priceLocal != null && o.priceCurrency && <small className="kt-won">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</small>}
+                    {o.priceLocal != null && o.priceCurrency && <small className="kt-won">{approx(lang)}{krw(o.estPrice)}</small>}
                   </div>
                 </div>
               </Link>

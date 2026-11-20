@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
-import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAuthPrompt } from './components/AuthModal';
 import SparkleTrail from './components/SparkleTrail';
 import { Loading } from './components/ui';
 import { useSession } from './session';
 import BuyerHome from './pages/BuyerHome';
 import Checkout from './pages/Checkout';
-import Login from './pages/Login';
 import MyOrders from './pages/MyOrders';
 import MyPage from './pages/MyPage';
 import NewRequest from './pages/NewRequest';
@@ -25,13 +25,13 @@ export default function App() {
   return (
     <div className="app">
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<LoginPrompt />} />
 
-        <Route path="/" element={<RequireAuth><BuyerHome /></RequireAuth>} />
+        <Route path="/" element={<BuyerHome />} />
         <Route path="/country/:code" element={<CountryRedirect />} />
-        <Route path="/search" element={<RequireAuth><Search /></RequireAuth>} />
-        <Route path="/offers" element={<RequireAuth><TravelerOffers /></RequireAuth>} />
-        <Route path="/offers/:id" element={<RequireAuth><OfferDetail /></RequireAuth>} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/offers" element={<TravelerOffers />} />
+        <Route path="/offers/:id" element={<OfferDetail />} />
         <Route path="/requests/new" element={<RequireAuth><NewRequest /></RequireAuth>} />
         <Route path="/my-requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
         <Route path="/my-requests/:id/edit" element={<RequireAuth><NewRequest /></RequireAuth>} />
@@ -62,10 +62,39 @@ export default function App() {
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useSession();
-  const location = useLocation();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (!user) return <AskToLogin />;
   return <>{children}</>;
+}
+
+function AskToLogin() {
+  const prompt = useAuthPrompt();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const asked = useRef(false);
+  useEffect(() => {
+    if (asked.current) return;
+    asked.current = true;
+    const target = location.pathname + location.search;
+    prompt({ then: () => navigate(target) });
+    if (location.key !== 'default') navigate(-1);
+    else navigate('/', { replace: true });
+  }, []);
+  return <Loading />;
+}
+
+function LoginPrompt() {
+  const { user } = useSession();
+  const prompt = useAuthPrompt();
+  const navigate = useNavigate();
+  const asked = useRef(false);
+  useEffect(() => {
+    if (asked.current) return;
+    asked.current = true;
+    if (!user) prompt();
+    navigate('/', { replace: true });
+  }, []);
+  return <Loading />;
 }
 
 function CountryRedirect() {

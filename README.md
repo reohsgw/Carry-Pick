@@ -1,179 +1,211 @@
 # CarryPick
 
-Traveler-linked overseas purchase platform (Ajou Univ. Capstone, Team 14).
+여행자를 통해 해외 상품을 받아 보는 구매 대행 플랫폼입니다. (아주대학교 캡스톤디자인 14팀)
+
+해외에 가는 여행자가 현지에서 상품을 사 오고, 구매자는 **영수증 가격 + 작은 수고비**만 내면 한국에서 상품을 받을 수 있어요.
+
+<p align="center">
+  <img src="docs/screenshots/desktop-home.jpg" alt="CarryPick 홈 화면 (노트북)" width="820">
+</p>
 
 ```
 carrypick/
-├── backend/    Spring Boot 3.5 REST API (Java 21, JPA, Spring Security + JWT)
-└── frontend/   React 18 + Vite + TypeScript (mobile-first web app)
+├── backend/    Spring Boot REST API (Java 21, JPA, Spring Security + JWT)
+├── frontend/   React 18 + Vite + TypeScript (모바일 우선 웹앱)
+└── docs/       README에 쓰인 화면 캡처
 ```
 
-## Run it locally
+## 바로 체험하기
 
-You need **Java 21**, **Maven 3.9+** (or IntelliJ, which bundles it) and **Node 20+**.
+설치 없이 **<https://carrypicks.vercel.app/>** 에서 바로 사용해 볼 수 있습니다.
 
-**1. Start the API** (port 8080)
+1. 사이트를 열면 **로그인 없이** 상품을 둘러볼 수 있어요.
+2. 상품의 **예약하기**를 누르거나 오른쪽 위 **로그인**을 누르면 로그인 창이 열립니다.
+3. 로그인 창에서 **민지 (구매자) 계정으로 계속하기**를 누릅니다.
+4. 브라우저의 **시크릿 창**(Chrome: `Ctrl/⌘ + Shift + N`)을 하나 더 열고 같은 주소에서 **켄지 (여행자) 계정으로 계속하기**를 누릅니다.
+5. 두 창을 나란히 놓고 구매자와 여행자 역할을 오가며 아래 [사용 흐름](#사용-흐름)을 따라 해 보세요.
+
+> 미디어 프로젝트 수업 때문에 보고 계신 분은 **회원가입 대신 데모 계정**으로 로그인해 주세요. 회원가입을 누르면 데모 계정 안내 창이 나옵니다.
+
+결제는 토스페이먼츠 **테스트 결제창**으로 진행되며 실제 돈은 나가지 않습니다. 데모 서버는 다시 시작될 때 데이터가 초기화될 수 있습니다.
+
+## 화면 둘러보기
+
+### 1. 로그인 없이 둘러보기
+
+홈에서 나라와 카테고리를 고르고, 여행자들이 사 오는 상품을 볼 수 있어요. 상품 화면에서는 여행 일정, 도착 예정일, 수고비와 총 결제 금액을 미리 확인할 수 있습니다.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/home.jpg" alt="홈" width="240"></td>
+    <td align="center"><img src="docs/screenshots/offers.jpg" alt="여행자 상품 목록" width="240"></td>
+    <td align="center"><img src="docs/screenshots/offer.jpg" alt="상품 상세" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>홈</b><br>인기 상품, 카테고리, 검색</td>
+    <td align="center"><b>여행자 상품</b><br>나라·도착일로 찾기</td>
+    <td align="center"><b>상품 상세</b><br>여행 일정과 가격 확인</td>
+  </tr>
+</table>
+
+### 2. 주문할 때 로그인 · 나라와 언어 선택
+
+로그인 페이지로 이동하지 않고, 주문하려는 순간 **로그인 창**이 떠요. 로그인하면 바로 주문 확인으로 이어집니다. 오른쪽 위 국기 버튼에서는 **나라**와 **언어**(한국어, English, 日本語, Tiếng Việt, Bahasa Indonesia)를 고를 수 있어요.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/login-popup.jpg" alt="로그인 창" width="240"></td>
+    <td align="center"><img src="docs/screenshots/picker.jpg" alt="나라와 언어 선택" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>로그인 창</b><br>데모 계정으로 바로 로그인</td>
+    <td align="center"><b>나라 · 언어 선택</b><br>5개 언어 지원</td>
+  </tr>
+</table>
+
+### 3. 구매자: 요청하고 주문 확인하기
+
+원하는 상품이 없으면 **구매 요청**을 올려요. 현지 통화로 예산을 적으면 원화로 바꿔 보여 줍니다. 주문이 들어가면 진행 상황을 단계별로 확인하고 여행자와 채팅할 수 있어요.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/new-request.jpg" alt="구매 요청" width="240"></td>
+    <td align="center"><img src="docs/screenshots/orders.jpg" alt="내 주문" width="240"></td>
+    <td align="center"><img src="docs/screenshots/order-detail.jpg" alt="주문 상세" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>구매 요청</b><br>상품, 예산, 수고비 입력</td>
+    <td align="center"><b>내 주문</b><br>주문별 상태와 채팅</td>
+    <td align="center"><b>주문 상세</b><br>단계별 진행 상황</td>
+  </tr>
+</table>
+
+### 4. 여행자: 요청 받고 수고비 받기
+
+여행자는 내 여행 국가와 날짜에 맞는 구매 요청을 보고 수락해요. 마이페이지에서 여행 등록, 상품 올리기, 정산 금액과 정산 계좌를 관리합니다.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/requests.jpg" alt="나에게 맞는 요청" width="240"></td>
+    <td align="center"><img src="docs/screenshots/mypage.jpg" alt="마이페이지" width="240"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>나에게 맞는 요청</b><br>받을 수고비와 마감일</td>
+    <td align="center"><b>마이페이지</b><br>정산 금액, 여행, 거래 내역</td>
+  </tr>
+</table>
+
+## 주요 기능
+
+**구매자**
+- 로그인 없이 상품 둘러보기: 홈의 인기 상품 순위, 카테고리, 검색과 필터(나라, 도착일, 가격)
+- 주문할 때 뜨는 로그인 창, 로그인 후 바로 주문 이어서 진행
+- 여행자 상품 예약과 결제 (모의 결제 또는 토스페이먼츠 테스트 결제)
+- 구매 요청 올리기와 수정: 현지 통화 예산(예: ¥3,600)을 입력하면 요청을 올린 날의 환율로 원화가 고정돼요
+- 주문 진행 현황 확인, 여행자와 채팅(사진 전송 가능)
+- 예산 초과 시 추가 금액 승인, 상품 수령 확인, 문제 신고
+- 전달 후 일정 기간(기본 3일) 동안 확인이 없으면 자동으로 수령 확인
+
+**여행자**
+- 여행 등록, 여행지에서 사 올 상품 올리기
+- 나에게 맞는 구매 요청 보기(여행 국가·날짜 기준)와 수락
+- 구매 후 영수증 사진 올리기: AI가 영수증의 금액과 통화를 읽어 입력을 도와줘요
+- 전달 완료 처리, 수고비 정산 계좌 등록
+
+**공통**
+- 5개 언어: 한국어, English, 日本語, Tiếng Việt, Bahasa Indonesia (오른쪽 위 국기 버튼 또는 마이페이지)
+- 알림, 환율 표시(현지 통화와 원화를 함께 표시)
+- 휴대폰·태블릿·노트북 화면에 맞춘 반응형 화면
+
+## 환경
+
+| 항목 | 버전 |
+| --- | --- |
+| Java | 21 이상 |
+| Maven | 3.9 이상 (IntelliJ에 포함된 Maven도 가능) |
+| Node.js | 20 이상 |
+| 데이터베이스 | 기본: H2 메모리 DB (설치 불필요) / 선택: PostgreSQL |
+
+사용 포트: API `8080`, 웹앱 `5173`
+
+## 설치
+
+```bash
+git clone https://github.com/reohsgw/Carrypicks.git
+cd Carrypicks
+
+# 웹앱 패키지 설치
+cd frontend
+npm install
+```
+
+백엔드는 처음 실행할 때 Maven이 필요한 라이브러리를 자동으로 내려받습니다.
+
+## 실행 방법
+
+**1. API 서버 실행** (포트 8080)
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-By default it uses an in-memory H2 database and loads demo data, so no setup is needed. All data resets when the server restarts. The API docs are at <http://localhost:8080/swagger-ui.html>.
+기본 설정은 H2 메모리 DB와 데모 데이터를 사용하므로 따로 설정할 것이 없습니다. 서버를 다시 시작하면 데이터가 초기화됩니다. API 문서: <http://localhost:8080/swagger-ui.html>
 
-**2. Start the web app** (port 5173)
+**2. 웹앱 실행** (포트 5173, 새 터미널에서)
 
 ```bash
 cd frontend
-npm install
 npm run dev
 ```
 
-Open <http://localhost:5173>. Use your browser's phone view (DevTools device toolbar) to see the mobile layout. Vite forwards `/api` and `/uploads` to port 8080.
+<http://localhost:5173> 을 엽니다. 휴대폰 화면은 브라우저 개발자 도구의 기기 모드로 볼 수 있습니다.
 
-**3. Log in with a test account.** The password for all of them is `carrypick123`.
+**3. 테스트 계정으로 로그인** (비밀번호는 모두 `carrypick123`)
 
-| Email | Role | Has |
-| --- | --- | --- |
-| buyer@carrypick.test | Buyer | 2 open requests |
-| buyer2@carrypick.test | Buyer | 1 open request |
-| traveler@carrypick.test | Traveler | Trips to Tokyo, Osaka and New York, 7 offers |
-| traveler2@carrypick.test | Traveler | Trips to Paris and Bangkok, 5 offers |
-
-The login screen has one-tap buttons for the first buyer and traveler accounts. Each browser tab keeps its own login, so you can be the buyer in one tab and the traveler in another tab at the same time. Closing a tab logs that tab out.
-
-**Language.** The app opens in Korean. Switch to English with the 한국어 / EN toggle on the login screen or on My page. The choice is saved in the browser. All text lives in `frontend/src/i18n.tsx`; the Korean dictionary is typed against the English one, so a missing translation is a compile error. Notifications are stored as a kind plus names and amounts, so each person reads them in their own language.
-
-### If port 8080 is already in use
-
-An error like "No valid crumb was included in the request" means another program (usually Jenkins) is answering on port 8080 instead of CarryPick. Either stop that program, or run CarryPick's API on another port:
-
-```bash
-# terminal 1
-cd backend
-PORT=8081 mvn spring-boot:run          # Windows PowerShell: $env:PORT="8081"; mvn spring-boot:run
-
-# terminal 2
-cd frontend
-API_PORT=8081 npm run dev              # Windows PowerShell: $env:API_PORT="8081"; npm run dev
-```
-
-## Demo script (the two flows in the plan)
-
-**Flow A — book an existing offer**
-
-1. Buyer: Home → tap the **TYO** row on the departures board → *Tokyo Banana* → Book → Pay → *Approve payment*.
-2. Traveler: Orders → the order → *I bought it* → attach a receipt photo → *Read receipt with AI*. The won amount is filled in; check it and save.
-3. Traveler: *Mark as handed over*.
-4. Buyer: open the order → *I received it*. The order is settled (simulated).
-
-**Flow B — request accepted, receipt over budget**
-
-1. Buyer: *Can't find it?* → Japan, budget ₩30,000 → Post.
-2. Traveler: Requests → the request → Accept.
-3. Buyer: open the order → Pay. Try *Simulate declined card* first to show a payment failure, then retry.
-4. Traveler: *I bought it* with a price above ₩30,000.
-5. Buyer: the over-budget prompt appears → *Approve and pay* the extra.
-6. Traveler hands over, buyer confirms, and the order is settled.
-
-## Payments
-
-| Mode | How | Notes |
-| --- | --- | --- |
-| `mock` (default) | Built-in fake card sheet | Works offline. A "declined card" button tests the failure path. |
-| `toss` | Toss Payments **test** payment window | Set the test keys below. No real money is charged. |
-
-To use Toss test mode, start the API with:
-
-```bash
-PAYMENT_MODE=toss TOSS_CLIENT_KEY=test_ck_xxx TOSS_SECRET_KEY=test_sk_xxx mvn spring-boot:run
-```
-
-- Get the keys from the Toss Payments developer center. The browser uses `payment().requestPayment()` from the v2 SDK, which takes `test_ck_` keys.
-- Only the server knows the secret key. It decides the amount when the payment starts and checks it again before confirming with Toss, so a tampered amount from the browser is rejected.
-- Toss redirects back to `/pay/success` or `/pay/fail`.
-- Toss mode was written against the Toss docs but could not be run in the environment this was built in. Test it once before the demo.
-
-## AI receipt reader
-
-When the traveler uploads a receipt, *Read receipt with AI* sends the photo to the server, which asks Claude (vision) to read the store, items, currency and total. The server converts the total to won with a fixed rate table and flags items that customs limits apply to (alcohol, tobacco, health supplements, medicine, meat). The result only fills in the price field. The traveler still checks it and presses Save, because a model can misread a photo.
-
-| Mode | How | Notes |
-| --- | --- | --- |
-| `mock` (default) | Returns a fixed sample receipt (Tokyo Banana, ¥2,592) | Works offline, no key. The screen says it is a sample. |
-| `gemini` | Calls the Google Gemini API | **Free tier.** Get a key at <https://aistudio.google.com/apikey>. |
-| `anthropic` | Calls the Claude Messages API | Needs an Anthropic API key with credit. |
-
-```bash
-# free: Google Gemini
-GEMINI_API_KEY=xxx AI_PROVIDER=gemini mvn spring-boot:run
-# optional: GEMINI_MODEL=gemini-3.5-flash   (default gemini-3.5-flash-lite, the biggest free quota)
-
-# paid: Claude
-AI_PROVIDER=anthropic ANTHROPIC_API_KEY=sk-ant-xxx mvn spring-boot:run
-# optional: AI_MODEL=claude-sonnet-5-5   (default claude-haiku-5-5, the cheapest)
-```
-
-- Gemini's free tier has a daily request limit, so a classroom demo is fine but heavy testing can hit it (the log shows `Gemini API error 429`). On the free tier Google may use the uploaded photos to improve its models, so use demo receipts, not personal ones.
-
-- The key is only read by the server (`app.ai` in `application.yml`). Never put it in the React app or commit it to GitHub.
-- Endpoint: `POST /api/receipts/scan` (multipart field `image`, JPG/PNG/WEBP/GIF, 5 MB max, login required).
-- Exchange rates are fixed demo values under `app.fx` in `application.yml`. Update them before a demo; they are labelled as fixed rates in the app.
-- The customs notes are short reminders, not legal advice. The 관세청 site has the current rules.
-- The real API call was written against the Anthropic docs but could not be run in the environment this was built in. Test it once with your key.
-
-## Use PostgreSQL instead of H2
-
-```bash
-createdb carrypick   # user and password carrypick/carrypick, or set DB_USER / DB_PASSWORD
-cd backend
-mvn spring-boot:run -Dspring-boot.run.profiles=postgres
-```
-
-The tables are created automatically, and demo data is only loaded when the `users` table is empty.
-
-## Tests
-
-```bash
-cd backend && mvn test
-```
-
-`OrderFlowTest` runs Flow A, Flow B with over-budget approval, payment failure and retry, and the security rules (strangers can't see orders, the wrong role gets 403, tampered amounts are rejected, no token gets 401).
-
-## Where things are
-
-| What | File |
+| 이메일 | 역할 |
 | --- | --- |
-| Order status rules | `backend/.../service/OrderService.java` |
-| Payment prepare / confirm / fail | `backend/.../service/PaymentService.java`, `TossClient.java` |
-| Pricing formula (B + R + F + T) | `backend/.../service/PricingService.java` (fee 10%, tax estimate above ₩150,000 — change in `application.yml`) |
-| Who can call what | `backend/.../config/SecurityConfig.java` and the checks in `OrderService` |
-| Demo data | `backend/.../config/DataSeeder.java` |
-| API endpoints | `backend/.../web/*Controller.java` |
-| Departures board (B1) | `GET /api/board` in `MarketController`, `DeparturesBoard` in `frontend/src/components/cards.tsx` |
-| AI receipt reader | `backend/.../service/ReceiptScanService.java`, `frontend/src/components/receipt.tsx` |
-| Screens (C1–C3, B1–B8, T1–T7) | `frontend/src/pages/` — the route map is at the top of `App.tsx` |
-| Korean / English text | `frontend/src/i18n.tsx` |
-| Colors, spacing, fonts | `frontend/src/styles.css` (tokens at the top) |
-| API client and types | `frontend/src/api.ts` |
+| buyer@carrypick.test | 구매자 (민지) |
+| buyer2@carrypick.test | 구매자 (준) |
+| traveler@carrypick.test | 여행자 (켄지) |
+| traveler2@carrypick.test | 여행자 (린) |
 
-## Design notes
+로그인 창의 **민지 (구매자)**, **켄지 (여행자)** 버튼으로 바로 로그인할 수 있습니다. 브라우저 탭마다 로그인이 따로 유지되므로, 한 탭은 구매자, 다른 탭은 여행자로 동시에 사용할 수 있습니다.
 
-The screens follow the team's Figma Make design ("carry."):
+**선택 설정** (API 서버 실행 시 환경 변수로 지정)
 
-- **Colors:** dark green `#17231D` and lime `#C7FF2D` on an off-white page `#F6F7F1`. These are copied from the Figma file's styles.
-- **Type:** Georgia headings (Noto Serif KR for Korean), a script logo, Figtree for text and IBM Plex Sans KR for Korean text. The layout follows the team's vintage scrapbook website design (`CarryPick_Website_Standalone_v6.html`). Fonts are bundled through npm (`@fontsource`), so they work offline.
-- **Buyer home:** photo hero with search, "Shop the world" country cards, "Most wanted right now" ranking cards, live traveler offers, and the lime "Tell travelers what you need" panel.
-- **Other screens:** dashboard heroes for buyer and traveler with stat cards and tabs, offer cards with Price / Reward / Arrives, the payment summary card, and a bottom sheet for forms.
-- **Bottom navigation:** includes a Travel mode / Buyer mode switch, as in the design.
-- **Sparkle trail:** lime sparkles follow the mouse, from the Figma design. It's off on touch screens and when reduced motion is on (`components/SparkleTrail.tsx`).
-- **Photos:** the photos in `frontend/src/assets/` were taken from the Figma design. When a traveler hasn't uploaded a photo, snacks/food, beauty and "other" items show a category photo, and other categories show an icon.
-- **Brand:** the wordmark reads `carrypick.`; change it in `Wordmark` in `components/Layout.tsx`.
+| 변수 | 값 | 설명 |
+| --- | --- | --- |
+| `PAYMENT_MODE` | `mock`(기본) / `toss` | `toss`는 `TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY`(테스트 키) 필요. 실제 돈은 결제되지 않아요 |
+| `AI_PROVIDER` | `mock`(기본) / `gemini` / `anthropic` | 영수증 읽기. `GEMINI_API_KEY` 또는 `ANTHROPIC_API_KEY` 필요 |
+| `PORT` | 숫자 | 8080 포트가 이미 사용 중일 때 (웹앱은 `API_PORT=같은 숫자 npm run dev`) |
 
-## Known simplifications
+```bash
+# 예: 토스 테스트 결제 + Gemini 영수증 읽기
+PAYMENT_MODE=toss TOSS_CLIENT_KEY=test_ck_xxx TOSS_SECRET_KEY=test_sk_xxx \
+AI_PROVIDER=gemini GEMINI_API_KEY=xxx mvn spring-boot:run
+```
 
-- All prices are in KRW. The traveler enters the converted price, or lets the AI receipt reader estimate it with the fixed rate table.
-- Uploaded images are saved to `backend/uploads/` on local disk.
-- Settlement runs immediately when the buyer confirms receipt, and it is simulated. There is no admin screen (A1).
-- Chat (C4), reviews (B9), a separate offer list (T4) and an earnings page (T8) are not built. T1 shows the earnings totals.
-- The popular ranking counts paid orders from the last 30 days. Seeded orders feed it, which is why it is labelled "Demo data".
+PostgreSQL을 쓰려면: `mvn spring-boot:run -Dspring-boot.run.profiles=postgres` (`DB_URL`, `DB_USER`, `DB_PASSWORD` 설정). 배포 방법은 [DEPLOY.md](DEPLOY.md)를 참고하세요.
+
+테스트 실행: `cd backend && mvn test`
+
+## 사용 흐름
+
+**흐름 A: 여행자 상품 예약하기**
+
+1. 구매자: 홈 또는 **여행자 상품**에서 상품 선택 → **예약하기** → (로그인 창에서 로그인) → 결제
+2. 여행자: **주문** → 해당 주문 → **구매 완료 · 영수증 올리기** → 영수증 사진 첨부 → **영수증 확인**(AI가 금액을 채워 줌) → 확인 후 저장
+3. 여행자: 한국에 돌아와 상품 전달 → **전달 완료하기**
+4. 구매자: 주문 → **상품 받았어요** → 수고비 정산 완료
+
+**흐름 B: 구매 요청이 수락되고 예산을 넘는 경우**
+
+1. 구매자: **구매 요청** → 나라·상품·현지 통화 예산·수고비 입력 → **요청 올리기** (올린 뒤에도 **요청 수정** 가능)
+2. 여행자: **구매 요청** → 요청 선택 → 여행 선택 → **수락하기**
+3. 구매자: 주문 → 결제
+4. 여행자: 예산보다 비싸면 **예상보다 비싸요**로 가격표 사진을 보내거나, 더 비싼 금액으로 구매 완료 등록
+5. 구매자: 추가 금액 승인 및 결제
+6. 여행자 전달 → 구매자 수령 확인 → 정산 완료
+
+구매자와 여행자는 주문 화면의 **대화하기**로 채팅할 수 있고, 문제가 있으면 **문제 신고**를 할 수 있습니다. 신고하면 해결될 때까지 정산과 자동 수령 확인이 멈춥니다.

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useI18n } from '../i18n';
 import { Mascot, type Mood } from './ui';
 
-type Options = { message: string; title?: string; mood?: Mood; okLabel?: string; danger?: boolean };
+type Options = { message: string; title?: string; mood?: Mood; okLabel?: string; danger?: boolean; redTitle?: boolean };
 type Pending = Options & { resolve: (ok: boolean) => void };
 
 const ConfirmContext = createContext<(o: Options) => Promise<boolean>>(async () => false);
@@ -21,7 +21,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
 export const useConfirm = () => useContext(ConfirmContext);
 
-function ConfirmDialog({ message, title, mood = 'question', okLabel, danger, onDone }: Options & { onDone: (ok: boolean) => void }) {
+function ConfirmDialog({ message, title, mood = 'question', okLabel, danger, redTitle, onDone }: Options & { onDone: (ok: boolean) => void }) {
   const { t } = useI18n();
   const ok = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -35,7 +35,7 @@ function ConfirmDialog({ message, title, mood = 'question', okLabel, danger, onD
     <div className="cf-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onDone(false)}>
       <div className="cf-card" role="alertdialog" aria-modal aria-labelledby="cf-msg">
         <Mascot mood={mood} className="cf-whale" size={96} />
-        {title && <strong className="cf-title" title={title}>{title}</strong>}
+        {title && <strong className={`cf-title${redTitle ? ' is-red' : ''}`} title={title}>{title}</strong>}
         <p id="cf-msg" className="cf-msg">{message}</p>
         <div className="cf-actions">
           <button type="button" className="btn btn-quiet" onClick={() => onDone(false)}>{t('cf.cancel')}</button>

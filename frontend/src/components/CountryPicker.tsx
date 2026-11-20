@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown } from './icons';
 import { useCountry } from '../country';
-import { ALL_COUNTRIES } from '../format';
-import { useI18n } from '../i18n';
+import { ALL_COUNTRIES, countryLabel } from '../format';
+import { LANGS, useI18n } from '../i18n';
 import { useSession } from '../session';
 
 export default function CountryPicker() {
   const { config } = useSession();
-  const { lang, t } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const { country, setCountry } = useCountry();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const all = { code: ALL_COUNTRIES, name: 'All countries', nameKo: '전체 국가', flag: '🌐' };
   const countries = config?.countries?.length ? [all, ...config.countries] : [];
   const current = countries.find((c) => c.code === country);
-  const label = (c: { name: string; nameKo: string }) => (lang === 'ko' ? c.nameKo : c.name);
+  const label = (c: { code: string; name: string; nameKo: string }) => countryLabel(c, lang);
 
   useEffect(() => {
     if (!open) return;
@@ -41,7 +41,9 @@ export default function CountryPicker() {
         <ChevronDown size={16} aria-hidden />
       </button>
       {open && (
-        <ul className="country-picker-menu" role="listbox" aria-label={t('home.destEyebrow')}>
+        <div className="country-picker-menu">
+        <p className="country-picker-head">{t('req.country')}</p>
+        <ul role="listbox" aria-label={t('home.destEyebrow')}>
           {countries.map((c) => (
             <li key={c.code} role="option" aria-selected={c.code === country}>
               <button
@@ -55,6 +57,18 @@ export default function CountryPicker() {
             </li>
           ))}
         </ul>
+        <p className="country-picker-head">{t('lang.label')}</p>
+        <ul className="country-picker-langs" role="listbox" aria-label={t('lang.label')}>
+          {LANGS.map((l) => (
+            <li key={l.code} role="option" aria-selected={l.code === lang}>
+              <button type="button" lang={l.code} onClick={() => { setLang(l.code); setOpen(false); }}>
+                <span className="country-picker-name">{l.label}</span>
+                {l.code === lang && <Check size={16} aria-hidden />}
+              </button>
+            </li>
+          ))}
+        </ul>
+        </div>
       )}
     </div>
   );

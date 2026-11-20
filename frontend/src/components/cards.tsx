@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from './icons';
 import type { Offer, Order, PurchaseRequest, Quote, Ranking } from '../api';
-import { countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText, money } from '../format';
+import { approx, countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText, money } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { Avatar, Mascot, ProductPhoto, ProductThumb, Tag } from './ui';
@@ -13,10 +13,10 @@ export function firstName(name: string): string {
 }
 
 export function useRoute() {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const { config } = useSession();
   return (city: string | null | undefined, countryCode: string) =>
-    `${city || countryName(config, countryCode, lang)} → ${lang === 'ko' ? '서울' : 'Seoul'}`;
+    `${city || countryName(config, countryCode, lang)} → ${t('geo.seoul')}`;
 }
 
 export function ProductCard({ item, country }: { item: Ranking['items'][number]; country: string }) {
@@ -50,7 +50,7 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
           </span>
         )}
         {item.estPrice != null && item.priceLocal != null && item.priceCurrency && (
-          <span className="top10-won">{lang === 'ko' ? '약 ' : '≈ '}{krw(item.estPrice)}</span>
+          <span className="top10-won">{approx(lang)}{krw(item.estPrice)}</span>
         )}
         <span className="top10-meta">{orders}</span>
       </span>
@@ -59,9 +59,9 @@ export function ProductCard({ item, country }: { item: Ranking['items'][number];
 }
 
 export function useCountryRoute() {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
   const { config } = useSession();
-  return (countryCode: string) => `${countryName(config, countryCode, lang)} → ${lang === 'ko' ? '한국' : 'Korea'}`;
+  return (countryCode: string) => `${countryName(config, countryCode, lang)} → ${t('geo.korea')}`;
 }
 
 export function OfferCard({ offer }: { offer: Offer }) {
@@ -80,7 +80,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
           <div>
             <span className="meta-label">{t('card.price')}</span>
             <strong className="meta-value">{offer.priceLocal != null && offer.priceCurrency ? money(Number(offer.priceLocal), offer.priceCurrency) : krw(offer.estPrice)}</strong>
-            {offer.priceLocal != null && offer.priceCurrency && <small className="meta-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(offer.estPrice)}</small>}
+            {offer.priceLocal != null && offer.priceCurrency && <small className="meta-sub">{approx(lang)}{krw(offer.estPrice)}</small>}
           </div>
           <div><span className="meta-label">{t('card.reward')}</span><strong className="meta-value">{krw(offer.reward)}</strong></div>
           <div><span className="meta-label">{t('card.arrives')}</span><strong className="meta-value">{shortDate(offer.trip.returnDate, lang)}</strong></div>
@@ -129,7 +129,7 @@ export function RequestCard({ request, to }: { request: PurchaseRequest; to: str
           </div>
           <h3><Link to={to}>{request.productName}</Link></h3>
           <div className="request-meta">
-            <span>{countryName(config, request.countryCode, lang)} → {lang === 'ko' ? '한국' : 'Korea'}</span>
+            <span>{countryName(config, request.countryCode, lang)} → {t('geo.korea')}</span>
             {!showLeft && <span>{t('orders.by', { date: shortDate(request.deadline, lang) })}</span>}
             <span>{t('orders.budget', { amount: budgetText(request, lang) })}</span>
             {request.weightGrams != null && <span>{t('w.approx', { w: weight(request.weightGrams) })}</span>}

@@ -8,6 +8,7 @@ import { NotificationList } from './NotificationList';
 import { ActionBar, initials } from './ui';
 import HeroLogo from './HeroLogo';
 import CountryPicker from './CountryPicker';
+import { useAuthPrompt } from './AuthModal';
 
 export function Screen({ title, back, children, hideNav, flush, wide = !title, headerExtra }: {
   title?: string; back?: boolean | string; children: ReactNode;
@@ -64,11 +65,26 @@ export function Wordmark({ to }: { to?: string }) {
 }
 
 function HeaderActions() {
-  const { user, unread } = useSession();
+  const { user, unread, loading } = useSession();
   const { t } = useI18n();
+  const prompt = useAuthPrompt();
   const [photoBroken, setPhotoBroken] = useState(false);
   useEffect(() => setPhotoBroken(false), [user?.avatarUrl]);
-  if (!user) return null;
+  if (!user) {
+    if (loading) return null;
+    return (
+      <>
+        <CountryPicker />
+        <NavLink to="/" end className="icon-btn only-desktop" aria-label={t('nav.home')}>
+          <Home size={20} />
+        </NavLink>
+        <NavLink to="/search" className="icon-btn only-desktop" aria-label={t('nav.search')}>
+          <Search size={20} />
+        </NavLink>
+        <button type="button" className="btn btn-primary au-login-btn" onClick={() => prompt()}>{t('auth.login')}</button>
+      </>
+    );
+  }
   const photo = photoBroken ? null : assetUrl(user.avatarUrl);
   return (
     <>
@@ -89,10 +105,8 @@ function HeaderActions() {
 }
 
 function useNav() {
-  const { user } = useSession();
   const { t } = useI18n();
   const { pathname } = useLocation();
-  if (!user) return null;
   const orders = pathname.startsWith('/orders') || pathname.startsWith('/t/orders') || pathname.startsWith('/my-requests');
   const offers = pathname === '/offers' || pathname.startsWith('/country/');
   const requests = pathname.startsWith('/t/requests');

@@ -7,7 +7,7 @@ import { OfferCard, OfferRow, RequestRow } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Empty, ErrorBox, Loading, Sheet } from '../components/ui';
 import { useI18n, type Key } from '../i18n';
-import { CATEGORIES, daysUntil, krw } from '../format';
+import { CATEGORIES, countryLabel, daysUntil, krw } from '../format';
 import { useSession } from '../session';
 
 type Sort = 'best' | 'priceLow' | 'priceHigh' | 'arrival' | 'reward';
@@ -54,7 +54,7 @@ export default function Search() {
   }, [cat, sort, within, maxPrice]);
   const browse = apply(country ? sameCountry : bookable).slice(0, 8);
   const matches = results.data ? apply(results.data.offers) : [];
-  const countryLabel = config?.countries.find((c) => c.code === country);
+  const picked = config?.countries.find((c) => c.code === country);
 
   return (
     <Screen wide>
@@ -112,7 +112,7 @@ export default function Search() {
           onChange={(e) => setParams({ q, ...(e.target.value ? { country: e.target.value } : {}) })}
         >
           <option value="">{t('search.allCountries')}</option>
-          {config?.countries.map((c) => <option key={c.code} value={c.code}>{lang === 'ko' ? c.nameKo : c.name}</option>)}
+          {config?.countries.map((c) => <option key={c.code} value={c.code}>{countryLabel(c, lang)}</option>)}
         </select>
       </form>
 
@@ -123,7 +123,7 @@ export default function Search() {
           {browse.length > 0 && (
             <section className="search-suggest search-browse" aria-labelledby="browse-title">
               <h2 id="browse-title" className="search-suggest-title">
-                {countryLabel ? t('search.browseCountry', { country: lang === 'ko' ? countryLabel.nameKo : countryLabel.name }) : t('search.browseTitle')}
+                {picked ? t('search.browseCountry', { country: countryLabel(picked, lang) }) : t('search.browseTitle')}
               </h2>
               <div className="card-grid live-grid suggest-grid">
                 {browse.map((o) => <OfferCard key={o.id} offer={o} />)}

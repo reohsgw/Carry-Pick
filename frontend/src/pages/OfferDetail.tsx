@@ -6,11 +6,12 @@ import { api, assetUrl } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { Avatar, ErrorBox, Loading, Modal, Notice, ProductPhoto, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, quote, shortDate, weight, money } from '../format';
+import { approx, countryName, daysUntil, krw, quote, shortDate, weight, money } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { useConfirm } from '../components/confirm';
 import { usePayment } from '../components/payment';
+import { useRequireLogin } from '../components/AuthModal';
 
 export default function OfferDetail() {
   const id = Number(useParams().id);
@@ -20,6 +21,7 @@ export default function OfferDetail() {
   const navigate = useNavigate();
   const offer = useQuery({ queryKey: ['offer', id], queryFn: () => api.offer(id) });
   const ask = useConfirm();
+  const requireLogin = useRequireLogin();
   const [qty, setQty] = useState(1);
   const location = useLocation();
   const flags = location.state as { posted?: boolean; edited?: boolean } | null;
@@ -51,11 +53,14 @@ export default function OfferDetail() {
           {mine ? (
             <button className="btn btn-quiet btn-block" onClick={() => navigate(`/t/offers/${o.id}/edit`)}>{t('offer.mine')}</button>
           ) : (
-            <button className="btn btn-primary btn-block btn-tall btn-split" disabled={!o.bookable || book.isPending || payment.busy} onClick={async () => (await ask({
-                title: o.productName,
-                message: t('offer.bookConfirm', { total: krw(q.total) }),
-                mood: 'love', okLabel: t('offer.bookConfirmOk'),
-              })) && book.mutate()}>
+            <button className="btn btn-primary btn-block btn-tall btn-split" disabled={!o.bookable || book.isPending || payment.busy} onClick={() => requireLogin(async (me) => {
+                if (me.id === o.traveler.id) return;
+                if (await ask({
+                  title: o.productName,
+                  message: t('offer.bookConfirm', { total: krw(q.total) }),
+                  mood: 'love', okLabel: t('offer.bookConfirmOk'),
+                })) book.mutate();
+              })}>
               <span>{book.isPending || payment.busy ? t('offer.booking') : o.bookable ? t('offer.book', { n: qty }) : t('offer.unavailable')}</span>
               {o.bookable && <span className="btn-amount">{krw(q.total)} <ArrowRight size={15} style={{ verticalAlign: -2 }} /></span>}
             </button>
@@ -70,7 +75,7 @@ export default function OfferDetail() {
               <div className="od-price-stub">
                 <small>{o.receiptUrl ? t('offer.boughtPrice') : t('offer.estPrice')}</small>
                 <strong>{o.priceLocal != null && o.priceCurrency ? money(Number(o.priceLocal), o.priceCurrency) : krw(o.estPrice)}</strong>
-                {o.priceLocal != null && o.priceCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(o.estPrice)}</span>}
+                {o.priceLocal != null && o.priceCurrency && <span className="od-fact-sub">{approx(lang)}{krw(o.estPrice)}</span>}
               </div>
               <ReceiptStrip quote={q}
                 budgetLabel={t(o.receiptUrl ? 'price.itemPaid' : 'price.itemEstimate')}
@@ -142,7 +147,7 @@ export default function OfferDetail() {
               <div className="od-pass-line" aria-hidden><Plane size={18} /></div>
               <div className="is-to">
                 <small>{t('pass.to')}</small>
-                <strong>{lang === 'ko' ? '서울' : 'Seoul'}</strong>
+                <strong>{t('geo.seoul')}</strong>
                 <span>{t('offer.deliveryValue', { date: shortDate(o.trip.returnDate, lang) })}</span>
               </div>
             </div>

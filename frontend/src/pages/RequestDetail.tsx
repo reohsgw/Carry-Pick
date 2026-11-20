@@ -6,7 +6,7 @@ import { api } from '../api';
 import { firstName, ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { ErrorBox, Field, KV, Loading, Notice, ProductThumb, Sheet, Tag } from '../components/ui';
-import { countryName, daysUntil, krw, money, rateUnit, shortDate, weight, budgetText } from '../format';
+import { approx, countryName, daysUntil, krw, money, rateUnit, shortDate, weight, budgetText } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 import { PayoutRequired } from '../components/payout';
@@ -121,7 +121,7 @@ export default function RequestDetail() {
           <div className="od-price-stub rd-price-stub">
             <small>{t('rd.budget')}</small>
             <strong>{r.budgetLocal != null && r.budgetCurrency ? money(Number(r.budgetLocal), r.budgetCurrency) : krw(r.maxBudget)}</strong>
-            {r.budgetLocal != null && r.budgetCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(r.maxBudget)}</span>}
+            {r.budgetLocal != null && r.budgetCurrency && <span className="od-fact-sub">{approx(lang)}{krw(r.maxBudget)}</span>}
             {r.budgetLocal != null && r.budgetCurrency && r.fxRate != null && (
               <p className="rd-rate-note">{t('rd.rateNote', {
                 n: rateUnit(r.budgetCurrency), cur: r.budgetCurrency,

@@ -7,7 +7,7 @@ import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { useCountry } from '../country';
 import { Avatar, Empty, ErrorBox, Loading, Mascot, ProductPhoto } from '../components/ui';
-import { ALL_COUNTRIES, CATEGORIES, daysUntil, krw, shortDate, boardDate, weight, offerPriceText } from '../format';
+import { ALL_COUNTRIES, CATEGORIES, countryLabel, countryName, daysUntil, krw, shortDate, boardDate, weight, offerPriceText } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
 
@@ -109,9 +109,9 @@ export default function TravelerOffers() {
           <label>
             <span>{t('to.shoppingIn')}</span>
             <select value={draftCountry} onChange={(e) => setDraftCountry(e.target.value)}>
-              <option value={ALL_COUNTRIES}>{lang === 'ko' ? '전체 국가' : 'All countries'}</option>
+              <option value={ALL_COUNTRIES}>{countryName(config, ALL_COUNTRIES, lang)}</option>
               {(config?.countries ?? []).map((c) => (
-                <option key={c.code} value={c.code}>{lang === 'ko' ? c.nameKo : c.name}</option>
+                <option key={c.code} value={c.code}>{countryLabel(c, lang)}</option>
               ))}
             </select>
           </label>

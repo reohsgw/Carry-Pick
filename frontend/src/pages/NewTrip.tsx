@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { Screen } from '../components/Layout';
 import { ActionBar, Field, Loading, Notice, Sheet } from '../components/ui';
-import { isoDay } from '../format';
+import { countryLabel, isoDay } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 import { useConfirm } from '../components/confirm';
@@ -73,7 +73,7 @@ export default function NewTrip() {
           <div className="stack">
             <Field label={t('trip.country')}>
               <select value={countryCode} onChange={(e) => setCountry(e.target.value)}>
-                {config?.countries.map((c) => <option key={c.code} value={c.code}>{lang === 'ko' ? c.nameKo : c.name}</option>)}
+                {config?.countries.map((c) => <option key={c.code} value={c.code}>{countryLabel(c, lang)}</option>)}
               </select>
             </Field>
             <Field label={t('trip.city')}>

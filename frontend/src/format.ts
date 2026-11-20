@@ -1,5 +1,5 @@
 import type { AppConfig, Country, OrderStatus, Quote } from './api';
-import type { Lang } from './i18n';
+import { localeOf, type Lang } from './i18n';
 
 export const krw = (n: number | null | undefined) =>
   n == null ? '-' : `₩${Math.round(n).toLocaleString('ko-KR')}`;
@@ -10,12 +10,12 @@ function toDate(iso: string): Date {
 
 export function shortDate(iso: string | null | undefined, lang: Lang): string {
   if (!iso) return '-';
-  return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric' });
+  return toDate(iso).toLocaleDateString(localeOf(lang), { month: 'short', day: 'numeric' });
 }
 
 export function yearDate(iso: string | null | undefined, lang: Lang): string {
   if (!iso) return '-';
-  return toDate(iso).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  return toDate(iso).toLocaleDateString(localeOf(lang), { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export function yearRange(a: string, b: string, lang: Lang): string {
@@ -29,7 +29,7 @@ export function boardDate(iso: string): string {
 
 export function dateTime(iso: string | null | undefined, lang: Lang): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleString(lang === 'ko' ? 'ko-KR' : 'en-US', {
+  return new Date(iso).toLocaleString(localeOf(lang), {
     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 }
@@ -52,10 +52,25 @@ export function countryOf(config: AppConfig | undefined, code: string): Country 
 
 export const ALL_COUNTRIES = 'ALL';
 
+const APPROX: Record<Lang, string> = { ko: '약 ', en: '≈ ', ja: '約', vi: '≈ ', id: '≈ ' };
+export const approx = (lang: Lang) => APPROX[lang];
+
+const ALL_LABEL: Record<Lang, string> = { ko: '전체 국가', en: 'All countries', ja: 'すべての国', vi: 'Tất cả quốc gia', id: 'Semua negara' };
+
+export function countryLabel(c: { code: string; name: string; nameKo: string }, lang: Lang): string {
+  if (c.code === ALL_COUNTRIES) return ALL_LABEL[lang];
+  if (lang === 'ko') return c.nameKo;
+  if (lang === 'en') return c.name;
+  try {
+    return new Intl.DisplayNames([localeOf(lang)], { type: 'region' }).of(c.code) ?? c.name;
+  } catch {
+    return c.name;
+  }
+}
+
 export function countryName(config: AppConfig | undefined, code: string, lang: Lang): string {
-  if (code === ALL_COUNTRIES) return lang === 'ko' ? '전체 국가' : 'All countries';
-  const c = countryOf(config, code);
-  return lang === 'ko' ? c.nameKo : c.name;
+  if (code === ALL_COUNTRIES) return ALL_LABEL[lang];
+  return countryLabel(countryOf(config, code), lang);
 }
 
 const CITY_CODES: Record<string, string> = {
@@ -151,12 +166,12 @@ export function currencySymbol(currency: string): string {
 
 export function budgetText(r: { maxBudget: number; budgetLocal?: number | null; budgetCurrency?: string | null }, lang: Lang): string {
   if (r.budgetLocal == null || !r.budgetCurrency) return krw(r.maxBudget);
-  return `${money(r.budgetLocal, r.budgetCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(r.maxBudget)})`;
+  return `${money(r.budgetLocal, r.budgetCurrency)} (${APPROX[lang]}${krw(r.maxBudget)})`;
 }
 
 export function offerPriceText(o: { estPrice: number; priceLocal?: number | null; priceCurrency?: string | null }, lang: Lang): string {
   if (o.priceLocal == null || !o.priceCurrency) return krw(o.estPrice);
-  return `${money(Number(o.priceLocal), o.priceCurrency)} (${lang === 'ko' ? '약 ' : '≈ '}${krw(o.estPrice)})`;
+  return `${money(Number(o.priceLocal), o.priceCurrency)} (${APPROX[lang]}${krw(o.estPrice)})`;
 }
 
 export function rateUnit(currency: string): number {

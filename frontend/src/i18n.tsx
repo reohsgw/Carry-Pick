@@ -1,5 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { errorInfo } from './api';
+import ja from './locales/ja';
+import vi from './locales/vi';
+import id from './locales/id';
 
 const en = {
   'common.loading': 'Loading…',
@@ -12,6 +15,8 @@ const en = {
   'common.optional': 'optional',
   'common.left': '{n} left',
   'lang.label': 'Language',
+  'geo.seoul': 'Seoul',
+  'geo.korea': 'Korea',
 
   'err.network': 'Cannot reach the server. Check that the Spring Boot API is running on port 8080.',
   'err.generic': 'Something went wrong. Try again.',
@@ -61,6 +66,20 @@ const en = {
   'login.tryAs': 'Look around as',
   'login.asMinji': 'Minji (buyer)',
   'login.asKenji': 'Kenji (traveler)',
+  'auth.sub': 'Log in to order from abroad or carry for others',
+  'auth.subSignup': 'Sign up to order from abroad or carry for others',
+  'auth.demoTitle': 'Please use a demo account',
+  'auth.demoBody': "If you're viewing this for the Media Project course, please log in with a demo account instead of signing up.",
+  'auth.demoOk': 'Log in as Minji',
+  'auth.or': 'or',
+  'auth.emailPlaceholder': 'Enter your email address',
+  'auth.noAccount': "Don't have an account?",
+  'auth.haveAccount': 'Already have an account?',
+  'auth.asMinji': 'Continue as Minji ({role})',
+  'auth.roleBuyer': 'buyer',
+  'auth.asKenji': 'Continue as Kenji ({role})',
+  'auth.roleTraveler': 'traveler',
+  'auth.login': 'Log in',
   'w.label': 'Estimated weight',
   'w.hint': 'Rough weight with packaging',
   'w.approx': '~{w}',
@@ -729,6 +748,8 @@ const ko: Record<Key, string> = {
   'common.optional': '선택',
   'common.left': '{n}개 남음',
   'lang.label': '언어',
+  'geo.seoul': '서울',
+  'geo.korea': '한국',
 
   'err.network': '서버에 연결할 수 없어요. 잠시 후 다시 시도해 주세요.',
   'err.generic': '문제가 생겼어요. 다시 시도해 주세요.',
@@ -778,6 +799,20 @@ const ko: Record<Key, string> = {
   'login.tryAs': '테스트 계정으로 둘러보기',
   'login.asMinji': '민지 (구매자)',
   'login.asKenji': '켄지 (여행자)',
+  'auth.sub': '로그인하고 해외 상품을 주문하거나 사다 주세요~',
+  'auth.subSignup': '회원가입하고 해외 상품을 주문하거나 사다 주세요~',
+  'auth.demoTitle': '데모 계정을 이용해 주세요',
+  'auth.demoBody': '미디어 프로젝트 과제 때문에 보고 계신 분은 회원가입 대신 데모 계정으로 로그인 부탁드립니다.',
+  'auth.demoOk': '민지 계정으로 로그인',
+  'auth.or': '또는',
+  'auth.emailPlaceholder': '이메일 주소를 입력하세요',
+  'auth.noAccount': '아직 계정이 없으신가요?',
+  'auth.haveAccount': '이미 계정이 있으신가요?',
+  'auth.asMinji': '민지 ({role}) 계정으로 계속하기',
+  'auth.roleBuyer': '구매자',
+  'auth.asKenji': '켄지 ({role}) 계정으로 계속하기',
+  'auth.roleTraveler': '여행자',
+  'auth.login': '로그인',
   'w.label': '예상 무게',
   'w.hint': '포장 포함 대략적인 무게예요',
   'w.approx': '약 {w}',
@@ -1433,14 +1468,22 @@ const ko: Record<Key, string> = {
   'offer.leftLabel': '남은 수량',
 };
 
-export type Lang = 'ko' | 'en';
-const DICTS: Record<Lang, Record<Key, string>> = { ko, en };
+export type Lang = 'ko' | 'en' | 'ja' | 'vi' | 'id';
+export const LANGS: { code: Lang; label: string; locale: string }[] = [
+  { code: 'ko', label: '한국어', locale: 'ko-KR' },
+  { code: 'en', label: 'English', locale: 'en-US' },
+  { code: 'ja', label: '日本語', locale: 'ja-JP' },
+  { code: 'vi', label: 'Tiếng Việt', locale: 'vi-VN' },
+  { code: 'id', label: 'Bahasa Indonesia', locale: 'id-ID' },
+];
+export const localeOf = (lang: Lang) => LANGS.find((l) => l.code === lang)?.locale ?? 'en-US';
+const DICTS: Record<Lang, Record<Key, string>> = { ko, en, ja, vi, id };
 const LANG_KEY = 'carrypick.lang';
 
 function savedLang(): Lang {
   try {
     const v = localStorage.getItem(LANG_KEY);
-    return v === 'en' || v === 'ko' ? v : 'ko';
+    return LANGS.some((l) => l.code === v) ? (v as Lang) : 'ko';
   } catch {
     return 'ko';
   }
@@ -1477,16 +1520,12 @@ export function useI18n(): I18n {
   return v;
 }
 
-export function LangToggle({ dark }: { dark?: boolean }) {
+export function LangSelect() {
   const { lang, setLang, t } = useI18n();
   return (
-    <div className={`lang ${dark ? 'is-dark' : ''}`} role="group" aria-label={t('lang.label')}>
-      {(['ko', 'en'] as const).map((l) => (
-        <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)}>
-          {l === 'ko' ? '한국어' : 'EN'}
-        </button>
-      ))}
-    </div>
+    <select className="lang-select" value={lang} aria-label={t('lang.label')} onChange={(e) => setLang(e.target.value as Lang)}>
+      {LANGS.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+    </select>
   );
 }
 

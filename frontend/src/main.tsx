@@ -10,6 +10,7 @@ import { SessionProvider } from './session';
 import { CountryProvider } from './country';
 import './styles.css';
 import { ConfirmProvider } from './components/confirm';
+import { AuthPromptProvider } from './components/AuthModal';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,7 +28,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <SessionProvider>
             <CountryProvider>
               <ConfirmProvider>
-                <App />
+                <AuthPromptProvider>
+                  <App />
+                </AuthPromptProvider>
               </ConfirmProvider>
             </CountryProvider>
           </SessionProvider>

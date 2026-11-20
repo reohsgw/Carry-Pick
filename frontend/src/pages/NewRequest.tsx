@@ -6,7 +6,7 @@ import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
 import { DualMoneyInput, Field, Loading, Mascot, ImagePicker, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
-import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
+import { countryLabel, currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
 import { markRequestSeen } from '../seen';
@@ -146,7 +146,7 @@ export default function NewRequest() {
           <div className="stack">
             <Field label={t('req.country')}>
               <select value={countryCode} onChange={(e) => setCountry(e.target.value)}>
-                {config?.countries.map((c) => <option key={c.code} value={c.code}>{lang === 'ko' ? c.nameKo : c.name}</option>)}
+                {config?.countries.map((c) => <option key={c.code} value={c.code}>{countryLabel(c, lang)}</option>)}
               </select>
             </Field>
             <div className="field">

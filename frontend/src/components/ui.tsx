@@ -60,8 +60,10 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
 }
 
 export function Notice({ tone = 'info', icon: Icon, children }: { tone?: 'info' | 'warn' | 'bad' | 'good'; icon?: LucideIcon; children: ReactNode }) {
+  const whale = tone === 'bad' && !Icon;
   return (
-    <div className={`notice is-${tone}`} role={tone === 'bad' ? 'alert' : undefined}>
+    <div className={`notice is-${tone}${whale ? ' has-whale' : ''}`} role={tone === 'bad' ? 'alert' : undefined}>
+      {whale && <Mascot mood="alert" size={44} />}
       {Icon && <Icon size={18} aria-hidden />}
       <div className="grow">{children}</div>
     </div>
