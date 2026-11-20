@@ -10,7 +10,7 @@ export const FIT_SELECTOR = [
   'h1', 'h2', 'h3', 'h4', '.eyebrow', '.btn', '[role="tab"]', '.chip',
   '.mobile-nav-item > span', '.nav-dropdown-item', '.filter-toggle', '.lf-chips button',
   // Short values in cards: prices, dates, counts, names.
-  '.meta-label', '.meta-value', '.cf-title', '.kt-won', '.top10-won', '.top10-price', '.kt-item-line strong', '.lg-try', '.od-pass-route strong', '.od-pass-route span', '.od-price-stub strong', '.od-pass-fields div:not(.is-wide) dd', '.od-pass-who p', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip',
+  '.meta-label', '.meta-value', '.empty-title', '.cf-title', '.kt-won', '.top10-won', '.top10-price', '.kt-item-line strong', '.lg-try', '.od-pass-route strong', '.od-pass-route span', '.od-price-stub strong', '.od-pass-fields div:not(.is-wide) dd', '.od-pass-who p', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip',
 ].join(',');
 
 /** Number of rendered text lines inside el (icons, badges and emoji at other heights don't count). */

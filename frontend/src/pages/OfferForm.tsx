@@ -7,7 +7,7 @@ import { ReceiptStrip } from '../components/cards';
 import { ReceiptCapture } from '../components/receipt';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { DualMoneyInput, Empty, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
+import { DualMoneyInput, Empty, Mascot, Field, ImagePicker, Loading, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { CATEGORIES, cityCode, currencyDecimals, currencyOf, currencySymbol, daysUntil, krw, maxReward, money, quote, shortDate } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -178,10 +178,11 @@ export default function OfferForm() {
 
   return (
     <Screen back title={editId ? t('of.edit') : t('of.new')} hideNav wide>
-      <div className="whale-say of-hello">
-        <div className="whale-say-bubble">
-          <p>{editId ? t('of.helloEdit') : t('of.hello')}</p>
-        </div>
+      {needsPayout && <div className="of-payout"><PayoutRequired /></div>}
+      {/* The whale says the intro, in the same speech bubble as on the home and request pages */}
+      <div className="live-say req-say">
+        <Mascot mood="shop" className="live-say-whale" size={76} />
+        <p className="live-say-bubble">{editId ? t('of.helloEdit') : t('of.hello')}</p>
       </div>
 
       <DetailLayout
@@ -192,13 +193,9 @@ export default function OfferForm() {
             <Sheet title={t('of.preview')}>
               <ReceiptStrip quote={q} budgetLabel={bought ? t('offer.boughtPrice') : undefined} />
             </Sheet>
-            <div className="of-tip">
-              <p>{t('of.tip')}</p>
-            </div>
           </>
         )}
       >
-        {needsPayout && <PayoutRequired />}
         <Sheet title={t('of.secItem')}>
           <div className="stack">
             <Field label={t('of.trip')}>

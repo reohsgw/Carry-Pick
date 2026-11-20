@@ -177,7 +177,7 @@ function MenuButton() {
       </button>
       {open && (
         <nav className="nav-dropdown" aria-label="Main">
-          {items.filter((it) => it.to !== '/').map((it) => (
+          {items.filter((it) => it.to !== '/' && it.to !== '/me').map((it) => (
             <NavLink key={it.to} to={it.to} end={it.end} className={({ isActive }) => `nav-dropdown-item ${it.active ?? isActive ? 'active' : ''}`}>
               <it.icon size={18} strokeWidth={1.9} aria-hidden />
               {it.label}

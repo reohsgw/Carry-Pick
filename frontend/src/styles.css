@@ -11797,3 +11797,33 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .money input:
 .od-note figcaption .avatar { width: 24px !important; height: 24px !important; font-size: 10px !important; }
 .od-note blockquote { margin: 8px 0 0; font: 400 15px/1.55 var(--font); color: #2E3A46; }
 .cf-card .cf-title { margin-top: -8px !important; }
+/* Request board header: title on the left, "+ Add trip" on the right */
+.rb-head { display: flex !important; align-items: center; justify-content: space-between; gap: 16px; }
+.rb-head .page-title { margin: 0 !important; min-width: 0; }
+.rb-add-trip { flex: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.empty .empty-title { max-width: 100% !important; width: 100%; text-align: center; }
+.of-payout { margin: 0 0 16px; }
+
+/* Date boxes on iPhone/Safari: no built-in minimum width (it pushed them past the card), date text left-aligned */
+input[type="date"], input[type="datetime-local"], input[type="time"] {
+  -webkit-appearance: none; appearance: none;
+  display: block; width: 100% !important; min-width: 0 !important; max-width: 100%;
+  box-sizing: border-box; text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.field, .two-col > *, .field > * { min-width: 0; }
+.two-col { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+@media (max-width: 380px) { .two-col { gap: 8px !important; } }
+@media (max-width: 420px) {
+  .two-col input[type="date"] { padding-left: 10px !important; padding-right: 6px !important; font-size: 15px !important; }
+  .two-col input[type="date"]::-webkit-calendar-picker-indicator { margin-left: 2px; padding: 0; }
+}
+
+/* Phone bottom bar: every tab the same width and height, so the active highlight is the same size on each */
+.mobile-nav { gap: 4px; justify-content: stretch !important; align-items: center; }
+.mobile-nav-item {
+  flex: 1 1 0 !important; min-width: 0 !important; max-width: none !important;
+  height: 56px !important; justify-content: center !important;
+  padding: 6px 2px !important; margin: 0 !important; box-sizing: border-box;
+}
+.mobile-nav-item.active { border-radius: 10px !important; }

@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, ClipboardList, MapPinned, X } from '../components/icons';
+import { ClipboardList, MapPinned, X } from '../components/icons';
 import { api, type PurchaseRequest, type Trip } from '../api';
 import { RequestCard } from '../components/cards';
 import { Screen } from '../components/Layout';
@@ -122,10 +122,8 @@ export default function RequestBoard() {
 
   return (
     <Screen>
-      <div className="page-hero">
+      <div className="page-hero rb-head">
         <h1 className="page-title font-display">{t('rb.title')}</h1>
-        <p className="page-copy">{t('rb.copy')}</p>
-        <Link to="/me" className="btn btn-quiet btn-small" style={{ marginTop: 16 }}>{t('t.trips')} <ArrowRight size={15} /></Link>
       </div>
 
       {(requests.isLoading || trips.isLoading) && <Loading />}
