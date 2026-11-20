@@ -11746,3 +11746,38 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .money input:
   .field-info-tip::before { top: 20px !important; transform: none !important; }
   .field-info-tip::after { top: 21px !important; transform: none !important; }
 }
+
+/* The same journey without the stamp frame (checkout's "what happens after you pay") */
+.ask-stamp.is-plain { -webkit-mask: none !important; mask: none !important; background: transparent !important; padding: 8px 0 0 !important; }
+.ask-stamp.is-plain::before { display: none !important; }
+.ask-stamp.is-plain::after { top: 33px; }
+.ask-stamp.is-plain .ask-n { box-shadow: 0 0 0 5px var(--sheet-bg, #EDECEB); }
+.ask-stamp.is-plain .ask-whale { width: clamp(84px, 9vw, 120px) !important; height: clamp(72px, 7.5vw, 100px) !important; }
+.ask-stamp.is-plain p { font-size: clamp(14px, 1.3vw, 16px) !important; }
+@media (max-width: 560px) {
+  .ask-stamp.is-plain { padding: 0 !important; }
+  .ask-stamp.is-plain::after { top: 40px; bottom: 40px; left: 19px; }
+}
+
+/* Order progress: the whale sits on the current step's spot on the line; the step reads in rose with a soft pill */
+.timeline-dot.is-whale {
+  position: relative; background: none !important; border: 0 !important; box-shadow: none !important; overflow: visible;
+}
+.timeline-dot.is-whale img {
+  position: absolute; left: 50%; top: 50%; width: 44px; height: auto; max-width: none;
+  transform: translate(-50%, -54%);
+}
+.timeline-item.is-current { color: #924B53 !important; padding: 12px 0; }
+.timeline-item.is-current .timeline-label { font-weight: 600; }
+.timeline-now {
+  padding: 3px 10px !important; border: 0 !important; border-radius: 999px !important;
+  background: #F0DDDE !important; color: #924B53 !important;
+  font: 600 12px/1.3 var(--font) !important; letter-spacing: 0 !important; white-space: nowrap;
+}
+/* Confirm pop-up: the product name on its own single line, shrunk to fit by FitText */
+.cf-title { display: block; width: 100%; margin: 4px 0 -2px; font: 600 18px/1.3 var(--font); color: #2E3A46; text-align: center; }
+/* With a product name, the pop-up gets a little wider (never wider than the screen) so the name stays readable */
+.cf-card:has(.cf-title) { width: min(420px, calc(100vw - 32px)) !important; max-width: none !important; }
+/* The step the whale sits on reads a little stronger whatever its state */
+.timeline-item:has(.is-whale) { padding: 12px 0; }
+.timeline-item.is-bad:has(.is-whale) .timeline-label { font-weight: 600; }

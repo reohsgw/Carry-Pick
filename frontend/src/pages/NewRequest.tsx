@@ -111,9 +111,6 @@ export default function NewRequest() {
             <Sheet title={t('req.youPay')}>
               <ReceiptStrip quote={q} budgetLabel={t('price.itemBudget')} note={t('req.youPayNote')} />
             </Sheet>
-            <div className="of-tip">
-              <p>{t('req.tip')}</p>
-            </div>
           </>
         )}
       >

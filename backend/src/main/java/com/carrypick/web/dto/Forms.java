@@ -21,7 +21,7 @@ public final class Forms {
 
         public record UpdateMeForm(@Size(max = 40) String name, Mode mode, @Size(max = 200) String avatarUrl,
                         @Size(max = 30) String payoutBank,
-                        @Size(max = 30) String payoutAccount,
+                        @Size(max = 30) String payoutAccount, 
                         @Size(max = 40) String payoutHolder) {
         }
 

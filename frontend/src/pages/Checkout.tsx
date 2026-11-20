@@ -4,13 +4,13 @@ import { api } from '../api';
 import { firstName, ReceiptStrip, useRoute } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import { usePayment } from '../components/payment';
-import { Avatar, ErrorBox, Loading, Notice, ProductThumb, Sheet, StatusBadge, type Mood } from '../components/ui';
+import { Avatar, ErrorBox, Loading, Mascot, Notice, ProductThumb, Sheet, StatusBadge, type Mood } from '../components/ui';
 import { krw, money, shortDate } from '../format';
 import { useI18n, type Key } from '../i18n';
 
 const STEPS: { mood: Mood; key: Key }[] = [
   { mood: 'happy', key: 'pay.s1' },
-  { mood: 'shop', key: 'pay.s2' },
+  { mood: 'fly', key: 'pay.s2' },
   { mood: 'unbox', key: 'pay.s3' },
 ];
 
@@ -86,11 +86,13 @@ export default function Checkout() {
         </section>
 
         <Sheet title={t('pay.steps')}>
-          <ol className="pay-steps">
+          {/* Same journey as the home page: numbered stops on a route line, a whale for each step */}
+          <ol className="ask-stamp is-plain">
             {STEPS.map((s, i) => (
               <li key={s.key}>
-                <span className="pay-step-n">{i + 1}</span>
-                <p>{t(s.key, { name: traveler })}</p>
+                <span className="ask-n">{i + 1}</span>
+                <Mascot mood={s.mood} className="ask-whale" size={120} />
+                <div className="ask-text"><p>{t(s.key, { name: traveler })}</p></div>
               </li>
             ))}
           </ol>

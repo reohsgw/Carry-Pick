@@ -5,7 +5,7 @@ import type { Offer, Order, PurchaseRequest, Quote, Ranking } from '../api';
 import { countryName, dateTime, daysUntil, krw, shortDate, weight, budgetText, money } from '../format';
 import { useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
-import { Avatar, Code, ProductPhoto, ProductThumb, StatusBadge, Tag } from './ui';
+import { Avatar, Code, Mascot, ProductPhoto, ProductThumb, StatusBadge, Tag } from './ui';
 import { useConfirm } from './confirm';
 
 export function firstName(name: string): string {
@@ -313,14 +313,20 @@ export function StatusTimeline({ order }: { order: Order }) {
     const firstOpen = steps.findIndex((s) => !s.done);
     shown = steps.map((s, i) => ({ ...s, current: s.current || i === firstOpen }));
   }
+  // The whale marks where the order is: a step that went wrong, else the first open step, else the last (finished).
+  const badAt = shown.findIndex((s) => s.bad);
+  const openAt = shown.findIndex((s) => !s.done);
+  const here = badAt >= 0 ? badAt : openAt >= 0 ? openAt : shown.length - 1;
+  const hereMood = badAt >= 0 ? 'alert' : openAt >= 0 ? 'fly' : 'unbox';
   return (
     <ol className="timeline">
-      {shown.map((s) => (
+      {shown.map((s, i) => (
         <li key={s.id} className={`timeline-item ${s.bad ? 'is-bad' : s.done ? 'is-done' : s.current ? 'is-current' : ''}`}>
-          <span className="timeline-dot" aria-hidden />
+          {i === here
+            ? <span className="timeline-dot is-whale" aria-hidden><Mascot mood={hereMood} size={44} /></span>
+            : <span className="timeline-dot" aria-hidden />}
           <span className="timeline-label">
             {s.current && !s.done && !s.bad ? (s.waiting ?? s.label) : s.label}
-            {s.current && !s.done && !s.bad && <span className="timeline-now">{t('tl.now')}</span>}
           </span>
           {s.at && <span className="timeline-at">{dateTime(s.at, lang)}</span>}
         </li>

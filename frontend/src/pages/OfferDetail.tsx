@@ -9,6 +9,8 @@ import { Avatar, ErrorBox, Loading, Modal, Notice, ProductPhoto, Tag } from '../
 import { countryName, daysUntil, krw, quote, shortDate, weight, money } from '../format';
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
+import { useConfirm } from '../components/confirm';
+import { usePayment } from '../components/payment';
 
 export default function OfferDetail() {
   const id = Number(useParams().id);
@@ -17,6 +19,7 @@ export default function OfferDetail() {
   const errText = useErrorText();
   const navigate = useNavigate();
   const offer = useQuery({ queryKey: ['offer', id], queryFn: () => api.offer(id) });
+  const ask = useConfirm();
   const [qty, setQty] = useState(1);
   const location = useLocation();
   // Just posted from the offer form: celebrate once, then drop the flag so a refresh doesn't show it again.
@@ -25,9 +28,12 @@ export default function OfferDetail() {
   const [edited, setEdited] = useState(() => !!flags?.edited);
   const closePosted = () => { setPosted(false); setEdited(false); navigate(location.pathname, { replace: true, state: null }); };
 
+  // Book and pay in one go: the order is created, then the payment window opens right here.
+  // Closing it without paying leaves the order as 결제 대기 and opens its payment page to retry.
+  const payment = usePayment(undefined, { onCancel: (orderId) => navigate(`/orders/${orderId}/pay`) });
   const book = useMutation({
     mutationFn: () => api.book(id, qty),
-    onSuccess: (order) => navigate(`/orders/${order.id}/pay`),
+    onSuccess: (order) => payment.start(() => api.preparePayment(order.id), order.id),
   });
 
   if (offer.isLoading) return <Screen back title={t('offer.title')}><Loading /></Screen>;
@@ -50,8 +56,12 @@ export default function OfferDetail() {
           {mine ? (
             <button className="btn btn-quiet btn-block" onClick={() => navigate(`/t/offers/${o.id}/edit`)}>{t('offer.mine')}</button>
           ) : (
-            <button className="btn btn-primary btn-block btn-tall btn-split" disabled={!o.bookable || book.isPending} onClick={() => book.mutate()}>
-              <span>{book.isPending ? t('offer.booking') : o.bookable ? t('offer.book', { n: qty }) : t('offer.unavailable')}</span>
+            <button className="btn btn-primary btn-block btn-tall btn-split" disabled={!o.bookable || book.isPending || payment.busy} onClick={async () => (await ask({
+                title: o.productName,
+                message: t('offer.bookConfirm', { total: krw(q.total) }),
+                mood: 'love', okLabel: t('offer.bookConfirmOk'),
+              })) && book.mutate()}>
+              <span>{book.isPending || payment.busy ? t('offer.booking') : o.bookable ? t('offer.book', { n: qty }) : t('offer.unavailable')}</span>
               {o.bookable && <span className="btn-amount">{krw(q.total)} <ArrowRight size={15} style={{ verticalAlign: -2 }} /></span>}
             </button>
           )}
@@ -151,6 +161,7 @@ export default function OfferDetail() {
         </section>
 
         {book.error && <Notice tone="bad">{errText(book.error)}</Notice>}
+        {payment.error && <Notice tone="bad">{payment.error}</Notice>}
       </DetailLayout>
 
       <Modal open={edited && mine} onClose={closePosted} title={o.productName} eyebrow={t('edited.eyebrow')} mood="happy" hideClose>
@@ -168,6 +179,7 @@ export default function OfferDetail() {
           </div>
         </div>
       </Modal>
+      {payment.sheet}
     </Screen>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, type PaymentPrepare } from '../api';
@@ -29,7 +29,12 @@ function loadTossSdk(): Promise<void> {
   });
 }
 
-export function usePayment(orderId: number) {
+/**
+ * Opens the payment window (Toss, or the test sheet in mock mode). The order can be given up front (the payment
+ * page) or when paying (the product page books and pays in one go). `onCancel` runs when the window is closed
+ * without paying, e.g. to send the person to the order's payment page so they can retry.
+ */
+export function usePayment(orderId?: number, opts?: { onCancel?: (orderId: number) => void }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [mock, setMock] = useState<PaymentPrepare | null>(null);
@@ -37,8 +42,10 @@ export function usePayment(orderId: number) {
   const [error, setError] = useState<string | null>(null);
   const { t } = useI18n();
   const errorMessage = useErrorText();
+  const current = useRef<number | undefined>(orderId);
 
-  async function start(prepare: () => Promise<PaymentPrepare>) {
+  async function start(prepare: () => Promise<PaymentPrepare>, forOrder?: number) {
+    current.current = forOrder ?? orderId;
     setBusy(true);
     setError(null);
     try {
@@ -56,13 +63,16 @@ export function usePayment(orderId: number) {
         amount: { currency: 'KRW', value: prep.amount },
         orderId: prep.tossOrderId,
         orderName: prep.orderName,
-        successUrl: `${origin}/pay/success?order=${orderId}`,
-        failUrl: `${origin}/pay/fail?order=${orderId}`,
+        successUrl: `${origin}/pay/success?order=${current.current}`,
+        failUrl: `${origin}/pay/fail?order=${current.current}`,
       });
     } catch (e) {
       console.error('Payment window error', e);
       const code = (e as { code?: string })?.code;
-      if (code === 'USER_CANCEL' || code === 'PAY_PROCESS_CANCELED') setError(null);
+      if (code === 'USER_CANCEL' || code === 'PAY_PROCESS_CANCELED') {
+        setError(null);
+        if (current.current != null) opts?.onCancel?.(current.current);
+      }
       else if (e instanceof Error && e.message === 'sdk') setError(t('pay.sdkFail'));
       else if (e instanceof Error && !('isAxiosError' in e)) setError(code ? `${e.message} (${code})` : e.message);
       else setError(errorMessage(e));
@@ -90,7 +100,7 @@ export function usePayment(orderId: number) {
       }
       await qc.invalidateQueries();
       setMock(null);
-      navigate(`/pay/${success ? 'success' : 'fail'}?order=${orderId}&mock=1`, { replace: true });
+      navigate(`/pay/${success ? 'success' : 'fail'}?order=${current.current}&mock=1`, { replace: true });
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -104,6 +114,7 @@ export function usePayment(orderId: number) {
     }
     setMock(null);
     qc.invalidateQueries();
+    if (current.current != null) opts?.onCancel?.(current.current);
   }
 
   const sheet = (
