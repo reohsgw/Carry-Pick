@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ExternalLink } from '../components/icons';
 import { api } from '../api';
@@ -57,6 +57,9 @@ export default function RequestDetail() {
       <DetailLayout
         actions={(
           <>
+          {mine && r.status === 'OPEN' && (
+            <Link to={`/my-requests/${r.id}/edit`} className="btn btn-primary btn-block">{t('req.edit')}</Link>
+          )}
           {mine && r.status === 'OPEN' && (
             <button className="btn btn-quiet btn-block danger" disabled={cancel.isPending}
               onClick={async () => (await ask({ message: t('rd.withdrawConfirm'), mood: 'alert', danger: true })) && cancel.mutate()}>

@@ -183,35 +183,70 @@ public class MarketService {
         if (f.deadline().isBefore(Today.get().plusDays(1))) {
             throw ApiException.badRequest("DEADLINE", "Deadline must be at least tomorrow");
         }
-        // The buyer gives the budget in the country's currency; the server converts it at today's rate.
+        Budget b = budget(f);
+        pricing.checkReward(b.krw(), f.reward());
+        PurchaseRequest r = new PurchaseRequest(me, f.countryCode().toUpperCase(),
+                f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
+                blankToNull(f.options()), blankToNull(f.note()), b.krw(), f.reward(), f.deadline());
+        if (b.rate() != null) r.setLocalBudget(b.currency(), b.local(), b.rate());
+        r = requests.save(r);
+        r.setProduct(catalog.resolve(f.productId(), r.getProductName(), null, r.getCountryCode()));
+        r.setWeightGrams(weightOr(f.weightGrams(), r.getProduct()));
+        learnWeight(r.getProduct(), f.weightGrams());
+        return mapper.request(r);
+    }
+
+    private record Budget(long krw, String currency, java.math.BigDecimal local, Double rate) {}
+
+    /** A request's budget: in the country's currency (converted at today's rate), or in won. */
+    private Budget budget(RequestForm f) {
         String currency = Countries.find(f.countryCode()).map(Countries.Country::currency).orElse("KRW");
-        Double rate = null;
-        java.math.BigDecimal wonBudgetLocal = null;
-        long maxBudget;
         if (f.budgetLocal() != null) {
             if (f.budgetCurrency() != null && !f.budgetCurrency().equalsIgnoreCase(currency)) {
                 throw ApiException.badRequest("BUDGET_CURRENCY", "The budget must be in " + currency);
             }
-            rate = fx.krwPerUnit(currency);
+            Double rate = fx.krwPerUnit(currency);
             if (rate == null) throw ApiException.badRequest("FX_UNAVAILABLE", "No exchange rate for " + currency);
-            maxBudget = Math.round(f.budgetLocal().doubleValue() * rate);
-        } else if (f.maxBudget() != null) {
-            // Typed in won: the won budget stays exact and the local limit is its value at today's rate.
-            maxBudget = f.maxBudget();
-            if (!"KRW".equals(currency) && maxBudget > 0) {
-                Double r = fx.krwPerUnit(currency);
-                if (r != null) { rate = r; wonBudgetLocal = Order.fromWon(maxBudget, r); }
-            }
-        } else {
-            throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
+            long krw = Math.round(f.budgetLocal().doubleValue() * rate);
+            if (krw <= 0) throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
+            return new Budget(krw, currency, f.budgetLocal(), rate);
         }
-        if (maxBudget <= 0) throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
-        pricing.checkReward(maxBudget, f.reward());
-        PurchaseRequest r = new PurchaseRequest(me, f.countryCode().toUpperCase(),
-                f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
-                blankToNull(f.options()), blankToNull(f.note()), maxBudget, f.reward(), f.deadline());
-        if (rate != null) r.setLocalBudget(currency, wonBudgetLocal != null ? wonBudgetLocal : f.budgetLocal(), rate);
-        r = requests.save(r);
+        if (f.maxBudget() == null || f.maxBudget() <= 0) throw ApiException.badRequest("BUDGET_REQUIRED", "Enter a budget");
+        // Typed in won: the won budget stays exact and the local limit is its value at today's rate.
+        long krw = f.maxBudget();
+        if (!"KRW".equals(currency)) {
+            Double r = fx.krwPerUnit(currency);
+            if (r != null) return new Budget(krw, currency, Order.fromWon(krw, r), r);
+        }
+        return new Budget(krw, null, null, null);
+    }
+
+    /**
+     * The buyer edits their request while no traveler has accepted it. An unchanged budget keeps the rate
+     * fixed when it was posted; a new budget is converted at today's rate.
+     */
+    @Transactional
+    public RequestDto updateRequest(Long userId, Long requestId, RequestForm f) {
+        PurchaseRequest r = findRequest(requestId);
+        if (!r.getBuyer().getId().equals(userId)) throw ApiException.forbidden("This is not your request");
+        if (r.getStatus() != RequestStatus.OPEN) {
+            throw ApiException.conflict("REQUEST_NOT_OPEN", "Only open requests can be edited");
+        }
+        if (!Countries.exists(f.countryCode())) throw ApiException.badRequest("COUNTRY", "Unsupported country");
+        if (f.deadline().isBefore(Today.get().plusDays(1))) {
+            throw ApiException.badRequest("DEADLINE", "Deadline must be at least tomorrow");
+        }
+        String country = f.countryCode().toUpperCase();
+        boolean sameBudget = country.equals(r.getCountryCode()) && (f.budgetLocal() != null
+                ? r.getBudgetLocal() != null && r.getBudgetLocal().compareTo(f.budgetLocal()) == 0
+                : f.maxBudget() != null && f.maxBudget() == r.getMaxBudget());
+        if (!sameBudget) {
+            Budget b = budget(f);
+            r.setBudget(b.krw(), b.currency(), b.local(), b.rate());
+        }
+        pricing.checkReward(r.getMaxBudget(), f.reward());
+        r.update(country, f.productName().trim(), blankToNull(f.productLink()), blankToNull(f.imageUrl()),
+                blankToNull(f.options()), blankToNull(f.note()), f.reward(), f.deadline());
         r.setProduct(catalog.resolve(f.productId(), r.getProductName(), null, r.getCountryCode()));
         r.setWeightGrams(weightOr(f.weightGrams(), r.getProduct()));
         learnWeight(r.getProduct(), f.weightGrams());

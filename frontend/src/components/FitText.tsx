@@ -10,7 +10,7 @@ export const FIT_SELECTOR = [
   'h1', 'h2', 'h3', 'h4', '.eyebrow', '.btn', '[role="tab"]', '.chip',
   '.mobile-nav-item > span', '.nav-dropdown-item', '.filter-toggle', '.lf-chips button',
   // Short values in cards: prices, dates, counts, names.
-  '.meta-label', '.meta-value', '.kt-btn', '.receipt-strip .receipt-note', '.empty-title', '.cf-title', '.kt-won', '.top10-won', '.top10-price', '.kt-item-line strong', '.od-pass-route strong', '.od-pass-route span', '.od-price-stub strong', '.od-pass-fields div:not(.is-wide) dd', '.od-pass-who p', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip', '.request-meta span', '.row-meta span', '.request-left', '.request-by', '.chat-link .grow > b', '.chat-link .grow > small', '.od-next', '.ob-btn', '.top10-name', '.kt-shortcut > span', '.kt-profile-text p',
+  '.meta-label', '.meta-value', '.kt-btn', '.empty-title', '.cf-title', '.kt-won', '.top10-won', '.top10-price', '.kt-item-line strong', '.od-pass-route strong', '.od-pass-route span', '.od-price-stub strong', '.od-pass-fields div:not(.is-wide) dd', '.od-pass-who p', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip', '.request-meta span', '.row-meta span', '.request-left', '.request-by', '.chat-link .grow > b', '.chat-link .grow > small', '.od-next', '.ob-btn', '.top10-name', '.kt-shortcut > span', '.kt-profile-text p',
 ].join(',');
 
 /**
@@ -19,6 +19,15 @@ export const FIT_SELECTOR = [
  */
 const SOFT_SELECTOR = 'p, span, small, b, strong, em, a, label, dt, dd, li, td, th, button, figcaption, legend';
 const SOFT_SKIP = 'input, textarea, select, option, [contenteditable], svg, .sr-only, .visually-hidden, [aria-hidden="true"], .chat-bubble, .msg, [data-fit-skip]';
+
+/**
+ * Product names in lists: every card on the page uses the same size, so names don't look different from
+ * card to card. The size is set by the tightest card, but never below 85% of normal; longer names end in "…".
+ */
+const GROUPS = [
+  '.offer-title', '.top10-name', '.request-card .request-head h3', '.kt-item-body h3', '.ob-title-row h3', '.row-title',
+];
+const GROUP_FLOOR = 0.85;
 
 /** Number of rendered text lines inside el (icons, badges and emoji at other heights don't count). */
 function lineCount(el: HTMLElement) {
@@ -95,6 +104,7 @@ function ownsText(el: HTMLElement) {
 
 function fit(el: HTMLElement, soft = false) {
   const base = parseFloat(getComputedStyle(el).fontSize) || 16;
+  el.dataset.fitBase = String(base);
   const big = el.tagName === 'H1' || el.tagName === 'H2';
   const min = Math.min(base, soft ? Math.max(10, base * 0.72) : big ? Math.max(16, base * 0.5) : Math.max(9, base * 0.65));
   // Inline text has no width of its own: measure it in its line box instead.
@@ -143,10 +153,11 @@ function fit(el: HTMLElement, soft = false) {
 
 function fitAll() {
   const els = Array.from(document.querySelectorAll<HTMLElement>(FIT_SELECTOR));
-  for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-fit]'))) {
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-fit], [data-fit-base]'))) {
     for (const prop of FIT_PROPS) el.style.removeProperty(prop);
     el.classList.remove('fit-clip');
     delete el.dataset.fit;
+    delete el.dataset.fitBase;
   }
   const hard = new Set(els);
   for (const el of els) {
@@ -160,6 +171,35 @@ function fitAll() {
     // A word or link inside a sentence goes with the sentence, not on its own.
     if (getComputedStyle(el).display === 'inline' && el.parentElement && ownsText(el.parentElement)) continue;
     if (needsFit(el) && !isMultiPart(el)) fit(el, true);
+  }
+  for (const sel of GROUPS) fitGroup(sel);
+}
+
+/** One size for every element matching sel (see GROUPS). */
+function fitGroup(sel: string) {
+  const els = Array.from(document.querySelectorAll<HTMLElement>(sel)).filter((el) => el.clientWidth > 0 && el.textContent?.trim());
+  if (els.length < 2) return;
+  const sizes = els.map((el) => {
+    const base = Number(el.dataset.fitBase) || parseFloat(getComputedStyle(el).fontSize) || 16;
+    const now = parseFloat(getComputedStyle(el).fontSize) || base;
+    return { el, base, now };
+  });
+  const base = Math.max(...sizes.map((x) => x.base));
+  const size = Math.max(base * GROUP_FLOOR, Math.min(...sizes.map((x) => x.now)));
+  for (const { el } of sizes) {
+    const avail = el.clientWidth;
+    el.classList.remove('fit-clip');
+    el.style.removeProperty('width');
+    el.style.removeProperty('max-width');
+    if (getComputedStyle(el).display === '-webkit-box') set(el, 'display', 'block');
+    set(el, 'font-size', `${size}px`);
+    el.dataset.fit = '1';
+    if (!el.dataset.fitBase) el.dataset.fitBase = String(base);
+    if (needsFit(el)) {
+      set(el, 'width', `${avail}px`);
+      set(el, 'max-width', '100%');
+      el.classList.add('fit-clip');
+    }
   }
 }
 

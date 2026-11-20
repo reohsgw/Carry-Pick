@@ -83,6 +83,12 @@ public class MarketController {
         return market.createRequest(me.id(), form);
     }
 
+    @PatchMapping("/requests/{id}")
+    public RequestDto updateRequest(@AuthenticationPrincipal AuthUser me, @PathVariable Long id,
+                                    @Valid @RequestBody RequestForm form) {
+        return market.updateRequest(me.id(), id, form);
+    }
+
     @GetMapping("/requests/me")
     public List<RequestDto> myRequests(@AuthenticationPrincipal AuthUser me) {
         return market.myRequests(me.id());

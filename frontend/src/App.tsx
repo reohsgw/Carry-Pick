@@ -34,6 +34,7 @@ export default function App() {
         <Route path="/offers/:id" element={<RequireAuth><OfferDetail /></RequireAuth>} />
         <Route path="/requests/new" element={<RequireAuth><NewRequest /></RequireAuth>} />
         <Route path="/my-requests/:id" element={<RequireAuth><RequestDetail /></RequireAuth>} />
+        <Route path="/my-requests/:id/edit" element={<RequireAuth><NewRequest /></RequireAuth>} />
         <Route path="/orders" element={<RequireAuth><MyOrders role="buyer" /></RequireAuth>} />
         <Route path="/orders/:id" element={<RequireAuth><OrderDetail /></RequireAuth>} />
         <Route path="/orders/:id/chat" element={<RequireAuth><OrderChat /></RequireAuth>} />

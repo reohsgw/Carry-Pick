@@ -93,6 +93,26 @@ public class PurchaseRequest {
         this.deadline = deadline;
     }
 
+    /** The buyer edits their open request. Budget and its rate are set separately (setBudget / setLocalBudget). */
+    public void update(String countryCode, String productName, String productLink, String imageUrl,
+                       String options, String note, long reward, LocalDate deadline) {
+        this.countryCode = countryCode;
+        this.productName = productName;
+        this.productLink = productLink;
+        this.imageUrl = imageUrl;
+        this.options = options;
+        this.note = note;
+        this.reward = reward;
+        this.deadline = deadline;
+    }
+    /** Won budget, plus its amount in the country's currency and the rate used (all null for won-only budgets). */
+    public void setBudget(long maxBudget, String currency, java.math.BigDecimal local, Double krwPerUnit) {
+        this.maxBudget = maxBudget;
+        this.budgetCurrency = currency;
+        this.budgetLocal = local;
+        this.fxRate = krwPerUnit;
+    }
+
     public Long getId() { return id; }
     public User getBuyer() { return buyer; }
     public User getTraveler() { return traveler; }

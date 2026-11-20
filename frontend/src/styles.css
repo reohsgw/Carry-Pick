@@ -11200,6 +11200,8 @@ a.nt-row:focus-visible { outline: 2px solid #924B53; outline-offset: -2px; }
 
 /* My page trips: edit + post product links side by side */
 .kt-trip-actions { display: inline-flex; align-items: center; gap: 16px; margin-left: auto; }
+/* When Edit and Offer an item drop under "In 7 days" on narrow phones, keep some space between the two lines */
+.kt-trip .kt-item-line { row-gap: 10px; }
 .kt-inline-link.is-quiet { color: rgb(46 58 70 / 0.7); }
 .trip-delete { display: grid; gap: 10px; justify-items: center; margin-top: 8px; }
 .trip-delete .kt-text-btn { padding: 10px 16px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
@@ -11921,3 +11923,6 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
 }
 .request-card .request-head .grow { min-width: 0; }
 .rd-rules { margin-top: 14px; }
+/* Unread count badges: the number sits in the exact middle of the circle */
+.dot { display: inline-flex; align-items: center; justify-content: center; line-height: 1 !important; font-variant-numeric: tabular-nums; box-sizing: border-box; }
+.dot.is-inline { flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; }

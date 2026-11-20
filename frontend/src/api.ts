@@ -238,6 +238,7 @@ export const api = {
   request: (id: number) => get<PurchaseRequest>(`/api/requests/${id}`),
   acceptRequest: (id: number, tripId?: number) => post<Order>(`/api/requests/${id}/accept`, { tripId }),
   cancelRequest: (id: number) => del<PurchaseRequest>(`/api/requests/${id}`),
+  updateRequest: (id: number, b: RequestInput) => patch<PurchaseRequest>(`/api/requests/${id}`, b),
 
   book: (offerId: number, quantity: number) => post<Order>('/api/orders', { offerId, quantity }),
   myOrders: (role: 'buyer' | 'traveler') => get<Order[]>('/api/orders/me', { role }),

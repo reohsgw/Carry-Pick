@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
 import { ReceiptStrip } from '../components/cards';
 import { DetailLayout, Screen } from '../components/Layout';
 import ProductPicker from '../components/ProductPicker';
-import { DualMoneyInput, Field, Mascot, ImagePicker, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
+import { DualMoneyInput, Field, Loading, Mascot, ImagePicker, MoneyInput, Notice, Sheet, useDualAmount, WeightInput } from '../components/ui';
 import { currencyDecimals, currencyOf, currencySymbol, isoDay, krw, maxReward, quote } from '../format';
 import { useErrorText, useI18n } from '../i18n';
 import { useSession } from '../session';
@@ -18,6 +18,10 @@ export default function NewRequest() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  // /my-requests/:id/edit: the same form, filled in with the buyer's open request.
+  const routeId = useParams().id;
+  const editId = routeId ? Number(routeId) : null;
+  const existing = useQuery({ queryKey: ['request', editId], queryFn: () => api.request(editId!), enabled: !!editId });
 
   const [countryCode, setCountry] = useState(() => {
     const c = params.get('country');
@@ -54,27 +58,60 @@ export default function NewRequest() {
     lastRate.current = rate;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryCode, rate]);
+  // Editing: fill the form once with the saved request.
+  const loaded = useRef(false);
+  useEffect(() => {
+    const r = existing.data;
+    if (!r || loaded.current) return;
+    loaded.current = true;
+    lastCountry.current = r.countryCode;
+    setCountry(r.countryCode);
+    setName(r.productName);
+    setProductId(r.product?.id ?? null);
+    setLink(r.productLink ?? '');
+    setImage(r.imageUrl);
+    setOptions(r.options ?? '');
+    setNote(r.note ?? '');
+    if (r.budgetLocal != null) budget.setLocal(Number(r.budgetLocal)); else budget.setWon(r.maxBudget);
+    setReward(r.reward);
+    setDeadline(r.deadline);
+    setWeight(r.weightGrams ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existing.data]);
   const maxBudget: number | '' = foreign ? budget.won : budget.amount;
   const [reward, setReward] = useState<number | ''>(5000);
   const [deadline, setDeadline] = useState(isoDay(30));
   const [weightGrams, setWeight] = useState<number | ''>(() => Number(params.get('weight')) || '');
   const fromRanking = params.get('from') === 'ranking';
 
+  // An unchanged budget is sent back exactly as saved, so it keeps the rate fixed when the request was posted.
+  const budgetBody = () => {
+    const r = existing.data;
+    if (r && countryCode === r.countryCode) {
+      const same = r.budgetLocal != null
+        ? (budget.mode === 'local' ? Number(budget.amount) === Number(r.budgetLocal) : Number(budget.won) === Math.round(Number(r.budgetLocal) * (rate ?? 0)))
+        : Number(maxBudget) === r.maxBudget;
+      if (same) return r.budgetLocal != null ? { budgetLocal: Number(r.budgetLocal), budgetCurrency: r.budgetCurrency ?? currency } : { maxBudget: r.maxBudget };
+    }
+    // Typed in won → sent in won (the server works out the local limit); typed in ¥ → sent in ¥.
+    return !foreign || budget.mode === 'won'
+      ? { maxBudget: Number(maxBudget) }
+      : { budgetLocal: Number(budget.amount), budgetCurrency: currency };
+  };
   const create = useMutation({
-    mutationFn: () =>
-      api.createRequest({
+    mutationFn: () => {
+      const body = {
         countryCode, productName, productLink, imageUrl, options, note,
-        // Typed in won → sent in won (the server works out the local limit); typed in ¥ → sent in ¥.
-        ...(!foreign || budget.mode === 'won'
-          ? { maxBudget: Number(maxBudget) }
-          : { budgetLocal: Number(budget.amount), budgetCurrency: currency }),
+        ...budgetBody(),
         reward: Number(reward || 0), deadline, productId,
         weightGrams: weightGrams === '' ? null : weightGrams,
-      }),
+      };
+      return editId ? api.updateRequest(editId, body) : api.createRequest(body);
+    },
     onSuccess: (r) => {
       markRequestSeen(r);
-      qc.invalidateQueries({ queryKey: ['myRequests'] });
-      navigate('/orders?tab=requests', { replace: true });
+      qc.invalidateQueries();
+      navigate(editId ? `/my-requests/${r.id}` : '/orders?tab=requests', { replace: true });
     },
   });
 
@@ -87,12 +124,14 @@ export default function NewRequest() {
     create.mutate();
   }
 
+  if (editId && existing.isLoading) return <Screen back title={t('req.edit')} hideNav><Loading /></Screen>;
+
   return (
-    <Screen back title={t('req.title')} hideNav wide>
+    <Screen back title={editId ? t('req.edit') : t('req.title')} hideNav wide>
       {/* The whale says the intro, in the same speech bubble as on the home page */}
       <div className="live-say req-say">
         <Mascot mood="question" className="live-say-whale" size={76} />
-        <p className="live-say-bubble">{t('req.hello')}</p>
+        <p className="live-say-bubble">{editId ? t('req.editNote') : t('req.hello')}</p>
       </div>
 
       {fromRanking && <Notice tone="info">{t('req.soldOut', { name: productName })}</Notice>}
@@ -101,7 +140,7 @@ export default function NewRequest() {
         actions={(
           <>
           <button form="request-form" className="btn btn-primary btn-block" disabled={create.isPending || !maxBudget || !weightGrams || rewardOver}>
-            {create.isPending ? t('req.posting') : t('req.submit')}
+            {create.isPending ? t('req.posting') : editId ? t('of.saveChanges') : t('req.submit')}
           </button>
           </>
         )}
