@@ -4,7 +4,6 @@ import { api, type ReceiptCategory, type ReceiptScan } from '../api';
 
 import { useErrorText, useI18n, type Key } from '../i18n';
 import { Notice } from './ui';
-import { FxBox } from './FxBox';
 
 const FLAG_KEYS: Partial<Record<ReceiptCategory, Key>> = {
   alcohol: 'buy.flag.alcohol',
@@ -24,7 +23,7 @@ function money(amount: number | null, currency: string | null): string {
   }
 }
 
-export function ReceiptCapture({ file, onFile, onAmount, onScan, autoScan = false, showKrw = true }: {
+export function ReceiptCapture({ file, onFile, onAmount, onScan, autoScan = false }: {
   file: File | null;
   onFile: (f: File | null) => void;
   onAmount: (krw: number) => void;
@@ -123,10 +122,6 @@ export function ReceiptCapture({ file, onFile, onAmount, onScan, autoScan = fals
             <span>{t('buy.totalForeign')}</span>
             <strong>{money(scan.total, scan.currency)}</strong>
           </div>
-          {showKrw && scan.totalKrw != null && scan.total != null && scan.currency && scan.currency !== 'KRW' && scan.krwPerUnit != null && (
-            <FxBox amount={scan.total} currency={scan.currency} won={scan.totalKrw} rate={scan.krwPerUnit}
-              source={scan.mock ? 'fixed' : 'live'} fromLabel="fx.receiptTotal" />
-          )}
           {scan.customsFlags.length > 0 && (
             <Notice tone="warn" icon={ShieldAlert}>
               <strong>{t('buy.flags')}</strong>
