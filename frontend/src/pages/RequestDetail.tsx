@@ -95,7 +95,7 @@ export default function RequestDetail() {
                       </select>
                     </Field>
                   )}
-                  <p className="fine">{t('rd.rules', { budget: budgetText(r, lang), reward: krw(r.reward) })}</p>
+                  <p className="fine rd-rules">{t('rd.rules', { budget: budgetText(r, lang), reward: krw(r.reward) })}</p>
                 </Sheet>
               )
             )}
@@ -115,6 +115,18 @@ export default function RequestDetail() {
         </div>
 
         <Sheet>
+          {/* Same price block as the offer page: label, big local amount, won value under it */}
+          <div className="od-price-stub rd-price-stub">
+            <small>{t('rd.budget')}</small>
+            <strong>{r.budgetLocal != null && r.budgetCurrency ? money(Number(r.budgetLocal), r.budgetCurrency) : krw(r.maxBudget)}</strong>
+            {r.budgetLocal != null && r.budgetCurrency && <span className="od-fact-sub">{lang === 'ko' ? '약 ' : '≈ '}{krw(r.maxBudget)}</span>}
+            {r.budgetLocal != null && r.budgetCurrency && r.fxRate != null && (
+              <p className="rd-rate-note">{t('rd.rateNote', {
+                n: rateUnit(r.budgetCurrency), cur: r.budgetCurrency,
+                rate: (r.fxRate * rateUnit(r.budgetCurrency)).toLocaleString('ko-KR', { maximumFractionDigits: 2 }),
+              })}</p>
+            )}
+          </div>
           <KV label={t('rd.country')}>{country}</KV>
           {r.weightGrams != null && <KV label={t('w.label')}>{t('w.approx', { w: weight(r.weightGrams) })}</KV>}
           {r.options && <KV label={t('rd.options')}>{r.options}</KV>}
@@ -123,17 +135,6 @@ export default function RequestDetail() {
               <a href={r.productLink} target="_blank" rel="noreferrer" className="link">{t('rd.open')} <ExternalLink size={14} aria-hidden /></a>
             </KV>
           )}
-          {/* Same as prices elsewhere: the local amount, with its won value and the locked rate in small grey text */}
-          <KV label={t('rd.budget')}>
-            {r.budgetLocal != null && r.budgetCurrency && r.fxRate != null ? (
-              <span className="rd-budget">
-                <strong className="amount">{money(Number(r.budgetLocal), r.budgetCurrency)}</strong>
-                <small>
-                  {lang === 'ko' ? '약 ' : '≈ '}{krw(r.maxBudget)} · {rateUnit(r.budgetCurrency)} {r.budgetCurrency} = ₩{(r.fxRate * rateUnit(r.budgetCurrency)).toLocaleString('ko-KR', { maximumFractionDigits: 2 })} ({t('fx.requestRate')})
-                </small>
-              </span>
-            ) : <strong className="amount">{budgetText(r, lang)}</strong>}
-          </KV>
           <KV label={t('rd.reward')}><strong className="amount reward">{krw(r.reward)}</strong></KV>
         </Sheet>
         {r.note && <p className="quote">{r.note}</p>}

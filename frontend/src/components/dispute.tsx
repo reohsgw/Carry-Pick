@@ -118,7 +118,7 @@ export function ReportProblem({ order }: { order: Order }) {
           <Field label={t('rp.note')} optional>
             <textarea rows={3} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
-          <PhotoPick file={photo} onFile={setPhoto} label={t('rp.photo')} hint={t('rp.photoHint')} />
+          <PhotoPick file={photo} onFile={setPhoto} label={t('rp.photo')} />
           <Notice tone="warn">{t('rp.pauses')}</Notice>
           {report.error && <Notice tone="bad">{errText(report.error)}</Notice>}
           <button className="btn btn-primary btn-block btn-tall is-danger" disabled={!reason || report.isPending}>

@@ -4,7 +4,7 @@ import { useI18n } from '../i18n';
 
 /** Pick one photo (or PDF when allowed) with a small preview. */
 export function PhotoPick({ file, onFile, label, hint, allowPdf, big }: {
-  file: File | null; onFile: (f: File | null) => void; label: string; hint: string; allowPdf?: boolean; big?: boolean;
+  file: File | null; onFile: (f: File | null) => void; label: string; hint?: string; allowPdf?: boolean; big?: boolean;
 }) {
   const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
@@ -48,7 +48,7 @@ export function PhotoPick({ file, onFile, label, hint, allowPdf, big }: {
           </div>}
       <div className="capture-pick-body">
         <span className="field-label">{label}</span>
-        <span className="field-hint">{file ? file.name : hint}</span>
+        {(file || hint) && <span className="field-hint">{file ? file.name : hint}</span>}
         <button type="button" className="link" onClick={() => input.current?.click()}>
           {file ? t('buy.change') : t('buy.choose')}
         </button>

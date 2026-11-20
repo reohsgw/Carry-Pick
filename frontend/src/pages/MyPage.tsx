@@ -94,9 +94,9 @@ export default function MyPage() {
 
   const shortcuts: { to: string; icon: typeof Package; label: string; count?: number }[] = [
     { to: '/orders', icon: ShoppingBag, label: t('kt.buyHistory'), count: buyNews },
-    { to: '/t/orders', icon: Package, label: t('kt.history'), count: carryNews },
-    { to: '/orders?tab=requests', icon: ClipboardList, label: t('me.requests'), count: newRequests },
-    { to: '#kt-trips', icon: Plane, label: t('t.trips') },
+    { to: '/t/orders', icon: Package, label: t('kt.scCarry'), count: carryNews },
+    { to: '/orders?tab=requests', icon: ClipboardList, label: t('kt.scRequests'), count: newRequests },
+    { to: '#kt-trips', icon: Plane, label: t('kt.scTrips') },
   ];
 
   return (

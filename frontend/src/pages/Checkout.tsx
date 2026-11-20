@@ -40,10 +40,10 @@ export default function Checkout() {
 
   return (
     <Screen back={`/orders/${o.id}`} title={t('pay.title')} hideNav wide>
-      <div className="whale-say of-hello">
-        <div className="whale-say-bubble">
-          <p>{payable ? t('pay.hello', { name: traveler }) : t('pay.notPayable')}</p>
-        </div>
+      {/* The whale says it, in the same speech bubble as on the home and new-request pages */}
+      <div className="live-say req-say">
+        <Mascot mood={payable ? 'happy' : 'alert'} className="live-say-whale" size={76} />
+        <p className="live-say-bubble">{payable ? t('pay.hello', { name: traveler }) : t('pay.notPayable')}</p>
       </div>
 
       <DetailLayout

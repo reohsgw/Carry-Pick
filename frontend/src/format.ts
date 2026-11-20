@@ -21,8 +21,7 @@ export function yearDate(iso: string | null | undefined, lang: Lang): string {
 
 /** A date range with the year: shown once when both dates are in the same year. */
 export function yearRange(a: string, b: string, lang: Lang): string {
-  const sameYear = toDate(a).getFullYear() === toDate(b).getFullYear();
-  return `${yearDate(a, lang)} – ${sameYear ? shortDate(b, lang) : yearDate(b, lang)}`;
+  return `${yearDate(a, lang)} – ${yearDate(b, lang)}`;
 }
 
 export function boardDate(iso: string): string {

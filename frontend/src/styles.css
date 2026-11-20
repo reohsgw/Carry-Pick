@@ -1708,6 +1708,7 @@ html:lang(ko) .pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 100%;
 }
 
 .request-foot {
@@ -4740,6 +4741,7 @@ a.notif:hover {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
 }
 
 .chat-link small {
@@ -9054,6 +9056,11 @@ html:lang(ko) .cta-panel h2.cta-title { font-size: clamp(30px, 3.4vw, 46px); lin
   .live-grid .meta-grid > div:nth-child(2) { display: none; }
   .live-grid .meta-grid { grid-template-columns: 1fr 1fr !important; }
 }
+/* Very narrow product cards (two per row on small phones): price on top, arrival under it */
+.live-grid > * { container-type: inline-size; }
+@container (max-width: 190px) {
+  .live-grid .meta-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
 
 .top10-card {
   min-height: 0 !important;
@@ -9689,6 +9696,8 @@ img.step-comic { aspect-ratio: 1 / 1; object-fit: cover; }
   color: #2E3A46;
   background: transparent;
   text-decoration: none;
+  white-space: nowrap;
+  min-width: 0;
 }
 .ob-btn:hover { background: rgb(46 58 70 / 0.06); }
 .ob-btn.is-solid { background: #2E3A46; color: #FAFAFA; }
@@ -10714,7 +10723,12 @@ a.nt-row:focus-visible { outline: 2px solid #924B53; outline-offset: -2px; }
 /* Order cards: give the "what happens next" column room so it stays on one line */
 @media (min-width: 601px) {
   .ob-facts { grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 1.5fr); }
-  .ob-facts > div:last-child dd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ob-card-main { container-type: inline-size; min-width: 0; }
+}
+/* Narrow card (tablets, side menu open): route and person side by side, the status line under them at full width */
+@container (max-width: 520px) {
+  .ob-facts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px 16px; }
+  .ob-facts > div:last-child { grid-column: 1 / -1; }
 }
 
 /* In-page confirm: small square card with the whale */
@@ -10873,7 +10887,7 @@ a.nt-row:focus-visible { outline: 2px solid #924B53; outline-offset: -2px; }
 .posted-msg { white-space: pre-line; margin: 0; color: #2E3A46; font-size: 15px; line-height: 1.6; }
 .posted-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .posted-actions .btn { width: 100%; justify-content: center; }
-.ac-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+.ac-note { font-size: 12.5px; }
 
 /* Offer form: whale greeting + side tip */
 .whale-say.of-hello { justify-content: flex-start; max-width: none; margin: 4px 0 18px; }
@@ -11381,7 +11395,7 @@ a.nt-row:focus-visible { outline: 2px solid #924B53; outline-offset: -2px; }
 .money-switch button:focus-visible { outline: 2px solid #A85A62; outline-offset: 1px; }
 
 /* Local price with its won value beside/below it, never wrapping */
-.kt-item-line { flex-wrap: nowrap; min-width: 0; }
+.kt-item-line { flex-wrap: wrap; row-gap: 2px; min-width: 0; }
 .kt-item-line strong { white-space: nowrap; }
 .kt-won { white-space: nowrap; font: 600 12.5px/1.2 var(--font); color: rgb(46 58 70 / 0.55); }
 .top10-won { display: block; white-space: nowrap; font: 600 12px/1.3 var(--font); color: rgb(46 58 70 / 0.55); }
@@ -11483,7 +11497,7 @@ p, li, dd { text-wrap: pretty; }
 .pay-steps p { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }
 
 /* Price details, after Trip.com / Klook / Agoda: plain rows, a divider, the total, the currency, then the rules */
-.receipt-strip { display: grid; gap: 0; }
+.receipt-strip { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; min-width: 0; }
 .receipt-strip .receipt-lines {
   display: grid !important; gap: 14px !important;
   padding: 4px 0 16px !important; margin: 0 !important;
@@ -11848,8 +11862,8 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
   margin: 32px 0 8px; padding-top: 24px; border-top: 1px dashed rgb(46 58 70 / 0.18); text-align: center;
 }
 .offers-more p { margin: 0; font: 500 16px/1.5 var(--font); color: #4A535A; }
-.rd-budget { display: inline-grid; justify-items: end; gap: 2px; text-align: right; }
-.rd-budget small { font: 400 12.5px/1.4 var(--font); color: #6B747B; }
+.rd-price-stub { margin: 0 0 12px; }
+.rd-rate-note { margin: 4px 0 0; font: 400 12px/1.45 var(--font); color: #6B747B; }
 
 /* Login test accounts: on phones the label goes on its own line, the two accounts below it */
 @media (max-width: 560px) {
@@ -11870,7 +11884,7 @@ input::placeholder { text-overflow: ellipsis; white-space: nowrap; overflow: hid
 .weight-presets > * { min-width: 0 !important; width: 100%; padding-left: 4px !important; padding-right: 4px !important; white-space: nowrap; justify-content: center; text-align: center; }
 @media (max-width: 420px) { .weight-presets > * { font-size: 13px !important; } }
 /* The note under the price total stays on one line on phones (FitText shrinks it to fit) */
-@media (max-width: 560px) { .receipt-strip .receipt-note { padding: 10px 12px !important; white-space: nowrap; } }
+@media (max-width: 560px) { .receipt-strip .receipt-note { padding: 10px 12px !important; } }
 
 /* iPhone Safari greys out any tapped element that listens for clicks (e.g. the whole order card).
    The app shows its own pressed states, so turn that flash off everywhere. */
@@ -11895,3 +11909,15 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
 }
 .live-tip.is-closed .live-tip-bubble { opacity: 0 !important; visibility: hidden !important; }
 .kt-wallet-sums small + small { margin-top: -4px; }
+/* Request card: days left sits in the top-right corner */
+.request-card { position: relative; }
+.request-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px; min-width: 0; }
+.request-top .person { min-width: 0; }
+.request-corner { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.request-by { color: var(--muted, #8A8A8A); font: 500 12px/1.3 var(--font); white-space: nowrap; }
+.request-left {
+  padding: 4px 10px; border-radius: 6px; background: #F0DDDE; color: #924B53;
+  font: 600 12px/1.3 var(--font); white-space: nowrap;
+}
+.request-card .request-head .grow { min-width: 0; }
+.rd-rules { margin-top: 14px; }

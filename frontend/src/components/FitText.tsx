@@ -10,8 +10,15 @@ export const FIT_SELECTOR = [
   'h1', 'h2', 'h3', 'h4', '.eyebrow', '.btn', '[role="tab"]', '.chip',
   '.mobile-nav-item > span', '.nav-dropdown-item', '.filter-toggle', '.lf-chips button',
   // Short values in cards: prices, dates, counts, names.
-  '.meta-label', '.meta-value', '.kt-btn', '.receipt-strip .receipt-note', '.empty-title', '.cf-title', '.kt-won', '.top10-won', '.top10-price', '.kt-item-line strong', '.od-pass-route strong', '.od-pass-route span', '.od-price-stub strong', '.od-pass-fields div:not(.is-wide) dd', '.od-pass-who p', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip',
+  '.meta-label', '.meta-value', '.kt-btn', '.receipt-strip .receipt-note', '.empty-title', '.cf-title', '.kt-won', '.top10-won', '.top10-price', '.kt-item-line strong', '.od-pass-route strong', '.od-pass-route span', '.od-price-stub strong', '.od-pass-fields div:not(.is-wide) dd', '.od-pass-who p', '.meta-sub', '.od-fact-sub', '.person p', '.person small', '.route-chip', '.request-meta span', '.row-meta span', '.request-left', '.request-by', '.chat-link .grow > b', '.chat-link .grow > small', '.od-next', '.ob-btn', '.top10-name', '.kt-shortcut > span', '.kt-profile-text p',
 ].join(',');
+
+/**
+ * Every other bit of text that holds its words directly (labels, values, hints, list items, short notes).
+ * It is shrunk onto one line too, but only while it stays readable; a sentence too long for that wraps normally.
+ */
+const SOFT_SELECTOR = 'p, span, small, b, strong, em, a, label, dt, dd, li, td, th, button, figcaption, legend';
+const SOFT_SKIP = 'input, textarea, select, option, [contenteditable], svg, .sr-only, .visually-hidden, [aria-hidden="true"], .chat-bubble, .msg, [data-fit-skip]';
 
 /** Number of rendered text lines inside el (icons, badges and emoji at other heights don't count). */
 function lineCount(el: HTMLElement) {
@@ -51,7 +58,7 @@ const set = (el: HTMLElement, prop: string, value: string) => el.style.setProper
 const FIT_PROPS = ['font-size', 'width', 'max-width', 'white-space', 'display'];
 
 /** Buttons, tabs and chips never wrap by design, so for them overflowing sideways counts too. */
-const NOWRAP_CONTROLS = '.btn, [role="tab"], .chip, .lf-chips button';
+const NOWRAP_CONTROLS = '.btn, [role="tab"], .chip, .lf-chips button, .ob-btn';
 /** Width available for content inside el (its box minus padding). */
 function innerWidth(el: HTMLElement) {
   const cs = getComputedStyle(el);
@@ -68,31 +75,63 @@ function contentWidth(el: HTMLElement) {
   return range.getBoundingClientRect().width;
 }
 
+/** Lines hidden by a line clamp or a fixed height still count: the text didn't fit on one line. */
+function hiddenLines(el: HTMLElement) {
+  const cs = getComputedStyle(el);
+  return cs.overflowY !== 'visible' && el.clientHeight > 0 && el.scrollHeight > el.clientHeight + 2
+    && el.scrollHeight >= (parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2) * 1.5;
+}
+
 function needsFit(el: HTMLElement) {
-  if (lineCount(el) > 1) return true;
+  if (lineCount(el) > 1 || hiddenLines(el)) return true;
   return el.matches(NOWRAP_CONTROLS) && el.clientWidth > 0 && contentWidth(el) > innerWidth(el) + 1;
 }
 
-function fit(el: HTMLElement) {
+/** Holds text directly (not only through child elements). */
+function ownsText(el: HTMLElement) {
+  for (const n of Array.from(el.childNodes)) if (n.nodeType === 3 && n.textContent?.trim()) return true;
+  return false;
+}
+
+function fit(el: HTMLElement, soft = false) {
   const base = parseFloat(getComputedStyle(el).fontSize) || 16;
   const big = el.tagName === 'H1' || el.tagName === 'H2';
-  const min = Math.min(base, big ? Math.max(16, base * 0.5) : Math.max(9, base * 0.65));
+  const min = Math.min(base, soft ? Math.max(10, base * 0.72) : big ? Math.max(16, base * 0.5) : Math.max(9, base * 0.65));
+  // Inline text has no width of its own: measure it in its line box instead.
+  if (getComputedStyle(el).display === 'inline') {
+    if (!soft) return;
+    set(el, 'display', 'inline-block');
+    set(el, 'max-width', '100%');
+  }
   const avail = el.clientWidth;
-  if (!avail) return;
+  if (!avail) { if (soft) for (const prop of FIT_PROPS) el.style.removeProperty(prop); return; }
 
   // Measure the one-line width, then scale the font to the space inside the element.
   const clamped = getComputedStyle(el).display === '-webkit-box';
   if (clamped) set(el, 'display', 'block');
+  // Padding measured first: a box sized by its content widens while the text is held on one line.
+  const pad = avail - innerWidth(el);
   set(el, 'white-space', 'nowrap');
-  const textWidth = Math.max(el.scrollWidth - (avail - innerWidth(el)), contentWidth(el));
+  const textWidth = Math.max(el.scrollWidth - pad, contentWidth(el));
   el.style.removeProperty('white-space');
   const space = innerWidth(el);
-  let size = Math.max(min, Math.min(base, (base * space) / Math.max(textWidth, 1) * 0.97));
+  const ideal = (base * space) / Math.max(textWidth, 1) * 0.97;
+  if (soft && ideal < min * 0.9) {
+    // A sentence that would turn too small on one line: leave it wrapping at its normal size.
+    for (const prop of FIT_PROPS) el.style.removeProperty(prop);
+    return;
+  }
+  let size = Math.max(min, Math.min(base, ideal));
   el.dataset.fit = '1';
   set(el, 'font-size', `${size}px`);
   for (let i = 0; i < 8 && size > min && needsFit(el); i++) {
     size = Math.max(min, size * 0.93);
     set(el, 'font-size', `${size}px`);
+  }
+  if (needsFit(el) && soft) {
+    for (const prop of FIT_PROPS) el.style.removeProperty(prop);
+    delete el.dataset.fit;
+    return;
   }
   if (needsFit(el)) {
     // Smallest readable size still doesn't fit: one line with an ellipsis, held to the width it had.
@@ -104,15 +143,23 @@ function fit(el: HTMLElement) {
 
 function fitAll() {
   const els = Array.from(document.querySelectorAll<HTMLElement>(FIT_SELECTOR));
-  for (const el of els) {
-    if (!el.dataset.fit) continue;
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>('[data-fit]'))) {
     for (const prop of FIT_PROPS) el.style.removeProperty(prop);
     el.classList.remove('fit-clip');
     delete el.dataset.fit;
   }
+  const hard = new Set(els);
   for (const el of els) {
     if (!el.textContent?.trim() || el.closest('[data-fit-skip]')) continue;
     if (needsFit(el) && !isMultiPart(el)) fit(el);
+  }
+  // Everything else: parents before children, so a fitted label's inner spans are measured at the new size.
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>(SOFT_SELECTOR))) {
+    if (hard.has(el) || el.closest(SOFT_SKIP) || !ownsText(el)) continue;
+    if (el.closest('[data-fit]') && el.closest('[data-fit]') !== el) continue;
+    // A word or link inside a sentence goes with the sentence, not on its own.
+    if (getComputedStyle(el).display === 'inline' && el.parentElement && ownsText(el.parentElement)) continue;
+    if (needsFit(el) && !isMultiPart(el)) fit(el, true);
   }
 }
 

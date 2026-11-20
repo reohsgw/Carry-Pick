@@ -505,3 +505,4 @@ export function DualMoneyInput({ dual, currency, symbol, decimals, rate, rateNot
     </div>
   );
 }
+

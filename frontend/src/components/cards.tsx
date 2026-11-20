@@ -109,6 +109,7 @@ export function RequestCard({ request, to }: { request: PurchaseRequest; to: str
   const { t, lang } = useI18n();
   const { config } = useSession();
   const left = daysUntil(request.deadline);
+  const showLeft = request.status === 'OPEN' && left >= 0;
   return (
     <article className="request-card">
       {request.status === 'MATCHED' && (
@@ -117,14 +118,22 @@ export function RequestCard({ request, to }: { request: PurchaseRequest; to: str
       <div className="request-head">
         <ProductThumb src={request.imageUrl} size={72} />
         <div className="grow">
-          <div className="person" style={{ marginBottom: 8 }}>
-            <Avatar name={request.buyer.name} src={request.buyer.avatarUrl} />
-            <p>{firstName(request.buyer.name)}</p>
+          <div className="request-top">
+            <div className="person">
+              <Avatar name={request.buyer.name} src={request.buyer.avatarUrl} />
+              <p>{firstName(request.buyer.name)}</p>
+            </div>
+            {showLeft && (
+              <div className="request-corner">
+                <span className="request-left">{t('orders.daysLeft', { n: left })}</span>
+                <small className="request-by">{t('orders.by', { date: shortDate(request.deadline, lang) })}</small>
+              </div>
+            )}
           </div>
           <h3><Link to={to}>{request.productName}</Link></h3>
           <div className="request-meta">
             <span>{countryName(config, request.countryCode, lang)} → {lang === 'ko' ? '한국' : 'Korea'}</span>
-            <span>{t('orders.by', { date: shortDate(request.deadline, lang) })}{request.status === 'OPEN' && left >= 0 ? `, ${t('orders.daysLeft', { n: left })}` : ''}</span>
+            {!showLeft && <span>{t('orders.by', { date: shortDate(request.deadline, lang) })}</span>}
             <span>{t('orders.budget', { amount: budgetText(request, lang) })}</span>
             {request.weightGrams != null && <span>{t('w.approx', { w: weight(request.weightGrams) })}</span>}
           </div>
