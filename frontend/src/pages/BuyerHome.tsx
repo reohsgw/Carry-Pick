@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Search as SearchIcon } from '../components/icons';
@@ -21,6 +21,26 @@ export default function BuyerHome() {
   const navigate = useNavigate();
   const { country } = useCountry();
   const [q, setQ] = useState('');
+  const heroSearch = useRef<HTMLFormElement>(null);
+  const [pinnedTop, setPinnedTop] = useState<number | null>(null);
+  const search = (e: FormEvent) => {
+    e.preventDefault();
+    navigate(`/search?q=${encodeURIComponent(q)}${country === ALL_COUNTRIES ? '' : `&country=${country}`}`);
+  };
+
+  useEffect(() => {
+    const form = heroSearch.current;
+    if (!form) return;
+    const headerBottom = () => document.querySelector('.app-header')?.getBoundingClientRect().bottom ?? 0;
+    const update = () => {
+      const top = headerBottom();
+      setPinnedTop(form.getBoundingClientRect().bottom < top ? top : null);
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { window.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, []);
   const [tipOpen, setTipOpen] = useState<boolean | null>(null);
   const ranking = useQuery({ queryKey: ['ranking', country], queryFn: () => api.ranking(country) });
   const offers = useQuery({ queryKey: ['offers', country], queryFn: () => api.offers(country) });
@@ -39,6 +59,15 @@ export default function BuyerHome() {
 
   return (
     <Screen flush>
+      {pinnedTop != null && (
+        <div className="pinned-search" style={{ top: pinnedTop }}>
+          <form className="hero-search is-pinned" role="search" onSubmit={search}>
+            <SearchIcon size={18} aria-hidden />
+            <input placeholder={t('home.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.search')} />
+            <button className="btn btn-primary hero-search-btn">{t('home.searchBtn')}</button>
+          </form>
+        </div>
+      )}
       <section className="hero-section">
         <div className="hero-inner">
           <h1 className="hero-logo-wrap"><HeroLogo label="CarryPick" /></h1>
@@ -47,11 +76,7 @@ export default function BuyerHome() {
           <p className="hero-body">
             {t('home.heroBody').split('\n').map((line) => <span key={line} className="hero-body-line">{line}</span>)}
           </p>
-          <form
-            className="hero-search"
-            role="search"
-            onSubmit={(e) => { e.preventDefault(); navigate(`/search?q=${encodeURIComponent(q)}${country === ALL_COUNTRIES ? '' : `&country=${country}`}`); }}
-          >
+          <form ref={heroSearch} className="hero-search" role="search" onSubmit={search}>
             <SearchIcon size={20} aria-hidden />
             <input placeholder={t('home.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.search')} />
             <button className="btn btn-primary hero-search-btn">{t('home.searchBtn')}</button>

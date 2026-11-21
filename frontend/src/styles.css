@@ -7535,3 +7535,24 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
   .au-login-btn { padding: 6px 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .au-card { animation: none; } }
+
+.pinned-search {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 39;
+  padding: 8px 16px;
+  background: rgb(250 250 250 / 0.97);
+  border-bottom: 1px dashed rgb(107 116 123 / 0.28);
+  animation: pinned-in .18s ease-out;
+}
+.pinned-search .hero-search.is-pinned {
+  max-width: 760px !important;
+  margin: 0 auto;
+  padding: 4px 4px 4px 14px;
+  gap: 10px;
+}
+.pinned-search .hero-search.is-pinned input { font-size: 15px; }
+.pinned-search .hero-search.is-pinned .hero-search-btn { min-height: 38px; padding: 6px 16px; font-size: 14px; }
+@keyframes pinned-in { from { opacity: 0; transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .pinned-search { animation: none; } }
