@@ -22,7 +22,7 @@ export default function BuyerHome() {
   const { country } = useCountry();
   const [q, setQ] = useState('');
   const heroSearch = useRef<HTMLFormElement>(null);
-  const [pinnedTop, setPinnedTop] = useState<number | null>(null);
+  const [pinned, setPinned] = useState<{ top: number; left: number; width: number } | null>(null);
   const search = (e: FormEvent) => {
     e.preventDefault();
     navigate(`/search?q=${encodeURIComponent(q)}${country === ALL_COUNTRIES ? '' : `&country=${country}`}`);
@@ -31,10 +31,10 @@ export default function BuyerHome() {
   useEffect(() => {
     const form = heroSearch.current;
     if (!form) return;
-    const headerBottom = () => document.querySelector('.app-header')?.getBoundingClientRect().bottom ?? 0;
     const update = () => {
-      const top = headerBottom();
-      setPinnedTop(form.getBoundingClientRect().bottom < top ? top : null);
+      const header = document.querySelector('.app-header')?.getBoundingClientRect();
+      if (!header || form.getBoundingClientRect().bottom >= header.bottom) { setPinned(null); return; }
+      setPinned({ top: header.bottom, left: header.left, width: header.width });
     };
     update();
     window.addEventListener('scroll', update, { passive: true });
@@ -59,8 +59,8 @@ export default function BuyerHome() {
 
   return (
     <Screen flush>
-      {pinnedTop != null && (
-        <div className="pinned-search" style={{ top: pinnedTop }}>
+      {pinned && (
+        <div className="pinned-search" style={pinned}>
           <form className="hero-search is-pinned" role="search" onSubmit={search}>
             <SearchIcon size={18} aria-hidden />
             <input placeholder={t('home.searchPlaceholder')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('nav.search')} />
