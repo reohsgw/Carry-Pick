@@ -203,7 +203,7 @@ PAYMENT_MODE=toss TOSS_CLIENT_KEY=test_ck_xxx TOSS_SECRET_KEY=test_sk_xxx \
 AI_PROVIDER=gemini GEMINI_API_KEY=xxx mvn spring-boot:run
 ```
 
-PostgreSQL을 쓰려면: `mvn spring-boot:run -Dspring-boot.run.profiles=postgres` (`DB_URL`, `DB_USER`, `DB_PASSWORD` 설정). 배포 방법은 [DEPLOY.md](DEPLOY.md)를 참고하세요.
+PostgreSQL을 쓰려면: `mvn spring-boot:run -Dspring-boot.run.profiles=postgres` (`DB_URL`, `DB_USER`, `DB_PASSWORD` 설정).
 
 테스트 실행: `cd backend && mvn test`
 
