@@ -179,6 +179,7 @@ const vi: Record<Key, string> = {
   'offer.closed': 'Đã ngừng đặt',
   'offer.closesIn': 'Còn {n} ngày để đặt',
   'offer.closesToday': 'Hôm nay là ngày đặt cuối',
+  'offer.closesTomorrow': 'Ngày mai hết hạn đặt',
   'offer.qty': 'Số lượng',
   'offer.noteFrom': 'Ghi chú của {name}',
   'offer.fewer': 'Ít hơn',

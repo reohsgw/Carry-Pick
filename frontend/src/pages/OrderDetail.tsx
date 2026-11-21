@@ -264,9 +264,10 @@ function TravelerActions({ order: o }: { order: Order }) {
   const cancel = useMutation({ mutationFn: () => api.cancelOrder(o.id), onSuccess: refresh });
   const err = cancel.error;
   const approved = o.extraItemAmount > 0;
-  const over = price !== '' && price > limit;
-  const under = price !== '' && price > 0 && price < limit;
-  const tagOk = tagPrice !== '' && tagPrice > budgetLimit;
+  const byWon = local && buy.mode === 'won';
+  const over = price !== '' && (byWon ? Number(buy.won) > won(limit) : price > limit);
+  const under = price !== '' && price > 0 && (byWon ? Number(buy.won) < won(limit) : price < limit);
+  const tagOk = tagPrice !== '' && (local && tag.mode === 'won' ? Number(tag.won) > won(budgetLimit) : tagPrice > budgetLimit);
   const priceInput = (d: DualAmount) => (local
     ? <DualMoneyInput dual={d} currency={cur} symbol={currencySymbol(cur)} decimals={decimals} rate={rate} rateNote={t('fx.locked')} required />
     : <MoneyInput value={d.amount} onChange={d.setAmount} required />);

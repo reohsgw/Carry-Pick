@@ -6940,10 +6940,10 @@ a.nt-row:focus-visible { outline: 2px solid #924B53; outline-offset: -2px; }
   color: var(--pass-muted);
 }
 .od-pass-main { display: grid; gap: 18px; padding: 18px 22px 20px; min-width: 0; }
-.od-pass-head { display: flex; align-items: center; gap: 12px; }
-.od-pass-who { min-width: 0; }
+.od-pass-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.od-pass-who { min-width: 0; flex: none; }
 .od-pass-who p { margin: 2px 0 0; font: 600 16px/1.2 var(--font); }
-.od-pass-tags { margin-left: auto; display: flex; gap: 6px; }
+.od-pass-tags { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-width: 0; }
 .od-pass-route { display: flex; align-items: flex-end; gap: 14px; }
 .od-pass-route > div:not(.od-pass-line) { display: grid; gap: 3px; min-width: 0; }
 .od-pass-route strong { font: 600 26px/1.05 var(--font); letter-spacing: -0.01em; white-space: nowrap; }
@@ -6974,6 +6974,13 @@ a.nt-row:focus-visible { outline: 2px solid #924B53; outline-offset: -2px; }
   }
 .od-pass-fields { row-gap: 12px; }
 .od-pass-fields > .is-wide { flex-basis: 100%; padding: 12px 0 0; border-left: 0; border-top: 1px dashed var(--pass-rule); }
+@media (max-width: 400px) {
+  .od-pass-route { gap: 8px; }
+  .od-pass-route strong { font-size: 19px; }
+  .od-pass-route span { white-space: normal; font-size: 12px; }
+  .od-pass-line { min-width: 28px; }
+  .od-pass-line svg { padding: 0 3px; }
+}
 
 .app .auth.auth--solo, .app:has(.auth) .auth.auth--solo {
   display: flex !important;

@@ -179,6 +179,7 @@ const id: Record<Key, string> = {
   'offer.closed': 'Pemesanan ditutup',
   'offer.closesIn': 'Pemesanan ditutup dalam {n} hari',
   'offer.closesToday': 'Hari terakhir pemesanan',
+  'offer.closesTomorrow': 'Pemesanan ditutup besok',
   'offer.qty': 'Jumlah',
   'offer.noteFrom': 'Catatan dari {name}',
   'offer.fewer': 'Kurangi',

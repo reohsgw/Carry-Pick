@@ -135,7 +135,7 @@ export default function OfferDetail() {
               <div className="od-pass-tags">
                 {o.receiptUrl && <Tag tone="good">{t('offer.bought')}</Tag>}
                 {!o.bookable && <Tag>{o.status === 'SOLD_OUT' ? t('offer.soldOut') : t('offer.closed')}</Tag>}
-                {o.bookable && closesIn <= 7 && <Tag tone="action">{closesIn <= 0 ? t('offer.closesToday') : t('offer.closesIn', { n: closesIn })}</Tag>}
+                {o.bookable && closesIn <= 7 && <Tag tone="action">{closesIn <= 0 ? t('offer.closesToday') : closesIn === 1 ? t('offer.closesTomorrow') : t('offer.closesIn', { n: closesIn })}</Tag>}
               </div>
             </div>
             <div className="od-pass-route">

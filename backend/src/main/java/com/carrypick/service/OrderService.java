@@ -229,7 +229,10 @@ public class OrderService {
         requireTraveler(o, userId);
         requireStatus(o, OrderStatus.PAID);
         long actualPrice;
-        if (actualLocal == null && actualPriceKrw != null && actualPriceKrw > 0 && o.hasLocalPrices()) actualLocal = o.wonToLocal(actualPriceKrw);
+        if (actualLocal == null && actualPriceKrw != null && actualPriceKrw > 0 && o.hasLocalPrices()) {
+            actualLocal = o.wonToLocal(actualPriceKrw);
+            if (actualPriceKrw <= o.toKrw(o.localLimit()) && actualLocal.compareTo(o.localLimit()) > 0) actualLocal = o.localLimit();
+        }
         if (actualLocal != null && o.hasLocalPrices()) {
             if (actualLocal.signum() <= 0) throw ApiException.badRequest("PRICE", "Actual price must be greater than 0");
             if (actualLocal.compareTo(o.localLimit()) > 0) {
@@ -266,7 +269,12 @@ public class OrderService {
             throw ApiException.conflict("ALREADY_APPROVED", "The buyer already approved a higher price for this order");
         }
         long price;
-        if (priceLocal == null && priceKrw != null && priceKrw > 0 && o.hasLocalPrices()) priceLocal = o.wonToLocal(priceKrw);
+        if (priceLocal == null && priceKrw != null && priceKrw > 0 && o.hasLocalPrices()) {
+            if (priceKrw <= o.toKrw(o.getLimitLocal())) {
+                throw ApiException.badRequest("NOT_OVER_BUDGET", "The price is within the budget. You can buy it now.");
+            }
+            priceLocal = o.wonToLocal(priceKrw);
+        }
         if (priceLocal != null && o.hasLocalPrices()) {
             if (priceLocal.compareTo(o.getLimitLocal()) <= 0) {
                 throw ApiException.badRequest("NOT_OVER_BUDGET", "The price is within the budget. You can buy it now.");

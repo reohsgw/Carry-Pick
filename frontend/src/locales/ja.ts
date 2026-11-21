@@ -179,6 +179,7 @@ const ja: Record<Key, string> = {
   'offer.closed': '予約終了',
   'offer.closesIn': 'あと{n}日で予約終了',
   'offer.closesToday': '今日が予約最終日',
+  'offer.closesTomorrow': '明日で予約終了',
   'offer.qty': '数量',
   'offer.noteFrom': '{name}さんからのメモ',
   'offer.fewer': '減らす',
