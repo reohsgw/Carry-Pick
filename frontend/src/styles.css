@@ -7555,3 +7555,4 @@ html, body, * { -webkit-tap-highlight-color: transparent; }
 .pinned-search .hero-search.is-pinned .hero-search-btn { min-height: 38px; padding: 6px 16px; font-size: 14px; }
 @keyframes pinned-in { from { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .pinned-search { animation: none; } }
+@media (min-width: 900px) { .pinned-search { display: none; } }
