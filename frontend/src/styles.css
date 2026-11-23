@@ -14,6 +14,14 @@
   src: url('./assets/fonts/SUIT-Variable.woff2') format('woff2-variations'), url('./assets/fonts/SUIT-Variable.woff2') format('woff2');
 }
 
+@font-face {
+  font-family: 'NanumSquare Neo';
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  src: url('./assets/fonts/NanumSquareNeo-Variable.woff2') format('woff2-variations'), url('./assets/fonts/NanumSquareNeo-Variable.woff2') format('woff2');
+}
+
 :root {
 
   --ink: #6B747B;
@@ -82,6 +90,12 @@ body {
   background: var(--ink);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+}
+
+html:lang(ko) {
+  --font: 'NanumSquare Neo', 'Apple SD Gothic Neo', sans-serif;
+  --font-ko: var(--font);
+  --display: var(--font);
 }
 
 html:lang(ko) body {
