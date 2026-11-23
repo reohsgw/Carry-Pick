@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search as SearchIcon, SearchX, X } from '../components/icons';
@@ -7,8 +7,9 @@ import { OfferCard, OfferRow, RequestRow } from '../components/cards';
 import { Screen } from '../components/Layout';
 import { Empty, ErrorBox, Loading, Sheet } from '../components/ui';
 import { useI18n, type Key } from '../i18n';
-import { CATEGORIES, countryLabel, daysUntil, krw } from '../format';
+import { ALL_COUNTRIES, CATEGORIES, countryLabel, daysUntil, krw } from '../format';
 import { useSession } from '../session';
+import { useCountry } from '../country';
 
 type Sort = 'best' | 'priceLow' | 'priceHigh' | 'arrival' | 'reward';
 const PRICES = [10000, 30000, 50000, 100000];
@@ -18,8 +19,16 @@ export default function Search() {
   const { t, lang } = useI18n();
   const [params, setParams] = useSearchParams();
   const q = params.get('q') ?? '';
-  const country = params.get('country') ?? '';
+  const { country: headerCountry, setCountry } = useCountry();
+  const country = headerCountry === ALL_COUNTRIES ? '' : headerCountry;
   const [text, setText] = useState(q);
+  const linkCountry = params.get('country');
+
+  useEffect(() => {
+    if (!linkCountry) return;
+    setCountry(linkCountry);
+    setParams(q ? { q } : {}, { replace: true });
+  }, [linkCountry]);
 
   const results = useQuery({
     queryKey: ['search', q, country],
@@ -101,7 +110,7 @@ export default function Search() {
         role="search"
         onSubmit={(e) => {
           e.preventDefault();
-          setParams({ q: text, ...(country ? { country } : {}) });
+          setParams({ q: text });
         }}
       >
         <SearchIcon size={20} aria-hidden />
@@ -109,7 +118,7 @@ export default function Search() {
         <select
           aria-label={t('req.country')}
           value={country}
-          onChange={(e) => setParams({ q, ...(e.target.value ? { country: e.target.value } : {}) })}
+          onChange={(e) => setCountry(e.target.value || ALL_COUNTRIES)}
         >
           <option value="">{t('search.allCountries')}</option>
           {config?.countries.map((c) => <option key={c.code} value={c.code}>{countryLabel(c, lang)}</option>)}
@@ -118,7 +127,7 @@ export default function Search() {
 
       {idle && (
         <>
-          <p className="search-idle-hint"><SearchIcon size={16} aria-hidden /> {t('search.idle')}</p>
+          <p className="search-idle-hint">{t('search.idle')}</p>
           {others.isLoading && <Loading />}
           {browse.length > 0 && (
             <section className="search-suggest search-browse" aria-labelledby="browse-title">
