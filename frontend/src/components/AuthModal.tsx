@@ -130,7 +130,7 @@ function AuthDialog({ onCancel, onDone }: { onCancel: () => void; onDone: (user:
             setError(null);
             if (signup) { setTab('login'); return; }
             if (await ask({ title: t('auth.demoTitle'), message: t('auth.demoBody'), mood: 'info', okLabel: t('auth.demoOk'), redTitle: true })) {
-              submit(undefined, 'buyer@carrypick.test');
+              submit(undefined, 'traveler@carrypick.test');
             }
           }}>
             {t(signup ? 'login.tab.login' : 'login.tab.signup')}

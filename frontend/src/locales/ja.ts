@@ -66,7 +66,7 @@ const ja: Record<Key, string> = {
   'auth.subSignup': '登録して海外の商品を注文、または代わりに買ってきましょう〜',
   'auth.demoTitle': 'デモアカウントをご利用ください',
   'auth.demoBody': 'メディアプロジェクトの授業でご覧の方は、新規登録の代わりにデモアカウントでログインしてください。',
-  'auth.demoOk': 'ミンジのアカウントでログイン',
+  'auth.demoOk': 'ケンジのアカウントでログイン',
   'auth.or': 'または',
   'auth.emailPlaceholder': 'メールアドレスを入力してください',
   'auth.noAccount': 'アカウントをお持ちでないですか？',

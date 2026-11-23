@@ -66,7 +66,7 @@ const vi: Record<Key, string> = {
   'auth.subSignup': 'Đăng ký để đặt hàng từ nước ngoài hoặc mua hộ người khác~',
   'auth.demoTitle': 'Vui lòng dùng tài khoản demo',
   'auth.demoBody': 'Nếu bạn đang xem trang này cho môn Media Project, vui lòng đăng nhập bằng tài khoản demo thay vì đăng ký.',
-  'auth.demoOk': 'Đăng nhập bằng Minji',
+  'auth.demoOk': 'Đăng nhập bằng Kenji',
   'auth.or': 'hoặc',
   'auth.emailPlaceholder': 'Nhập địa chỉ email của bạn',
   'auth.noAccount': 'Chưa có tài khoản?',

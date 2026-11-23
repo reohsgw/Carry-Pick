@@ -66,7 +66,7 @@ const id: Record<Key, string> = {
   'auth.subSignup': 'Daftar untuk memesan dari luar negeri atau membelikan untuk orang lain~',
   'auth.demoTitle': 'Silakan gunakan akun demo',
   'auth.demoBody': 'Jika kamu melihat ini untuk mata kuliah Media Project, silakan masuk dengan akun demo alih-alih mendaftar.',
-  'auth.demoOk': 'Masuk sebagai Minji',
+  'auth.demoOk': 'Masuk sebagai Kenji',
   'auth.or': 'atau',
   'auth.emailPlaceholder': 'Masukkan alamat email kamu',
   'auth.noAccount': 'Belum punya akun?',
