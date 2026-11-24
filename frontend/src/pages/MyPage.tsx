@@ -7,7 +7,7 @@ import {
 import { api, type Order } from '../api';
 import { firstName, useRoute } from '../components/cards';
 import { Screen } from '../components/Layout';
-import { Avatar, Loading, Notice, ProductThumb, Tag } from '../components/ui';
+import { Avatar, Loading, Modal, Notice, ProductThumb, Tag } from '../components/ui';
 import { ACTIVE_STATUSES, approx, countryName, daysUntil, krw, money, yearDate, yearRange } from '../format';
 import { LangSelect, useErrorText, useI18n, type Key } from '../i18n';
 import { useSession } from '../session';
@@ -37,6 +37,7 @@ export default function MyPage() {
     },
   });
   const offers = useQuery({ queryKey: ['myOffers'], queryFn: api.myOffers });
+  const [payList, setPayList] = useState<'pending' | 'earned' | null>(null);
   const carrying = useQuery({ queryKey: ['myOrders', 'traveler'], queryFn: () => api.myOrders('traveler') });
   const buying = useQuery({ queryKey: ['myOrders', 'buyer'], queryFn: () => api.myOrders('buyer') });
   const requests = useQuery({ queryKey: ['myRequests'], queryFn: api.myRequests });
@@ -48,8 +49,11 @@ export default function MyPage() {
   const itemOf = (o: Order) => o.actualPrice ?? o.itemLimit;
   const sumUp = (list: Order[]) => list.reduce(
     (acc, o) => ({ item: acc.item + itemOf(o), reward: acc.reward + o.reward }), { item: 0, reward: 0 });
-  const pending = sumUp(carryActive.filter((o) => ['PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED', 'DISPUTED'].includes(o.status)));
-  const earned = sumUp((carrying.data ?? []).filter((o) => o.status === 'SETTLED'));
+  const pendingOrders = carryActive.filter((o) => ['PAID', 'AWAITING_APPROVAL', 'PURCHASED', 'DELIVERED', 'DISPUTED'].includes(o.status));
+  const earnedOrders = (carrying.data ?? []).filter((o) => o.status === 'SETTLED')
+    .sort((a, b) => (b.settledAt ?? b.completedAt ?? '').localeCompare(a.settledAt ?? a.completedAt ?? ''));
+  const pending = sumUp(pendingOrders);
+  const earned = sumUp(earnedOrders);
   const buyNews = (buying.data ?? []).filter(hasNews).length;
   const carryNews = (carrying.data ?? []).filter(hasNews).length;
   const newRequests = (requests.data ?? []).filter(isNew).length;
@@ -133,15 +137,57 @@ export default function MyPage() {
           <section className="kt-sheet kt-wallet">
             <span className="kt-wallet-title"><Ticket size={18} aria-hidden /> {t('kt.wallet')}</span>
             <div className="kt-wallet-sums">
-              <div>
-                <span>{t('kt.pending')}</span>
+              <button type="button" className="kt-wallet-sum" onClick={() => setPayList('pending')}>
+                <span>{t('kt.pending')} <ChevronRight size={14} aria-hidden /></span>
                 <strong>{krw(pending.item + pending.reward)}</strong>
-              </div>
-              <div>
-                <span>{t('kt.earned')}</span>
+              </button>
+              <button type="button" className="kt-wallet-sum" onClick={() => setPayList('earned')}>
+                <span>{t('kt.earned')} <ChevronRight size={14} aria-hidden /></span>
                 <strong>{krw(earned.item + earned.reward)}</strong>
-              </div>
+              </button>
             </div>
+            <Modal
+              open={payList !== null}
+              onClose={() => setPayList(null)}
+              title={t(payList === 'earned' ? 'kt.earned' : 'kt.pending')}
+              eyebrow={t(payList === 'earned' ? 'kt.earnedNote' : 'kt.pendingNote')}
+            >
+              {(() => {
+                const list = payList === 'earned' ? earnedOrders : pendingOrders;
+                const sum = payList === 'earned' ? earned : pending;
+                if (list.length === 0) return <p className="kt-empty">{t(payList === 'earned' ? 'kt.earnedEmpty' : 'kt.pendingEmpty')}</p>;
+                return (
+                  <>
+                    <ul className="kt-pay-list">
+                      {list.map((o) => (
+                        <li key={o.id}>
+                          <Link to={`/orders/${o.id}`} className="kt-pay-row" onClick={() => setPayList(null)}>
+                            <ProductThumb src={o.imageUrl} category={o.category} size={48} />
+                            <div className="kt-pay-body">
+                              <h3>{o.productName}</h3>
+                              <p>
+                                {firstName(o.buyer.name)}
+                                {' · '}
+                                {payList === 'earned'
+                                  ? t('kt.settledOn', { date: yearDate(o.settledAt ?? o.completedAt, lang) })
+                                  : o.status === 'DELIVERED' && o.autoConfirmAt
+                                    ? t('kt.autoOn', { date: yearDate(o.autoConfirmAt, lang) })
+                                    : t(`st.${o.status}` as Key)}
+                              </p>
+                            </div>
+                            <strong>{krw(itemOf(o) + o.reward)}</strong>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="kt-pay-total">
+                      <span>{t('kt.payTotal')}</span>
+                      <strong>{krw(sum.item + sum.reward)}</strong>
+                    </div>
+                  </>
+                );
+              })()}
+            </Modal>
             <div className="kt-wallet-actions">
               <Link to={next ? `/t/offers/new?trip=${next.id}` : '/t/offers/new'} className="kt-btn is-solid is-main">{t('t.offerItem')}</Link>
               <Link to="/t/trips/new" className="kt-btn"><Plus size={16} aria-hidden /> {t('t.addTrip')}</Link>
