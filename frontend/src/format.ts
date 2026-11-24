@@ -57,10 +57,18 @@ export const approx = (lang: Lang) => APPROX[lang];
 
 const ALL_LABEL: Record<Lang, string> = { ko: '전체 국가', en: 'All countries', ja: 'すべての国', vi: 'Tất cả quốc gia', id: 'Semua negara' };
 
+const SHORT_NAMES: Partial<Record<Lang, Record<string, string>>> = {
+  ja: { US: 'アメリカ', HK: '香港' },
+  vi: { HK: 'Hồng Kông' },
+  id: { HK: 'Hong Kong' },
+};
+
 export function countryLabel(c: { code: string; name: string; nameKo: string }, lang: Lang): string {
   if (c.code === ALL_COUNTRIES) return ALL_LABEL[lang];
   if (lang === 'ko') return c.nameKo;
   if (lang === 'en') return c.name;
+  const short = SHORT_NAMES[lang]?.[c.code];
+  if (short) return short;
   try {
     return new Intl.DisplayNames([localeOf(lang)], { type: 'region' }).of(c.code) ?? c.name;
   } catch {
